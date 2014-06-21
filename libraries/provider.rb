@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Recipe:: default
+# Library:: provider
 #
 # Copyright 2014, Jonathan Hartman
 #
@@ -18,7 +18,4 @@
 # limitations under the License.
 #
 
-chef_dk 'my_chef_dk' do
-  package_url 'http://something'
-  version '1.1.1'
-end
+require_relative 'provider/chef_dk'

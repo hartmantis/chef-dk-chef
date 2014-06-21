@@ -8,3 +8,8 @@ description      'Installs/configures the Chef-DK'
 long_description 'Installs/configures the Chef-DK'
 version          '0.1.0'
 
+supports         'ubuntu', '>= 12.04'
+%w(redhat centos scientific amazon).each do |os|
+  supports       os, '>= 6.0'
+end
+supports         'mac_os_x', '>= 10.9'
