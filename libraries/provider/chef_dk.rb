@@ -58,6 +58,14 @@ class Chef
         package.run_action(:install)
       end
 
+      #
+      # Uninstall the ChefDK package and delete the cached file
+      #
+      def action_uninstall
+        package.run_action(:uninstall)
+        remote_file.run_action(:delete)
+      end
+
       private
 
       #
