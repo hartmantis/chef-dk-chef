@@ -20,15 +20,15 @@
 require_relative '../spec_helper'
 require_relative '../../libraries/provider/chef_dk'
 
-describe Chef::Provider::ChefDK do
+describe Chef::Provider::ChefDk do
   let(:base_url) { 'https://opscode-omnibus-packages.s3.amazonaws.com' }
   let(:platform) { {} }
   let(:chefdk_version) { nil }
   let(:new_resource) { double(version: chefdk_version) }
-  let(:provider) { Chef::Provider::ChefDK.new(new_resource, nil) }
+  let(:provider) { Chef::Provider::ChefDk.new(new_resource, nil) }
 
   before(:each) do
-    allow_any_instance_of(Chef::Provider::ChefDK).to receive(:node).and_return(
+    allow_any_instance_of(Chef::Provider::ChefDk).to receive(:node).and_return(
       Fauxhai.mock(platform).data
     )
   end
@@ -50,9 +50,9 @@ describe Chef::Provider::ChefDK do
     let(:package) { double(run_action: true) }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:remote_file)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:remote_file)
         .and_return(remote_file)
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:package)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package)
         .and_return(package)
     end
 
@@ -72,9 +72,9 @@ describe Chef::Provider::ChefDK do
     let(:package) { double(run_action: true) }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:remote_file)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:remote_file)
         .and_return(remote_file)
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:package)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package)
         .and_return(package)
     end
 
@@ -93,7 +93,7 @@ describe Chef::Provider::ChefDK do
     let(:package) { double(version: double(nil?: false)) }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:package)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package)
         .and_return(package)
     end
 
@@ -106,7 +106,7 @@ describe Chef::Provider::ChefDK do
     let(:package) { double(version: '6.6.6') }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:package)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package)
         .and_return(package)
     end
 
@@ -120,7 +120,7 @@ describe Chef::Provider::ChefDK do
 
     before(:each) do
       allow(Chef::Resource::Package).to receive(:new).and_return(package)
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
         :local_package_path).and_return('/tmp/package.pkg')
     end
 
@@ -134,9 +134,9 @@ describe Chef::Provider::ChefDK do
 
     before(:each) do
       allow(Chef::Resource::RemoteFile).to receive(:new).and_return(remote_file)
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
         :local_package_path).and_return('/tmp/package.pkg')
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:package_url)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package_url)
         .and_return('http://package.com/package.pkg')
     end
 
@@ -150,7 +150,7 @@ describe Chef::Provider::ChefDK do
     let(:chefdk_version) { '0.1.0-1' }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:new_resource)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:new_resource)
         .and_return(new_resource)
     end
 
@@ -229,7 +229,7 @@ describe Chef::Provider::ChefDK do
 
   describe '#local_package_path' do
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:package_file)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package_file)
         .and_return('test.deb')
     end
 
@@ -244,9 +244,9 @@ describe Chef::Provider::ChefDK do
     let(:chefdk_version) { '0.1.0-1' }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:version)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:version)
         .and_return('0.1.0')
-      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:build)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:build)
         .and_return('1')
     end
 
@@ -262,7 +262,7 @@ describe Chef::Provider::ChefDK do
       versions.each do |version, filename|
         context "a #{os}-#{version} node" do
           before(:each) do
-            allow_any_instance_of(Chef::Provider::ChefDK).to receive(:extension)
+            allow_any_instance_of(Chef::Provider::ChefDk).to receive(:extension)
               .and_return(filename.split('.')[-1])
           end
           let(:platform) { { platform: os, version: version } }

@@ -26,7 +26,7 @@ class Chef
     # A Chef resource for the Chef-DK packages
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class ChefDK < Resource
+    class ChefDk < Resource
       attr_accessor :installed
 
       alias_method :installed?, :installed
@@ -34,7 +34,7 @@ class Chef
       def initialize(name, run_context = nil)
         super
         @resource_name = :chef_dk
-        @provider = Provider::ChefDK
+        @provider = Provider::ChefDk
 
         @action = :install
         @version = 'latest'

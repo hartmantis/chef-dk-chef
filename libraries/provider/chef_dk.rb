@@ -26,7 +26,7 @@ class Chef
     # A Chef provider for the Chef-DK packages
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class ChefDK < Provider
+    class ChefDk < Provider
       #
       # WhyRun is supported by this provider
       #
@@ -39,10 +39,10 @@ class Chef
       #
       # Load and return the current resource
       #
-      # @return [Chef::Resource::ChefDK]
+      # @return [Chef::Resource::ChefDk]
       #
       def load_current_resource
-        @current_resource ||= Resource::ChefDK.new(new_resource.name)
+        @current_resource ||= Resource::ChefDk.new(new_resource.name)
         if installed?
           @current_resource.installed = installed?
           @current_resource.version(installed_version)
@@ -51,7 +51,7 @@ class Chef
       end
 
       #
-      # Download and install the ChefDK package
+      # Download and install the ChefDk package
       #
       def action_install
         remote_file.run_action(:create)
@@ -59,7 +59,7 @@ class Chef
       end
 
       #
-      # Uninstall the ChefDK package and delete the cached file
+      # Uninstall the ChefDk package and delete the cached file
       #
       def action_uninstall
         package.run_action(:uninstall)

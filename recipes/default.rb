@@ -19,6 +19,5 @@
 #
 
 chef_dk 'my_chef_dk' do
-  package_url 'http://something'
-  version '1.1.1'
+  version '0.1.0-1'
 end
