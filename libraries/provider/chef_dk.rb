@@ -50,6 +50,14 @@ class Chef
         @current_resource
       end
 
+      #
+      # Download and install the ChefDK package
+      #
+      def action_install
+        remote_file.run_action(:create)
+        package.run_action(:install)
+      end
+
       private
 
       #
@@ -124,7 +132,7 @@ class Chef
       #
       # @return [String]
       #
-      def platform_version 
+      def platform_version
         case node['platform_family']
         when 'rhel'
           node['platform_version'].to_i.to_s
@@ -150,12 +158,7 @@ class Chef
       # @return [String]
       #
       def package_file
-        separator = case node['platform']
-                    when 'ubuntu'
-                      '_'
-                    else
-                      '-'
-                    end
+        separator = node['platform'] == 'ubuntu' ? '_' : '-'
         elements = %w(chefdk)
         case node['platform_family']
         when 'rhel'

@@ -45,6 +45,28 @@ describe Chef::Provider::ChefDK do
     end
   end
 
+  describe '#action_install' do
+    let(:remote_file) { double(run_action: true) }
+    let(:package) { double(run_action: true) }
+
+    before(:each) do
+      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:remote_file)
+        .and_return(remote_file)
+      allow_any_instance_of(Chef::Provider::ChefDK).to receive(:package)
+        .and_return(package)
+    end
+
+    it 'downloads the package remote file' do
+      expect(remote_file).to receive(:run_action).with(:create)
+      provider.action_install
+    end
+
+    it 'installs the package file' do
+      expect(package).to receive(:run_action).with(:install)
+      provider.action_install
+    end
+  end
+
   describe '#installed?' do
     let(:package) { double(version: double(nil?: false)) }
 
