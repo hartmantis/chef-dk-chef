@@ -23,7 +23,21 @@ describe 'chef-dk::default' do
   let(:runner) { ChefSpec::Runner.new }
   let(:chef_run) { runner.converge(described_recipe) }
 
-  it 'installs an instance of the Chef-DK' do
-    expect(chef_run).to install_chef_dk('my_chef_dk')
+  context 'with default attributes' do
+    it 'installs the latest version of the Chef-DK' do
+      expect(chef_run).to install_chef_dk('chef_dk').with(version: 'latest')
+    end
+  end
+
+  context 'an overridden version attribute' do
+    let(:runner) do
+      ChefSpec::Runner.new do |node|
+        node.set['chef_dk']['version'] = '1.2.3-4'
+      end
+    end
+
+    it 'installs the specified version of the Chef-DK' do
+      expect(chef_run).to install_chef_dk('chef_dk').with(version: '1.2.3-4')
+    end
   end
 end

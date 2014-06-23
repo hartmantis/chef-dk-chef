@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Recipe:: default
+# Attributes:: default
 #
 # Copyright 2014, Jonathan Hartman
 #
@@ -18,6 +18,4 @@
 # limitations under the License.
 #
 
-chef_dk 'chef_dk' do
-  version node['chef_dk']['version']
-end
+default['chef_dk']['version'] = 'latest'
