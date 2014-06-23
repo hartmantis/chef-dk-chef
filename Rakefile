@@ -34,9 +34,10 @@ module ChefDk
     end
 
     def self.ssh_key_ids
-      compute.ssh_keys.map do |k|
+      keys = compute.ssh_keys.map do |k|
         k.id if k.name == key_name
-      end.compact.join(', ')
+      end.compact
+      keys.empty? ? 'TBD' : keys.join(', ')
     end
 
     def self.upload_key_to_digitalocean!
