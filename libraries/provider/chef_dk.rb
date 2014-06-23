@@ -19,6 +19,8 @@
 #
 
 require 'chef/provider'
+require 'chef/provider/package/dpkg'
+require 'chef/provider/package/rpm'
 require_relative '../resource/chef_dk'
 
 class Chef
@@ -95,6 +97,12 @@ class Chef
       #
       def package
         @package ||= Resource::Package.new(local_package_path, run_context)
+        @package.provider(
+          case node['platform_family']
+          when 'debian' then Provider::Package::Dpkg
+          when 'rhel' then Provider::Package::Rpm
+          end
+        )
         @package.version(version)
         @package
       end
@@ -164,8 +172,8 @@ class Chef
         case node['platform_family']
         when 'rhel'
           node['platform_version'].to_i.to_s
-        when 'mac_os_x'
-          node['platform_version'].split('.')[0..1].join('.')
+        # when 'mac_os_x'
+        #   node['platform_version'].split('.')[0..1].join('.')
         else
           node['platform_version']
         end
@@ -210,8 +218,8 @@ class Chef
           '.deb'
         when 'rhel'
           '.rpm'
-        when 'mac_os_x'
-          '.dmg'
+          # when 'mac_os_x'
+          #   '.dmg'
         end
       end
 

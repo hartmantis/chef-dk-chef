@@ -12,4 +12,4 @@ supports         'ubuntu', '>= 12.04'
 %w(redhat centos scientific amazon).each do |os|
   supports       os, '>= 6.0'
 end
-supports         'mac_os_x', '>= 10.9'
+# supports         'mac_os_x', '>= 10.9'
