@@ -27,6 +27,8 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDk < Provider
+      LATEST_VERSION = '0.1.0-1'
+
       #
       # WhyRun is supported by this provider
       #
@@ -72,6 +74,7 @@ class Chef
       # Check whether the package is currently installed
       #
       # @return [TrueClass, FalseClass]
+      #
       def installed?
         !package.version.nil?
       end
@@ -91,7 +94,23 @@ class Chef
       # @return [Chef::Resource::Package]
       #
       def package
-        @package ||= Resource::Package.new(local_package_path)
+        @package ||= Resource::Package.new(local_package_path, run_context)
+        @package.version(version)
+        @package
+      end
+
+      #
+      # The package version string
+      #
+      # @return [String]
+      #
+      def version
+        @version ||= case new_resource.version
+                     when nil, 'latest'
+                       LATEST_VERSION
+                     else
+                       new_resource.version
+                     end
       end
 
       #
@@ -100,7 +119,8 @@ class Chef
       # @return [Chef::Resource::RemoteFile]
       #
       def remote_file
-        @remote_file ||= Resource::RemoteFile.new(local_package_path)
+        @remote_file ||= Resource::RemoteFile.new(local_package_path,
+                                                  run_context)
         @remote_file.source(package_url)
         @remote_file
       end

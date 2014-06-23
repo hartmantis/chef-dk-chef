@@ -116,7 +116,7 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#package' do
-    let(:package) { double }
+    let(:package) { double(version: true) }
 
     before(:each) do
       allow(Chef::Resource::Package).to receive(:new).and_return(package)
@@ -126,6 +126,30 @@ describe Chef::Provider::ChefDk do
 
     it 'returns an instance of Chef::Resource::Package' do
       expect(provider.send(:package).class).to eq(RSpec::Mocks::Double)
+    end
+  end
+
+  describe '#version' do
+    let(:version) { nil }
+    let(:new_resource) { double(version: version) }
+
+    before(:each) do
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:new_resource)
+        .and_return(new_resource)
+    end
+
+    context 'a version specified with the resource' do
+      let(:version) { '6.6.6' }
+
+      it 'returns the specified version' do
+        expect(provider.send(:version)).to eq('6.6.6')
+      end
+    end
+
+    context 'no version provided with the resource' do
+      it 'returns the default latest version' do
+        expect(provider.send(:version)).to eq('0.1.0-1')
+      end
     end
   end
 
