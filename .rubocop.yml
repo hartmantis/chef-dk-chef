@@ -1,0 +1,3 @@
+SingleSpaceBeforeFirstArg:
+  Exclude:
+    - "**/metadata.rb"
