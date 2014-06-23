@@ -290,6 +290,25 @@ describe Chef::Provider::ChefDk do
     end
   end
 
+  describe '#package_file_separator' do
+    {
+      'ubuntu' => { '12.04' => '_', '13.10' => '_' },
+      'redhat' => { '6.0' => '-', '6.5' => '-' },
+      'centos' => { '6.0' => '-', '6.5' => '-' }
+      # 'mac_os_x' => { '10.9.2' => '-' }
+    }.each do |os, versions|
+      versions.each do |version, separator|
+        context "a #{os}-#{version} node" do
+          let(:platform) { { platform: os, version: version } }
+
+          it "uses #{separator} as the filename separator" do
+            expect(provider.send(:package_file_separator)).to eq(separator)
+          end
+        end
+      end
+    end
+  end
+
   describe '#package_file_extension' do
     {
       'ubuntu' => { '12.04' => '.deb', '13.10' => '.deb' },

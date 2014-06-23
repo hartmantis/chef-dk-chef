@@ -175,7 +175,6 @@ class Chef
       # @return [String]
       #
       def package_file
-        separator = node['platform'] == 'ubuntu' ? '_' : '-'
         elements = [PACKAGE_NAME]
         case node['platform_family']
         when 'rhel'
@@ -185,7 +184,16 @@ class Chef
           elements << version
         end
         elements << 'amd64' if node['platform'] == 'ubuntu'
-        elements.join(separator) << package_file_extension
+        elements.join(package_file_separator) << package_file_extension
+      end
+
+      #
+      # The character separator used in package filenames for this platform
+      #
+      # @return [String]
+      #
+      def package_file_separator
+        node['platform'] == 'ubuntu' ? '_' : '-'
       end
 
       #
