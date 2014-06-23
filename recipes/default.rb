@@ -18,6 +18,4 @@
 # limitations under the License.
 #
 
-chef_dk 'my_chef_dk' do
-  version '0.1.0-1'
-end
+chef_dk 'chef_dk'

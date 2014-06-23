@@ -24,7 +24,7 @@ describe Chef::Provider::ChefDk do
   let(:base_url) { 'https://opscode-omnibus-packages.s3.amazonaws.com' }
   let(:platform) { {} }
   let(:chefdk_version) { nil }
-  let(:new_resource) { double(version: chefdk_version) }
+  let(:new_resource) { double(name: 'my_chef_dk', version: chefdk_version) }
   let(:provider) { Chef::Provider::ChefDk.new(new_resource, nil) }
 
   before(:each) do
@@ -40,16 +40,19 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#load_current_resource' do
-    it 'loads the correct version of an already-installed Chef-DK' do
-      pending('Not yet')
+    it 'returns a ChefDk resource' do
+      expect(provider.load_current_resource.class).to eq(Chef::Resource::ChefDk)
     end
   end
 
   describe '#action_install' do
+    let(:new_resource) { double(:'installed=' => true) }
     let(:remote_file) { double(run_action: true) }
     let(:package) { double(run_action: true) }
 
     before(:each) do
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:new_resource)
+        .and_return(new_resource)
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:remote_file)
         .and_return(remote_file)
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package)
@@ -65,13 +68,21 @@ describe Chef::Provider::ChefDk do
       expect(package).to receive(:run_action).with(:install)
       provider.action_install
     end
+
+    it 'sets the installed state to true' do
+      expect(new_resource).to receive(:'installed=').with(true)
+      provider.action_install
+    end
   end
 
   describe '#action_uninstall' do
+    let(:new_resource) { double(:'installed=' => true) }
     let(:remote_file) { double(run_action: true) }
     let(:package) { double(run_action: true) }
 
     before(:each) do
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:new_resource)
+        .and_return(new_resource)
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:remote_file)
         .and_return(remote_file)
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package)
@@ -87,36 +98,16 @@ describe Chef::Provider::ChefDk do
       expect(package).to receive(:run_action).with(:uninstall)
       provider.action_uninstall
     end
-  end
 
-  describe '#installed?' do
-    let(:package) { double(version: double(nil?: false)) }
-
-    before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package)
-        .and_return(package)
-    end
-
-    it 'returns true if a version of the package is installed' do
-      expect(provider.send(:installed?)).to eq(true)
-    end
-  end
-
-  describe '#installed_version' do
-    let(:package) { double(version: '6.6.6') }
-
-    before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package)
-        .and_return(package)
-    end
-
-    it 'returns the version string of the installed package' do
-      expect(provider.send(:installed_version)).to eq('6.6.6')
+    it 'sets the installed state to false' do
+      expect(new_resource).to receive(:'installed=').with(false)
+      provider.action_uninstall
     end
   end
 
   describe '#package' do
-    let(:package) { double(version: true) }
+    let(:package) { double(version: true, provider: true) }
+    let(:local_package_path) { '/tmp/package.pkg' }
 
     before(:each) do
       allow(Chef::Resource::Package).to receive(:new).and_return(package)
@@ -196,10 +187,10 @@ describe Chef::Provider::ChefDk do
                              'chefdk-0.1.0-1.el6.x86_64.rpm',
                     '6.5' => 'https://opscode-omnibus-packages.s3.' \
                              'amazonaws.com/el/6/x86_64/' \
-                             'chefdk-0.1.0-1.el6.x86_64.rpm' },
-      'mac_os_x' => { '10.9.2' =>  'https://opscode-omnibus-packages.s3.' \
-                                   'amazonaws.com/mac_os_x/10.9/x86_64/' \
-                                   'chefdk-0.1.0-1.dmg' }
+                             'chefdk-0.1.0-1.el6.x86_64.rpm' }
+      # 'mac_os_x' => { '10.9.2' =>  'https://opscode-omnibus-packages.s3.' \
+      #                              'amazonaws.com/mac_os_x/10.9/x86_64/' \
+      #                              'chefdk-0.1.0-1.dmg' }
     }.each do |os, versions|
       versions.each do |version, url|
         context "a #{os}-#{version} node" do
@@ -217,8 +208,8 @@ describe Chef::Provider::ChefDk do
     {
       'ubuntu' => { '12.04' => 'ubuntu', '13.10' => 'ubuntu' },
       'redhat' => { '6.0' => 'el', '6.5' => 'el' },
-      'centos' => { '6.0' => 'el', '6.5' => 'el' },
-      'mac_os_x' => { '10.9.2' => 'mac_os_x' }
+      'centos' => { '6.0' => 'el', '6.5' => 'el' }
+      # 'mac_os_x' => { '10.9.2' => 'mac_os_x' }
     }.each do |os, versions|
       versions.each do |version, parsed_platform|
         context "a #{os}-#{version} node" do
@@ -236,8 +227,8 @@ describe Chef::Provider::ChefDk do
     {
       'ubuntu' => { '12.04' => '12.04', '13.10' => '13.10' },
       'redhat' => { '6.0' => '6', '6.5' => '6' },
-      'centos' => { '6.0' => '6', '6.5' => '6' },
-      'mac_os_x' => { '10.9.2' => '10.9' }
+      'centos' => { '6.0' => '6', '6.5' => '6' }
+      # 'mac_os_x' => { '10.9.2' => '10.9' }
     }.each do |os, versions|
       versions.each do |version, parsed_version|
         context "a #{os}-#{version} node" do
@@ -269,7 +260,7 @@ describe Chef::Provider::ChefDk do
 
     before(:each) do
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:version)
-        .and_return('0.1.0')
+        .and_return('0.1.0-1')
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:build)
         .and_return('1')
     end
@@ -280,8 +271,8 @@ describe Chef::Provider::ChefDk do
       'redhat' => { '6.0' => 'chefdk-0.1.0-1.el6.x86_64.rpm',
                     '6.5' => 'chefdk-0.1.0-1.el6.x86_64.rpm' },
       'centos' => { '6.0' => 'chefdk-0.1.0-1.el6.x86_64.rpm',
-                    '6.5' => 'chefdk-0.1.0-1.el6.x86_64.rpm' },
-      'mac_os_x' => { '10.9.2' => 'chefdk-0.1.0-1.dmg' }
+                    '6.5' => 'chefdk-0.1.0-1.el6.x86_64.rpm' }
+      # 'mac_os_x' => { '10.9.2' => 'chefdk-0.1.0-1.dmg' }
     }.each do |os, versions|
       versions.each do |version, filename|
         context "a #{os}-#{version} node" do
@@ -303,8 +294,8 @@ describe Chef::Provider::ChefDk do
     {
       'ubuntu' => { '12.04' => '.deb', '13.10' => '.deb' },
       'redhat' => { '6.0' => '.rpm', '6.5' => '.rpm' },
-      'centos' => { '6.0' => '.rpm', '6.5' => '.rpm' },
-      'mac_os_x' => { '10.9.2' => '.dmg' }
+      'centos' => { '6.0' => '.rpm', '6.5' => '.rpm' }
+      # 'mac_os_x' => { '10.9.2' => '.dmg' }
     }.each do |os, versions|
       versions.each do |version, extension|
         context "a #{os}-#{version} node" do
@@ -315,12 +306,6 @@ describe Chef::Provider::ChefDk do
           end
         end
       end
-    end
-  end
-
-  describe '#base_url' do
-    it 'returns the base S3 bucket all the packages are under' do
-      expect(provider.send(:base_url)).to eq(base_url)
     end
   end
 end

@@ -29,7 +29,9 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDk < Provider
+      PACKAGE_NAME = 'chefdk'
       LATEST_VERSION = '0.1.0-1'
+      BASE_URL = 'https://opscode-omnibus-packages.s3.amazonaws.com'
 
       #
       # WhyRun is supported by this provider
@@ -47,11 +49,6 @@ class Chef
       #
       def load_current_resource
         @current_resource ||= Resource::ChefDk.new(new_resource.name)
-        if installed?
-          @current_resource.installed = installed?
-          @current_resource.version(installed_version)
-        end
-        @current_resource
       end
 
       #
@@ -60,6 +57,7 @@ class Chef
       def action_install
         remote_file.run_action(:create)
         package.run_action(:install)
+        new_resource.installed = true
       end
 
       #
@@ -68,27 +66,10 @@ class Chef
       def action_uninstall
         package.run_action(:uninstall)
         remote_file.run_action(:delete)
+        new_resource.installed = false
       end
 
       private
-
-      #
-      # Check whether the package is currently installed
-      #
-      # @return [TrueClass, FalseClass]
-      #
-      def installed?
-        !package.version.nil?
-      end
-
-      #
-      # The version of the package installed on the system
-      #
-      # @return [String]
-      #
-      def installed_version
-        package.version
-      end
 
       #
       # The Package resource for the package
@@ -113,8 +94,8 @@ class Chef
       # @return [String]
       #
       def version
-        @version ||= case new_resource.version
-                     when nil, 'latest'
+        @version ||= case new_resource.version.to_s
+                     when '', 'latest'
                        LATEST_VERSION
                      else
                        new_resource.version
@@ -139,7 +120,7 @@ class Chef
       # @return [String]
       #
       def package_url
-        ::File.join(base_url,
+        ::File.join(BASE_URL,
                     platform,
                     platform_version,
                     node['kernel']['machine'],
@@ -195,13 +176,13 @@ class Chef
       #
       def package_file
         separator = node['platform'] == 'ubuntu' ? '_' : '-'
-        elements = %w(chefdk)
+        elements = [PACKAGE_NAME]
         case node['platform_family']
         when 'rhel'
-          elements << "#{new_resource.version}.#{platform}" \
+          elements << "#{version}.#{platform}" \
                       "#{platform_version}.#{node['kernel']['machine']}"
         else
-          elements << new_resource.version
+          elements << version
         end
         elements << 'amd64' if node['platform'] == 'ubuntu'
         elements.join(separator) << package_file_extension
@@ -221,15 +202,6 @@ class Chef
           # when 'mac_os_x'
           #   '.dmg'
         end
-      end
-
-      #
-      # The base host under which all Chef-DK packages are located
-      #
-      # @return [String]
-      #
-      def base_url
-        'https://opscode-omnibus-packages.s3.amazonaws.com'
       end
     end
   end
