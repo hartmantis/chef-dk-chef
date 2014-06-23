@@ -15,6 +15,7 @@ module ChefDk
   # @author Jonathan Hartman <j@p4nt5.com>
   class Helpers
     def self.compute
+      require 'fog'
       Fog::Compute.new(provider: 'DigitalOcean',
                        digitalocean_client_id: ENV['DIGITALOCEAN_CLIENT_ID'],
                        digitalocean_api_key: ENV['DIGITALOCEAN_API_KEY'])
