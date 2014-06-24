@@ -18,10 +18,7 @@ group :development, :test do
   gem 'serverspec'
   gem 'fauxhai'
   gem 'test-kitchen'
-  gem 'kitchen-digitalocean',
-      # TODO: Pending the next release after 0.7.0
-      # https://github.com/test-kitchen/kitchen-digitalocean/pull/16
-      github: 'test-kitchen/kitchen-digitalocean'
+  gem 'kitchen-digitalocean', '>= 0.7.1'
   gem 'kitchen-vagrant'
   gem 'vagrant-wrapper'
   gem 'guard-kitchen'
