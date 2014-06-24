@@ -3,7 +3,7 @@ Chef-DK Cookbook
 [![Cookbook Version](http://img.shields.io/cookbook/v/chef-dk.svg)][cookbook]
 [![Build Status](http://img.shields.io/travis/RoboticCheese/chef-dk-chef.svg)][travis]
 
-[cookbook]: https://community.opscode.com/cookbooks/chef-dk
+[cookbook]: https://supermarket.getchef.com/cookbooks/supermarket
 [travis]: http://travis-ci.org/RoboticCheese/chef-dk-chef
 
 A cookbook for installing the Chef Development Kit.
