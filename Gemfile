@@ -19,10 +19,9 @@ group :development, :test do
   gem 'fauxhai'
   gem 'test-kitchen'
   gem 'kitchen-digitalocean',
-      # TODO: Pending the merge and release of
+      # TODO: Pending the next release after 0.7.0
       # https://github.com/test-kitchen/kitchen-digitalocean/pull/16
-      github: 'RoboticCheese/kitchen-digitalocean',
-      branch: 'roboticcheese/swap-centos-6.5-image-id'
+      github: 'test-kitchen/kitchen-digitalocean'
   gem 'kitchen-vagrant'
   gem 'vagrant-wrapper'
   gem 'guard-kitchen'
