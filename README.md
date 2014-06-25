@@ -14,7 +14,7 @@ Requirements
 A RHEL/CentOS/etc. 6, Ubuntu 12.04/13.10, or OS X 10.9.x node.
 
 This cookbook consumes the
-[dmg cookboko](http://supermarket.getchef.com/cookbooks/dmg) in order to
+[dmg cookbook](http://supermarket.getchef.com/cookbooks/dmg) in order to
 support OS X installs.
 
 Usage
