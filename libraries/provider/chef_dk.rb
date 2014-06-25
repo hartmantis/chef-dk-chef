@@ -156,11 +156,8 @@ class Chef
       # @return [String]
       #
       def package_url
-        ::File.join(BASE_URL,
-                    platform,
-                    platform_version,
-                    node['kernel']['machine'],
-                    package_file)
+        ::File.join(BASE_URL, platform, platform_version,
+                    node['kernel']['machine'], package_file)
       end
 
       #
@@ -206,11 +203,10 @@ class Chef
       # @return [String]
       #
       def package_file
-        elements = [PACKAGE_NAME]
         case node['platform_family']
-        when 'rhel' then elements << "#{version}.#{platform}" \
-                         "#{platform_version}.#{node['kernel']['machine']}"
-        else elements << version
+        when 'rhel' then elements = [PACKAGE_NAME, "#{version}.#{platform}" \
+                         "#{platform_version}.#{node['kernel']['machine']}"]
+        else elements = [PACKAGE_NAME, version]
         end
         elements << 'amd64' if node['platform'] == 'ubuntu'
         elements.join(package_file_separator) << package_file_extension
