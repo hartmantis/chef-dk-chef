@@ -21,6 +21,8 @@ require 'chef'
 require 'chefspec'
 require 'tmpdir'
 require 'fileutils'
+require_relative 'support/provider/dmg_package'
+require_relative 'support/resource/dmg_package'
 require_relative 'support/matchers/chef_dk'
 
 RSpec.configure do |c|

@@ -106,17 +106,127 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#package' do
-    let(:package) { double(version: true, provider: true) }
-    let(:local_package_path) { '/tmp/package.pkg' }
+    let(:package_resource_class) { nil }
+    let(:package_provider_class) { nil }
 
     before(:each) do
-      allow(Chef::Resource::Package).to receive(:new).and_return(package)
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(
-        :local_package_path).and_return('/tmp/package.pkg')
+        :package_resource_class).and_return(package_resource_class)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
+        :package_provider_class).and_return(package_provider_class)
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
+        :local_package_path).and_return('/tmp/blah.pkg')
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
+        :tailor_package_resource_to_platform).and_return(true)
     end
 
-    it 'returns an instance of Chef::Resource::Package' do
-      expect(provider.send(:package).class).to eq(RSpec::Mocks::Double)
+    context 'a Mac OS X node' do
+      let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
+      let(:package_resource_class) { Chef::Resource::DmgPackage }
+      let(:package_provider_class) { Chef::Provider::Package }
+
+      it 'returns a package resource' do
+        expect(provider.send(:package).class).to eq(package_resource_class)
+      end
+    end
+
+    context 'any other node' do
+      let(:package_resource_class) { Chef::Resource::Package }
+      let(:package_provider_class) { Chef::Provider::Package }
+
+      it 'returns a package resource' do
+        expect(provider.send(:package).class).to eq(package_resource_class)
+      end
+    end
+  end
+
+  describe '#tailor_package_resource_to_platform' do
+    let(:package_resource) { nil }
+    let(:pkg) { package_resource.new('chefdk') }
+
+    before(:each) do
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
+        :local_package_path).and_return('/tmp/blah.pkg')
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:pkg)
+        .and_return(pkg)
+    end
+
+    context 'a Mac OS X node' do
+      let(:package_resource) { Chef::Resource::DmgPackage }
+      let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
+
+      it 'has the app name set' do
+        expect_any_instance_of(package_resource).to receive(:app).with('chefdk')
+        provider.send(:tailor_package_resource_to_platform, pkg)
+      end
+
+      it 'has the file URI set' do
+        expect_any_instance_of(package_resource).to receive(:source)
+          .with('file:///tmp/blah.pkg')
+        provider.send(:tailor_package_resource_to_platform, pkg)
+      end
+
+      it 'has the pkg type set' do
+        expect_any_instance_of(package_resource).to receive(:type)
+          .with('pkg')
+        provider.send(:tailor_package_resource_to_platform, pkg)
+      end
+
+      it 'does not receive a version' do
+        expect_any_instance_of(package_resource).to_not receive(:version)
+        provider.send(:tailor_package_resource_to_platform, pkg)
+      end
+    end
+
+    context 'any other node' do
+      let(:package_resource) { Chef::Resource::Package }
+
+      it 'has the version set' do
+        expect_any_instance_of(package_resource).to receive(:version)
+        provider.send(:tailor_package_resource_to_platform, pkg)
+      end
+    end
+  end
+
+  describe '#package_resource_class' do
+    {
+      'ubuntu' => { '12.04' => 'Chef::Resource::Package' },
+      'redhat' => { '6.5' => 'Chef::Resource::Package' },
+      'centos' => { '6.5' => 'Chef::Resource::Package' },
+      'mac_os_x' => { '10.9.2' => 'Chef::Resource::DmgPackage' }
+    }.each do |os, attrs|
+      attrs.each do |version, pkg_resource|
+        context "a #{os} node" do
+          let(:platform) { { platform: os, version: version } }
+
+          it "returns the #{pkg_resource} class" do
+            expect(provider.send(:package_resource_class)).to eq(
+              Kernel.const_get(pkg_resource)
+            )
+          end
+        end
+      end
+    end
+  end
+
+  describe '#package_provider_class' do
+    {
+      'ubuntu' => { '12.04' => 'Chef::Provider::Package::Dpkg' },
+      'redhat' => { '6.5' => 'Chef::Provider::Package::Rpm' },
+      'centos' => { '6.5' => 'Chef::Provider::Package::Rpm' },
+      'mac_os_x' => { '10.9.2' => 'Chef::Provider::DmgPackage' }
+    }.each do |os, attrs|
+      attrs.each do |version, pkg_provider|
+        context "a #{os} node" do
+          let(:platform) { { platform: os, version: version } }
+
+          it "returns the #{pkg_provider} class" do
+            expect(provider.send(:package_provider_class)).to eq(
+              Kernel.const_get(pkg_provider)
+            )
+          end
+        end
+      end
     end
   end
 
@@ -187,10 +297,10 @@ describe Chef::Provider::ChefDk do
                              'chefdk-0.1.0-1.el6.x86_64.rpm',
                     '6.5' => 'https://opscode-omnibus-packages.s3.' \
                              'amazonaws.com/el/6/x86_64/' \
-                             'chefdk-0.1.0-1.el6.x86_64.rpm' }
-      # 'mac_os_x' => { '10.9.2' =>  'https://opscode-omnibus-packages.s3.' \
-      #                              'amazonaws.com/mac_os_x/10.9/x86_64/' \
-      #                              'chefdk-0.1.0-1.dmg' }
+                             'chefdk-0.1.0-1.el6.x86_64.rpm' },
+      'mac_os_x' => { '10.9.2' => 'https://opscode-omnibus-packages.s3.' \
+                                  'amazonaws.com/mac_os_x/10.9/x86_64/' \
+                                  'chefdk-0.1.0-1.dmg' }
     }.each do |os, versions|
       versions.each do |version, url|
         context "a #{os}-#{version} node" do
@@ -208,8 +318,8 @@ describe Chef::Provider::ChefDk do
     {
       'ubuntu' => { '12.04' => 'ubuntu', '13.10' => 'ubuntu' },
       'redhat' => { '6.0' => 'el', '6.5' => 'el' },
-      'centos' => { '6.0' => 'el', '6.5' => 'el' }
-      # 'mac_os_x' => { '10.9.2' => 'mac_os_x' }
+      'centos' => { '6.0' => 'el', '6.5' => 'el' },
+      'mac_os_x' => { '10.9.2' => 'mac_os_x' }
     }.each do |os, versions|
       versions.each do |version, parsed_platform|
         context "a #{os}-#{version} node" do
@@ -227,8 +337,8 @@ describe Chef::Provider::ChefDk do
     {
       'ubuntu' => { '12.04' => '12.04', '13.10' => '13.10' },
       'redhat' => { '6.0' => '6', '6.5' => '6' },
-      'centos' => { '6.0' => '6', '6.5' => '6' }
-      # 'mac_os_x' => { '10.9.2' => '10.9' }
+      'centos' => { '6.0' => '6', '6.5' => '6' },
+      'mac_os_x' => { '10.9.2' => '10.9' }
     }.each do |os, versions|
       versions.each do |version, parsed_version|
         context "a #{os}-#{version} node" do
@@ -271,8 +381,8 @@ describe Chef::Provider::ChefDk do
       'redhat' => { '6.0' => 'chefdk-0.1.0-1.el6.x86_64.rpm',
                     '6.5' => 'chefdk-0.1.0-1.el6.x86_64.rpm' },
       'centos' => { '6.0' => 'chefdk-0.1.0-1.el6.x86_64.rpm',
-                    '6.5' => 'chefdk-0.1.0-1.el6.x86_64.rpm' }
-      # 'mac_os_x' => { '10.9.2' => 'chefdk-0.1.0-1.dmg' }
+                    '6.5' => 'chefdk-0.1.0-1.el6.x86_64.rpm' },
+      'mac_os_x' => { '10.9.2' => 'chefdk-0.1.0-1.dmg' }
     }.each do |os, versions|
       versions.each do |version, filename|
         context "a #{os}-#{version} node" do
@@ -294,8 +404,8 @@ describe Chef::Provider::ChefDk do
     {
       'ubuntu' => { '12.04' => '_', '13.10' => '_' },
       'redhat' => { '6.0' => '-', '6.5' => '-' },
-      'centos' => { '6.0' => '-', '6.5' => '-' }
-      # 'mac_os_x' => { '10.9.2' => '-' }
+      'centos' => { '6.0' => '-', '6.5' => '-' },
+      'mac_os_x' => { '10.9.2' => '-' }
     }.each do |os, versions|
       versions.each do |version, separator|
         context "a #{os}-#{version} node" do
@@ -313,8 +423,8 @@ describe Chef::Provider::ChefDk do
     {
       'ubuntu' => { '12.04' => '.deb', '13.10' => '.deb' },
       'redhat' => { '6.0' => '.rpm', '6.5' => '.rpm' },
-      'centos' => { '6.0' => '.rpm', '6.5' => '.rpm' }
-      # 'mac_os_x' => { '10.9.2' => '.dmg' }
+      'centos' => { '6.0' => '.rpm', '6.5' => '.rpm' },
+      'mac_os_x' => { '10.9.2' => '.dmg' }
     }.each do |os, versions|
       versions.each do |version, extension|
         context "a #{os}-#{version} node" do
