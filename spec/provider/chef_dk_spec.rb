@@ -200,9 +200,10 @@ describe Chef::Provider::ChefDk do
           let(:platform) { { platform: os, version: version } }
 
           it "returns the #{pkg_resource} class" do
-            expect(provider.send(:package_resource_class)).to eq(
-              Kernel.const_get(pkg_resource)
-            )
+            expected = pkg_resource.split('::').reduce(Object) do |mod, clss|
+              mod.const_get(clss)
+            end
+            expect(provider.send(:package_resource_class)).to eq(expected)
           end
         end
       end
@@ -221,9 +222,10 @@ describe Chef::Provider::ChefDk do
           let(:platform) { { platform: os, version: version } }
 
           it "returns the #{pkg_provider} class" do
-            expect(provider.send(:package_provider_class)).to eq(
-              Kernel.const_get(pkg_provider)
-            )
+            expected = pkg_provider.split('::').reduce(Object) do |mod, clss|
+              mod.const_get(clss)
+            end
+            expect(provider.send(:package_provider_class)).to eq(expected)
           end
         end
       end
