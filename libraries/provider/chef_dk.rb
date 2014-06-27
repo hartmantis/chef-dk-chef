@@ -74,18 +74,56 @@ class Chef
       #
       # The Package resource for the package
       #
-      # @return [Chef::Resource::Package]
+      # @return [Chef::Resource::Package, Chef::Resource::DmgPackage]
       #
       def package
-        @package ||= Resource::Package.new(local_package_path, run_context)
-        @package.provider(
-          case node['platform_family']
-          when 'debian' then Provider::Package::Dpkg
-          when 'rhel' then Provider::Package::Rpm
-          end
-        )
-        @package.version(version)
+        @package ||= package_resource_class.new(local_package_path, run_context)
+        @package.provider(package_provider_class)
+        tailor_package_resource_to_platform(@package)
         @package
+      end
+
+      #
+      # Call the platform-specific methods for a given package
+      #
+      # @param [Chef::Resource::Package, Chef::Resource::DmgPackage]
+      # @return [Chef::Resource::Package, Chef::Resource::DmgPackage]
+      #
+      def tailor_package_resource_to_platform(pkg)
+        case node['platform_family']
+        when 'mac_os_x'
+          pkg.app(PACKAGE_NAME)
+          pkg.source("file://#{local_package_path}")
+          pkg.type('pkg')
+        else
+          pkg.version(version)
+        end
+      end
+
+      #
+      # The appropriate package resource class for this platform
+      #
+      # @return[Chef::Resource::Package, Chef::Resource::DmgPackage]
+      #
+      def package_resource_class
+        case node['platform_family']
+        when 'mac_os_x' then Resource::DmgPackage
+        else Resource::Package
+        end
+      end
+
+      #
+      # The appropriate package provider class for this platform
+      #
+      # @return[Chef::Provider::Package::Dpkg, Chef::Provider::Package::Rpm,
+      #         Chef::Provider::DmgPackage
+      #
+      def package_provider_class
+        case node['platform_family']
+        when 'debian' then Provider::Package::Dpkg
+        when 'rhel' then Provider::Package::Rpm
+        when 'mac_os_x' then Provider::DmgPackage
+        end
       end
 
       #
@@ -95,10 +133,8 @@ class Chef
       #
       def version
         @version ||= case new_resource.version.to_s
-                     when '', 'latest'
-                       LATEST_VERSION
-                     else
-                       new_resource.version
+                     when '', 'latest' then LATEST_VERSION
+                     else new_resource.version
                      end
       end
 
@@ -120,11 +156,8 @@ class Chef
       # @return [String]
       #
       def package_url
-        ::File.join(BASE_URL,
-                    platform,
-                    platform_version,
-                    node['kernel']['machine'],
-                    package_file)
+        ::File.join(BASE_URL, platform, platform_version,
+                    node['kernel']['machine'], package_file)
       end
 
       #
@@ -135,10 +168,8 @@ class Chef
       #
       def platform
         case node['platform_family']
-        when 'rhel'
-          'el'
-        else
-          node['platform']
+        when 'rhel' then 'el'
+        else node['platform']
         end
       end
 
@@ -151,12 +182,9 @@ class Chef
       #
       def platform_version
         case node['platform_family']
-        when 'rhel'
-          node['platform_version'].to_i.to_s
-        # when 'mac_os_x'
-        #   node['platform_version'].split('.')[0..1].join('.')
-        else
-          node['platform_version']
+        when 'rhel' then node['platform_version'].to_i.to_s
+        when 'mac_os_x' then node['platform_version'].split('.')[0..1].join('.')
+        else node['platform_version']
         end
       end
 
@@ -175,13 +203,10 @@ class Chef
       # @return [String]
       #
       def package_file
-        elements = [PACKAGE_NAME]
         case node['platform_family']
-        when 'rhel'
-          elements << "#{version}.#{platform}" \
-                      "#{platform_version}.#{node['kernel']['machine']}"
-        else
-          elements << version
+        when 'rhel' then elements = [PACKAGE_NAME, "#{version}.#{platform}" \
+                         "#{platform_version}.#{node['kernel']['machine']}"]
+        else elements = [PACKAGE_NAME, version]
         end
         elements << 'amd64' if node['platform'] == 'ubuntu'
         elements.join(package_file_separator) << package_file_extension
@@ -203,12 +228,9 @@ class Chef
       #
       def package_file_extension
         case node['platform_family']
-        when 'debian'
-          '.deb'
-        when 'rhel'
-          '.rpm'
-          # when 'mac_os_x'
-          #   '.dmg'
+        when 'debian' then '.deb'
+        when 'rhel' then '.rpm'
+        when 'mac_os_x' then '.dmg'
         end
       end
     end

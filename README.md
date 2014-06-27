@@ -11,9 +11,11 @@ A cookbook for installing the Chef Development Kit.
 Requirements
 ============
 
-A RHEL/CentOS/etc. 6, Ubuntu 12.04, or Ubuntu 13.10 node (while there are .dmg
-packages for OS X, there is not a Chef resource to automate installation of
-them).
+A RHEL/CentOS/etc. 6, Ubuntu 12.04/13.10, or OS X 10.9.x node.
+
+This cookbook consumes the
+[dmg cookbook](http://supermarket.getchef.com/cookbooks/dmg) in order to
+support OS X installs.
 
 Usage
 =====
