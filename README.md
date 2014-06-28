@@ -35,10 +35,11 @@ Attributes
 
 ***default***
 
-An attribute is provided to allow overriding of the package version the default
-recipe installs:
+Attributes are provided to allow overriding of the package version or URL the
+default recipe installs:
 
     default['chef_dk']['version'] = 'latest'
+    default['chef_dk']['package_url'] = nil
 
 Resources
 =========
@@ -49,9 +50,18 @@ Wraps the fetching of the package file from S3 and the package installation
 into a single resource:
 
     chef_dk '<A RESOURCE NAME>' do
-        version '<AN OPTIONAL VERSION OVERRIDE (DEFAULT IS 'latest')>'
-        action <:install|:uninstall (DEFAULT IS :install)>
+        version '1.2.3-4'
+        package_url 'http://here.is.the/package/url'
+        action :install
     end
+
+* `version` - An optional version to install (default is `'latest'`)
+* `package_url` - An optional override package URL (default is determined at
+  run time based on the OS and desired version)
+* `action` - Action to perform (default is `:install`, also supports
+  `:uninstall`)
+
+_Note: A `version` and `package_url` cannot be used together_
 
 License & Authors
 -----------------
