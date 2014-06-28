@@ -77,7 +77,7 @@ class Chef
       # @return [Chef::Resource::Package, Chef::Resource::DmgPackage]
       #
       def package
-        @package ||= package_resource_class.new(local_package_path, run_context)
+        @package ||= package_resource_class.new(download_path, run_context)
         @package.provider(package_provider_class)
         tailor_package_resource_to_platform(@package)
         @package
@@ -93,7 +93,7 @@ class Chef
         case node['platform_family']
         when 'mac_os_x'
           pkg.app(PACKAGE_NAME)
-          pkg.source("file://#{local_package_path}")
+          pkg.source("file://#{download_path}")
           pkg.type('pkg')
         else
           pkg.version(version)
@@ -144,8 +144,7 @@ class Chef
       # @return [Chef::Resource::RemoteFile]
       #
       def remote_file
-        @remote_file ||= Resource::RemoteFile.new(local_package_path,
-                                                  run_context)
+        @remote_file ||= Resource::RemoteFile.new(download_path, run_context)
         @remote_file.source(package_url)
         @remote_file
       end
@@ -156,8 +155,9 @@ class Chef
       # @return [String]
       #
       def package_url
-        ::File.join(BASE_URL, platform, platform_version,
-                    node['kernel']['machine'], package_file)
+        @package_url ||= new_resource.package_url ||
+          ::File.join(BASE_URL, platform, platform_version,
+                      node['kernel']['machine'], package_file)
       end
 
       #
@@ -189,11 +189,11 @@ class Chef
       end
 
       #
-      # The local filesystem path to download the package to
+      # The filesystem path to download the package to
       #
       # @return [String]
       #
-      def local_package_path
+      def download_path
         ::File.join(Chef::Config[:file_cache_path], package_file)
       end
 

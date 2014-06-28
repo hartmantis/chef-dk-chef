@@ -38,6 +38,7 @@ class Chef
 
         @action = :install
         @version = 'latest'
+        @package_url = nil
         @allowed_actions = [:install, :uninstall]
 
         @installed = false
@@ -50,7 +51,29 @@ class Chef
       # @return [String]
       #
       def version(arg = nil)
-        set_or_return(:version, arg, kind_of: String)
+        set_or_return(:version,
+                      arg,
+                      kind_of: String,
+                      callbacks: {
+                        'Can\'t set both a `version` and a `package_url`' =>
+                          ->(_) { package_url.nil? }
+                      })
+      end
+
+      #
+      # Optinally override the calculated package URL
+      #
+      # @param [String] arg
+      # @return [String]
+      #
+      def package_url(arg = nil)
+        set_or_return(:package_url,
+                      arg,
+                      kind_of: [String, NilClass],
+                      callbacks: {
+                        'Can\'t set both a `package_url` and a `version`' =>
+                          ->(_) { version == 'latest' }
+                      })
       end
     end
   end

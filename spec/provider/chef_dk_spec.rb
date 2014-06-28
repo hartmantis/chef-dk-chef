@@ -24,7 +24,12 @@ describe Chef::Provider::ChefDk do
   let(:base_url) { 'https://opscode-omnibus-packages.s3.amazonaws.com' }
   let(:platform) { {} }
   let(:chefdk_version) { nil }
-  let(:new_resource) { double(name: 'my_chef_dk', version: chefdk_version) }
+  let(:package_url) { nil }
+  let(:new_resource) do
+    double(name: 'my_chef_dk',
+           version: chefdk_version,
+           package_url: package_url)
+  end
   let(:provider) { Chef::Provider::ChefDk.new(new_resource, nil) }
 
   before(:each) do
@@ -114,8 +119,8 @@ describe Chef::Provider::ChefDk do
         :package_resource_class).and_return(package_resource_class)
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(
         :package_provider_class).and_return(package_provider_class)
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
-        :local_package_path).and_return('/tmp/blah.pkg')
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:download_path)
+        .and_return('/tmp/blah.pkg')
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(
         :tailor_package_resource_to_platform).and_return(true)
     end
@@ -145,8 +150,8 @@ describe Chef::Provider::ChefDk do
     let(:pkg) { package_resource.new('chefdk') }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
-        :local_package_path).and_return('/tmp/blah.pkg')
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:download_path)
+        .and_return('/tmp/blah.pkg')
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:pkg)
         .and_return(pkg)
     end
@@ -261,8 +266,8 @@ describe Chef::Provider::ChefDk do
 
     before(:each) do
       allow(Chef::Resource::RemoteFile).to receive(:new).and_return(remote_file)
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
-        :local_package_path).and_return('/tmp/package.pkg')
+      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:download_path)
+        .and_return('/tmp/package.pkg')
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package_url)
         .and_return('http://package.com/package.pkg')
     end
@@ -308,8 +313,18 @@ describe Chef::Provider::ChefDk do
         context "a #{os}-#{version} node" do
           let(:platform) { { platform: os, version: version } }
 
-          it 'returns the correct full package URL' do
-            expect(provider.send(:package_url)).to eq(url)
+          context 'no package_url override provided' do
+            it 'returns the correct full package URL' do
+              expect(provider.send(:package_url)).to eq(url)
+            end
+          end
+
+          context 'a package_url provided' do
+            let(:package_url) { 'http://example.com/package/url.package' }
+
+            it 'returns the overridden package URL' do
+              expect(provider.send(:package_url)).to eq(package_url)
+            end
           end
         end
       end
@@ -354,16 +369,14 @@ describe Chef::Provider::ChefDk do
     end
   end
 
-  describe '#local_package_path' do
+  describe '#download_path' do
     before(:each) do
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package_file)
         .and_return('test.deb')
     end
 
     it 'returns a path in the Chef file_cache_path' do
-      expect(provider.send(:local_package_path)).to eq(
-        '/var/chef/cache/test.deb'
-      )
+      expect(provider.send(:download_path)).to eq('/var/chef/cache/test.deb')
     end
   end
 

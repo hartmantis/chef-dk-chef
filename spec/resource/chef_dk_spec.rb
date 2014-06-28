@@ -22,10 +22,12 @@ require_relative '../../libraries/resource/chef_dk'
 
 describe Chef::Resource::ChefDk do
   let(:version) { nil }
+  let(:package_url) { nil }
   let(:resource) do
-    Chef::Resource::ChefDk.new('my_chef_dk', nil) do
-      version(version)
-    end
+    r = Chef::Resource::ChefDk.new('my_chef_dk', nil)
+    r.version(version)
+    r.package_url(package_url)
+    r
   end
 
   describe '#initialize' do
@@ -39,8 +41,56 @@ describe Chef::Resource::ChefDk do
   end
 
   describe '#version' do
-    it 'defaults to the latest version' do
-      expect(resource.version).to eq('latest')
+    context 'with no version override provided' do
+      it 'defaults to the latest version' do
+        expect(resource.version).to eq('latest')
+      end
+    end
+
+    context 'with a version override provided' do
+      let(:version) { '1.2.3-4' }
+
+      it 'returns the overridden version' do
+        expect(resource.version).to eq(version)
+      end
+    end
+
+    context 'with a version AND package_url provided' do
+      let(:version) { '1.2.3-4' }
+      let(:package_url) { 'http://example.com/pkg.pkg' }
+
+      it 'raises an exception' do
+        expect { resource.version }.to raise_error(
+          Chef::Exceptions::ValidationFailed
+        )
+      end
+    end
+  end
+
+  describe '#package_url' do
+    context 'with no override provided' do
+      it 'defaults to nil to let the provider calculate a URL' do
+        expect(resource.package_url).to eq(nil)
+      end
+    end
+
+    context 'with a package_url override provided' do
+      let(:package_url) { 'http://example.com/pkg.pkg' }
+
+      it 'returns the overridden package_url' do
+        expect(resource.package_url).to eq(package_url)
+      end
+    end
+
+    context 'with a package_url AND version override provided' do
+      let(:package_url) { 'http://example.com/pkg.pkg' }
+      let(:version) { '1.2.3-4' }
+
+      it 'raises an exception' do
+        expect { resource.package_url }.to raise_error(
+          Chef::Exceptions::ValidationFailed
+        )
+      end
     end
   end
 end
