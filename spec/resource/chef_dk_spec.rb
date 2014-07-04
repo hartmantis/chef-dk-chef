@@ -18,7 +18,7 @@
 # limitations under the License.
 
 require_relative '../spec_helper'
-require_relative '../../libraries/resource/chef_dk'
+require_relative '../../libraries/resource_chef_dk'
 
 describe Chef::Resource::ChefDk do
   let(:version) { nil }

@@ -18,7 +18,7 @@
 # limitations under the License.
 
 require_relative '../spec_helper'
-require_relative '../../libraries/provider/chef_dk'
+require_relative '../../libraries/provider_chef_dk'
 
 describe Chef::Provider::ChefDk do
   let(:base_url) { 'https://opscode-omnibus-packages.s3.amazonaws.com' }

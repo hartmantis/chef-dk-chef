@@ -18,6 +18,9 @@
 # limitations under the License.
 #
 
+require 'chef/resource'
+require_relative 'provider_chef_dk'
+
 class Chef
   class Resource
     # A Chef resource for the Chef-DK packages

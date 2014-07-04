@@ -21,6 +21,7 @@
 require 'chef/provider'
 require 'chef/provider/package/dpkg'
 require 'chef/provider/package/rpm'
+require_relative 'resource_chef_dk'
 
 class Chef
   class Provider
@@ -28,9 +29,9 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDk < Provider
-      PACKAGE_NAME = 'chefdk'
-      LATEST_VERSION = '0.1.0-1'
-      BASE_URL = 'https://opscode-omnibus-packages.s3.amazonaws.com'
+      PACKAGE_NAME ||= 'chefdk'
+      LATEST_VERSION ||= '0.1.0-1'
+      BASE_URL ||= 'https://opscode-omnibus-packages.s3.amazonaws.com'
 
       #
       # WhyRun is supported by this provider
