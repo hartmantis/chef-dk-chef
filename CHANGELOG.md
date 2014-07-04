@@ -1,6 +1,13 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
+v0.3.2 (2014-07-03)
+-------------------
+* Fix recipe compilation errors in chef-client/chef-zero, via [@someara][]
+
+[@someara]: https://github.com/someara
+
+
 v0.3.0 (2014-06-28)
 -------------------
 * Allow user to set a custom `package_url`
