@@ -21,7 +21,6 @@
 require 'chef/provider'
 require 'chef/provider/package/dpkg'
 require 'chef/provider/package/rpm'
-require_relative '../resource/chef_dk'
 
 class Chef
   class Provider
