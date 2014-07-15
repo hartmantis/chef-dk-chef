@@ -256,7 +256,7 @@ describe Chef::Provider::ChefDk do
 
     context 'no version provided with the resource' do
       it 'returns the default latest version' do
-        expect(provider.send(:version)).to eq('0.1.0-1')
+        expect(provider.send(:version)).to eq('0.2.0-2')
       end
     end
   end
@@ -279,7 +279,7 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#package_url' do
-    let(:chefdk_version) { '0.1.0-1' }
+    let(:chefdk_version) { '0.2.0-2' }
 
     before(:each) do
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:new_resource)
@@ -289,25 +289,25 @@ describe Chef::Provider::ChefDk do
     {
       'ubuntu' => { '12.04' => 'https://opscode-omnibus-packages.s3.' \
                                'amazonaws.com/ubuntu/12.04/x86_64/' \
-                               'chefdk_0.1.0-1_amd64.deb',
+                               'chefdk_0.2.0-2_amd64.deb',
                     '13.10' => 'https://opscode-omnibus-packages.s3.' \
                                'amazonaws.com/ubuntu/13.10/x86_64/' \
-                               'chefdk_0.1.0-1_amd64.deb' },
+                               'chefdk_0.2.0-2_amd64.deb' },
       'redhat' => { '6.0' => 'https://opscode-omnibus-packages.s3.' \
                              'amazonaws.com/el/6/x86_64/' \
-                             'chefdk-0.1.0-1.el6.x86_64.rpm',
+                             'chefdk-0.2.0-2.el6.x86_64.rpm',
                     '6.5' => 'https://opscode-omnibus-packages.s3.' \
                              'amazonaws.com/el/6/x86_64/' \
-                             'chefdk-0.1.0-1.el6.x86_64.rpm' },
+                             'chefdk-0.2.0-2.el6.x86_64.rpm' },
       'centos' => { '6.0' => 'https://opscode-omnibus-packages.s3.' \
                              'amazonaws.com/el/6/x86_64/' \
-                             'chefdk-0.1.0-1.el6.x86_64.rpm',
+                             'chefdk-0.2.0-2.el6.x86_64.rpm',
                     '6.5' => 'https://opscode-omnibus-packages.s3.' \
                              'amazonaws.com/el/6/x86_64/' \
-                             'chefdk-0.1.0-1.el6.x86_64.rpm' },
+                             'chefdk-0.2.0-2.el6.x86_64.rpm' },
       'mac_os_x' => { '10.9.2' => 'https://opscode-omnibus-packages.s3.' \
                                   'amazonaws.com/mac_os_x/10.9/x86_64/' \
-                                  'chefdk-0.1.0-1.dmg' }
+                                  'chefdk-0.2.0-2.dmg' }
     }.each do |os, versions|
       versions.each do |version, url|
         context "a #{os}-#{version} node" do
@@ -381,23 +381,23 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#package_file' do
-    let(:chefdk_version) { '0.1.0-1' }
+    let(:chefdk_version) { '0.2.0-2' }
 
     before(:each) do
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:version)
-        .and_return('0.1.0-1')
+        .and_return('0.2.0-2')
       allow_any_instance_of(Chef::Provider::ChefDk).to receive(:build)
         .and_return('1')
     end
 
     {
-      'ubuntu' => { '12.04' => 'chefdk_0.1.0-1_amd64.deb',
-                    '13.10' => 'chefdk_0.1.0-1_amd64.deb' },
-      'redhat' => { '6.0' => 'chefdk-0.1.0-1.el6.x86_64.rpm',
-                    '6.5' => 'chefdk-0.1.0-1.el6.x86_64.rpm' },
-      'centos' => { '6.0' => 'chefdk-0.1.0-1.el6.x86_64.rpm',
-                    '6.5' => 'chefdk-0.1.0-1.el6.x86_64.rpm' },
-      'mac_os_x' => { '10.9.2' => 'chefdk-0.1.0-1.dmg' }
+      'ubuntu' => { '12.04' => 'chefdk_0.2.0-2_amd64.deb',
+                    '13.10' => 'chefdk_0.2.0-2_amd64.deb' },
+      'redhat' => { '6.0' => 'chefdk-0.2.0-2.el6.x86_64.rpm',
+                    '6.5' => 'chefdk-0.2.0-2.el6.x86_64.rpm' },
+      'centos' => { '6.0' => 'chefdk-0.2.0-2.el6.x86_64.rpm',
+                    '6.5' => 'chefdk-0.2.0-2.el6.x86_64.rpm' },
+      'mac_os_x' => { '10.9.2' => 'chefdk-0.2.0-2.dmg' }
     }.each do |os, versions|
       versions.each do |version, filename|
         context "a #{os}-#{version} node" do
