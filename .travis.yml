@@ -2,19 +2,19 @@ language: ruby
 
 install:
   - wget -P /tmp https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chefdk_0.2.0-2_amd64.deb
-  - dpkg -i /tmp/chefdk_0.2.0-2_amd64.deb
-  - chef exec bundle install --without=development integration
+  - sudo dpkg -i /tmp/chefdk_0.2.0-2_amd64.deb
+  - chef exec /opt/chefdk/embedded/bin/bundle install --without=development integration
 
 before_script:
   - ssh-keygen -f $DIGITALOCEAN_SSH_KEY_FILE -b 768 -P ''
   # Pending ENV support in Kitchen's Rake tasks and not just the CLI
   - cp .kitchen.travis.yml .kitchen.local.yml
-  - chef exec rake upload_key
+  - chef exec /opt/chefdk/embedded/bin/rake upload_key
 
-script: chef exec rake
+script: chef exec /opt/chefdk/embedded/bin/rake
 
 after_script:
-  - chef exec rake delete_key
+  - chef exec /opt/chefdk/embedded/bin/rake delete_key
 
 env:
   global:
