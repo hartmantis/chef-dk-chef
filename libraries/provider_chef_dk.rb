@@ -167,10 +167,7 @@ class Chef
       # @return [String]
       #
       def platform
-        case node['platform_family']
-        when 'rhel' then 'el'
-        else node['platform']
-        end
+        node['platform_family'] == 'rhel' ? 'el' : node['platform']
       end
 
       #
@@ -184,6 +181,7 @@ class Chef
         case node['platform_family']
         when 'rhel' then node['platform_version'].to_i.to_s
         when 'mac_os_x' then node['platform_version'].split('.')[0..1].join('.')
+        when 'debian' then '12.04'
         else node['platform_version']
         end
       end

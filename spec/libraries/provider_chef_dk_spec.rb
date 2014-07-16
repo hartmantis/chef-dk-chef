@@ -291,7 +291,7 @@ describe Chef::Provider::ChefDk do
                                'amazonaws.com/ubuntu/12.04/x86_64/' \
                                'chefdk_0.2.0-2_amd64.deb',
                     '13.10' => 'https://opscode-omnibus-packages.s3.' \
-                               'amazonaws.com/ubuntu/13.10/x86_64/' \
+                               'amazonaws.com/ubuntu/12.04/x86_64/' \
                                'chefdk_0.2.0-2_amd64.deb' },
       'redhat' => { '6.0' => 'https://opscode-omnibus-packages.s3.' \
                              'amazonaws.com/el/6/x86_64/' \
@@ -352,7 +352,7 @@ describe Chef::Provider::ChefDk do
 
   describe '#platform_version' do
     {
-      'ubuntu' => { '12.04' => '12.04', '13.10' => '13.10' },
+      'ubuntu' => { '12.04' => '12.04', '13.10' => '12.04' },
       'redhat' => { '6.0' => '6', '6.5' => '6' },
       'centos' => { '6.0' => '6', '6.5' => '6' },
       'mac_os_x' => { '10.9.2' => '10.9' }
