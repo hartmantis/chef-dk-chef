@@ -11,7 +11,8 @@ before_script:
   - cp .kitchen.travis.yml .kitchen.local.yml
   - chef exec rake upload_key
 
-script: chef exec rake
+script:
+  - chef exec rake
 
 after_script:
   - chef exec rake delete_key
