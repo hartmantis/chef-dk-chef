@@ -2,10 +2,15 @@
 
 source 'https://rubygems.org'
 
-group :development, :test do
-  gem 'rake'
+group :development do
   gem 'yard-chef'
   gem 'guard'
+  gem 'guard-rspec'
+  gem 'guard-kitchen'
+end
+
+group :test do
+  gem 'rake'
   gem 'cane'
   gem 'countloc'
   gem 'rubocop'
@@ -14,14 +19,15 @@ group :development, :test do
   # gem 'guard-foodcritic'
   gem 'rspec'
   gem 'chefspec'
-  gem 'guard-rspec'
-  gem 'serverspec'
   gem 'fauxhai'
   gem 'test-kitchen'
   gem 'kitchen-digitalocean', '>= 0.7.1'
   gem 'kitchen-vagrant'
   gem 'vagrant-wrapper'
-  gem 'guard-kitchen'
+end
+
+group :integration do
+  gem 'serverspec'
   gem 'cucumber'
 end
 
