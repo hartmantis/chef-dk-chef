@@ -69,6 +69,7 @@ To Do
 * TODO: Refactor the `platform` and `platform_version` logic to attempt
   installation of the Ubuntu and OS X packages in other versions of those OSes,
   maybe split the package types into multiple providers
+* TODO: It's a huge PitA to not have automated testing for OS X and Windows :(
 
 Contributing
 ============
