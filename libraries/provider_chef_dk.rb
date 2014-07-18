@@ -95,6 +95,8 @@ class Chef
           pkg.app(PACKAGE_NAME)
           pkg.source("file://#{download_path}")
           pkg.type('pkg')
+        when 'windows'
+          pkg.source(download_path)
         else
           pkg.version(version)
         end
@@ -108,6 +110,7 @@ class Chef
       def package_resource_class
         case node['platform_family']
         when 'mac_os_x' then Resource::DmgPackage
+        when 'windows' then Resource::WindowsPackage
         else Resource::Package
         end
       end
@@ -123,6 +126,7 @@ class Chef
         when 'debian' then Provider::Package::Dpkg
         when 'rhel' then Provider::Package::Rpm
         when 'mac_os_x' then Provider::DmgPackage
+        when 'windows' then Provider::Package::Windows
         end
       end
 
@@ -181,6 +185,7 @@ class Chef
         case node['platform_family']
         when 'rhel' then node['platform_version'].to_i.to_s
         when 'mac_os_x' then node['platform_version'].split('.')[0..1].join('.')
+        when 'windows' then '2008r2'
         when 'debian' then '12.04'
         else node['platform_version']
         end
@@ -204,6 +209,8 @@ class Chef
         case node['platform_family']
         when 'rhel' then elements = [PACKAGE_NAME, "#{version}.#{platform}" \
                          "#{platform_version}.#{node['kernel']['machine']}"]
+        when 'windows' then elements = [PACKAGE_NAME, 'windows',
+                                        "#{version}.windows"]
         else elements = [PACKAGE_NAME, version]
         end
         elements << 'amd64' if node['platform'] == 'ubuntu'
@@ -229,6 +236,7 @@ class Chef
         when 'debian' then '.deb'
         when 'rhel' then '.rpm'
         when 'mac_os_x' then '.dmg'
+        when 'windows' then '.msi'
         end
       end
     end

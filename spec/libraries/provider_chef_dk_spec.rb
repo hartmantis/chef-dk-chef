@@ -36,6 +36,9 @@ describe Chef::Provider::ChefDk do
     allow_any_instance_of(Chef::Provider::ChefDk).to receive(:node).and_return(
       Fauxhai.mock(platform).data
     )
+    if platform[:platform] == 'windows'
+      stub_const('::File::ALT_SEPARATOR', '\\')
+    end
   end
 
   describe '#whyrun_supported?' do
@@ -125,22 +128,34 @@ describe Chef::Provider::ChefDk do
         :tailor_package_resource_to_platform).and_return(true)
     end
 
-    context 'a Mac OS X node' do
-      let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
-      let(:package_resource_class) { Chef::Resource::DmgPackage }
-      let(:package_provider_class) { Chef::Provider::Package }
+    {
+      'a Mac OS X node' => {
+        platform: 'mac_os_x',
+        version: '10.9.2',
+        resource: Chef::Resource::DmgPackage,
+        provider: Chef::Provider::Package
+      },
+      'a Windows node' => {
+        platform: 'windows',
+        version: '2012',
+        resource: Chef::Resource::WindowsPackage,
+        provider: Chef::Provider::Package::Windows
+      },
+      'any other node' => {
+        platform: nil,
+        version: nil,
+        resource: Chef::Resource::Package,
+        provider: Chef::Provider::Package
+      }
+    }.each do |k, v|
+      context k do
+        let(:platform) { { platform: v[:platform], version: v[:version] } }
+        let(:package_resource_class) { v[:resource] }
+        let(:package_provider_class) { v[:provider] }
 
-      it 'returns a package resource' do
-        expect(provider.send(:package).class).to eq(package_resource_class)
-      end
-    end
-
-    context 'any other node' do
-      let(:package_resource_class) { Chef::Resource::Package }
-      let(:package_provider_class) { Chef::Provider::Package }
-
-      it 'returns a package resource' do
-        expect(provider.send(:package).class).to eq(package_resource_class)
+        it 'returns the correct package resource' do
+          expect(provider.send(:package).class).to eq(package_resource_class)
+        end
       end
     end
   end
@@ -183,6 +198,22 @@ describe Chef::Provider::ChefDk do
       end
     end
 
+    context 'a Windows node' do
+      let(:package_resource) { Chef::Resource::WindowsPackage }
+      let(:platform) { { platform: 'windows', version: '2012' } }
+
+      it 'has the file URI set' do
+        expect_any_instance_of(package_resource).to receive(:source)
+          .with('/tmp/blah.pkg')
+        provider.send(:tailor_package_resource_to_platform, pkg)
+      end
+
+      it 'does not receive a version' do
+        expect_any_instance_of(package_resource).to_not receive(:version)
+        provider.send(:tailor_package_resource_to_platform, pkg)
+      end
+    end
+
     context 'any other node' do
       let(:package_resource) { Chef::Resource::Package }
 
@@ -198,7 +229,8 @@ describe Chef::Provider::ChefDk do
       'ubuntu' => { '12.04' => 'Chef::Resource::Package' },
       'redhat' => { '6.5' => 'Chef::Resource::Package' },
       'centos' => { '6.5' => 'Chef::Resource::Package' },
-      'mac_os_x' => { '10.9.2' => 'Chef::Resource::DmgPackage' }
+      'mac_os_x' => { '10.9.2' => 'Chef::Resource::DmgPackage' },
+      'windows' => { '2012' => 'Chef::Resource::WindowsPackage' }
     }.each do |os, attrs|
       attrs.each do |version, pkg_resource|
         context "a #{os} node" do
@@ -220,7 +252,8 @@ describe Chef::Provider::ChefDk do
       'ubuntu' => { '12.04' => 'Chef::Provider::Package::Dpkg' },
       'redhat' => { '6.5' => 'Chef::Provider::Package::Rpm' },
       'centos' => { '6.5' => 'Chef::Provider::Package::Rpm' },
-      'mac_os_x' => { '10.9.2' => 'Chef::Provider::DmgPackage' }
+      'mac_os_x' => { '10.9.2' => 'Chef::Provider::DmgPackage' },
+      'windows' => { '2012' => 'Chef::Provider::Package::Windows' }
     }.each do |os, attrs|
       attrs.each do |version, pkg_provider|
         context "a #{os} node" do
@@ -307,7 +340,13 @@ describe Chef::Provider::ChefDk do
                              'chefdk-0.2.0-2.el6.x86_64.rpm' },
       'mac_os_x' => { '10.9.2' => 'https://opscode-omnibus-packages.s3.' \
                                   'amazonaws.com/mac_os_x/10.9/x86_64/' \
-                                  'chefdk-0.2.0-2.dmg' }
+                                  'chefdk-0.2.0-2.dmg' },
+      'windows' => { '2012' => 'https://opscode-omnibus-packages.s3.' \
+                               'amazonaws.com/windows/2008r2/x86_64/' \
+                               'chefdk-windows-0.2.0-2.windows.msi',
+                     '2008R2' => 'https://opscode-omnibus-packages.s3.' \
+                               'amazonaws.com/windows/2008r2/x86_64/' \
+                               'chefdk-windows-0.2.0-2.windows.msi' }
     }.each do |os, versions|
       versions.each do |version, url|
         context "a #{os}-#{version} node" do
@@ -336,7 +375,8 @@ describe Chef::Provider::ChefDk do
       'ubuntu' => { '12.04' => 'ubuntu', '13.10' => 'ubuntu' },
       'redhat' => { '6.0' => 'el', '6.5' => 'el' },
       'centos' => { '6.0' => 'el', '6.5' => 'el' },
-      'mac_os_x' => { '10.9.2' => 'mac_os_x' }
+      'mac_os_x' => { '10.9.2' => 'mac_os_x' },
+      'windows' => { '2012' => 'windows', '2008R2' => 'windows' }
     }.each do |os, versions|
       versions.each do |version, parsed_platform|
         context "a #{os}-#{version} node" do
@@ -355,7 +395,8 @@ describe Chef::Provider::ChefDk do
       'ubuntu' => { '12.04' => '12.04', '13.10' => '12.04' },
       'redhat' => { '6.0' => '6', '6.5' => '6' },
       'centos' => { '6.0' => '6', '6.5' => '6' },
-      'mac_os_x' => { '10.9.2' => '10.9' }
+      'mac_os_x' => { '10.9.2' => '10.9' },
+      'windows' => { '2012' => '2008r2', '2008R2' => '2008r2' }
     }.each do |os, versions|
       versions.each do |version, parsed_version|
         context "a #{os}-#{version} node" do
@@ -397,7 +438,9 @@ describe Chef::Provider::ChefDk do
                     '6.5' => 'chefdk-0.2.0-2.el6.x86_64.rpm' },
       'centos' => { '6.0' => 'chefdk-0.2.0-2.el6.x86_64.rpm',
                     '6.5' => 'chefdk-0.2.0-2.el6.x86_64.rpm' },
-      'mac_os_x' => { '10.9.2' => 'chefdk-0.2.0-2.dmg' }
+      'mac_os_x' => { '10.9.2' => 'chefdk-0.2.0-2.dmg' },
+      'windows' => { '2012' => 'chefdk-windows-0.2.0-2.windows.msi',
+                     '2008R2' => 'chefdk-windows-0.2.0-2.windows.msi' }
     }.each do |os, versions|
       versions.each do |version, filename|
         context "a #{os}-#{version} node" do
@@ -420,7 +463,8 @@ describe Chef::Provider::ChefDk do
       'ubuntu' => { '12.04' => '_', '13.10' => '_' },
       'redhat' => { '6.0' => '-', '6.5' => '-' },
       'centos' => { '6.0' => '-', '6.5' => '-' },
-      'mac_os_x' => { '10.9.2' => '-' }
+      'mac_os_x' => { '10.9.2' => '-' },
+      'windows' => { '2012' => '-', '2008R2' => '-' }
     }.each do |os, versions|
       versions.each do |version, separator|
         context "a #{os}-#{version} node" do
@@ -439,7 +483,8 @@ describe Chef::Provider::ChefDk do
       'ubuntu' => { '12.04' => '.deb', '13.10' => '.deb' },
       'redhat' => { '6.0' => '.rpm', '6.5' => '.rpm' },
       'centos' => { '6.0' => '.rpm', '6.5' => '.rpm' },
-      'mac_os_x' => { '10.9.2' => '.dmg' }
+      'mac_os_x' => { '10.9.2' => '.dmg' },
+      'windows' => { '2012' => '.msi', '2008R2' => '.msi' }
     }.each do |os, versions|
       versions.each do |version, extension|
         context "a #{os}-#{version} node" do
