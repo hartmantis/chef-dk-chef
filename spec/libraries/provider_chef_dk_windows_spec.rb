@@ -65,7 +65,7 @@ describe Chef::Provider::ChefDk::Windows do
   end
 
   describe '#platform_version' do
-    %w(2012 2008r2).each do |v|
+    %w(2012 2008R2).each do |v|
       context "a windows-#{v} node" do
         let(:platform) { { platform: 'windows', version: v } }
 
