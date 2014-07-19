@@ -19,6 +19,7 @@
 #
 
 require 'chef/provider'
+require 'chef/provider/package/rpm'
 require_relative 'provider_chef_dk'
 require_relative 'resource_chef_dk'
 
@@ -30,6 +31,15 @@ class Chef
       # @author Jonathan Hartman <j@p4nt5.com>
       class Rhel < ChefDk
         private
+
+        #
+        # Override the provider of the package resource
+        #
+        # @return [Class]
+        #
+        def package_provider_class
+          Chef::Provider::Package::Rpm
+        end
 
         #
         # Override the platform name used in the package URL

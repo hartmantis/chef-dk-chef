@@ -37,6 +37,13 @@ describe Chef::Provider::ChefDk::Rhel do
     )
   end
 
+  describe '#package_provider_class' do
+    it 'returns Chef::Provider::Package::Rpm' do
+      expected = Chef::Provider::Package::Rpm
+      expect(provider.send(:package_provider_class)).to eq(expected)
+    end
+  end
+
   describe '#platform' do
     it 'returns "el"' do
       expect(provider.send(:platform)).to eq('el')

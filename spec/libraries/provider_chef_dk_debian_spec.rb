@@ -37,6 +37,13 @@ describe Chef::Provider::ChefDk::Debian do
     )
   end
 
+  describe '#package_provider_class' do
+    it 'returns Chef::Provider::Package::Dpkg' do
+      expected = Chef::Provider::Package::Dpkg
+      expect(provider.send(:package_provider_class)).to eq(expected)
+    end
+  end
+
   describe '#platform_version' do
     %w(12.04 13.10).each do |v|
       context "a ubuntu-#{v} node" do

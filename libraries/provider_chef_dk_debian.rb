@@ -19,6 +19,7 @@
 #
 
 require 'chef/provider'
+require 'chef/provider/package/dpkg'
 require_relative 'provider_chef_dk'
 require_relative 'resource_chef_dk'
 
@@ -30,6 +31,15 @@ class Chef
       # @author Jonathan Hartman <j@p4nt5.com>
       class Debian < ChefDk
         private
+
+        #
+        # Override the provider of the package resource
+        #
+        # @return [Class]
+        #
+        def package_provider_class
+          Chef::Provider::Package::Dpkg
+        end
 
         #
         # Override the package URL's platform version
