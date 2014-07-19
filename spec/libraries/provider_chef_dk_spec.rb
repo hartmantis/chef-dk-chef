@@ -30,10 +30,10 @@ describe Chef::Provider::ChefDk do
            version: chefdk_version,
            package_url: package_url)
   end
-  let(:provider) { Chef::Provider::ChefDk.new(new_resource, nil) }
+  let(:provider) { described_class.new(new_resource, nil) }
 
   before(:each) do
-    allow_any_instance_of(Chef::Provider::ChefDk).to receive(:node).and_return(
+    allow_any_instance_of(described_class).to receive(:node).and_return(
       Fauxhai.mock(platform).data
     )
     if platform[:platform] == 'windows'
@@ -59,11 +59,11 @@ describe Chef::Provider::ChefDk do
     let(:package) { double(run_action: true) }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:new_resource)
+      allow_any_instance_of(described_class).to receive(:new_resource)
         .and_return(new_resource)
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:remote_file)
+      allow_any_instance_of(described_class).to receive(:remote_file)
         .and_return(remote_file)
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package)
+      allow_any_instance_of(described_class).to receive(:package)
         .and_return(package)
     end
 
@@ -89,11 +89,11 @@ describe Chef::Provider::ChefDk do
     let(:package) { double(run_action: true) }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:new_resource)
+      allow_any_instance_of(described_class).to receive(:new_resource)
         .and_return(new_resource)
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:remote_file)
+      allow_any_instance_of(described_class).to receive(:remote_file)
         .and_return(remote_file)
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package)
+      allow_any_instance_of(described_class).to receive(:package)
         .and_return(package)
     end
 
@@ -118,13 +118,13 @@ describe Chef::Provider::ChefDk do
     let(:package_provider_class) { nil }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
+      allow_any_instance_of(described_class).to receive(
         :package_resource_class).and_return(package_resource_class)
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
+      allow_any_instance_of(described_class).to receive(
         :package_provider_class).and_return(package_provider_class)
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:download_path)
+      allow_any_instance_of(described_class).to receive(:download_path)
         .and_return('/tmp/blah.pkg')
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(
+      allow_any_instance_of(described_class).to receive(
         :tailor_package_resource_to_platform).and_return(true)
     end
 
@@ -160,7 +160,7 @@ describe Chef::Provider::ChefDk do
   describe '#tailor_package_resource_to_platform' do
     let(:package) { double(version: true) }
     let(:provider) do
-      p = Chef::Provider::ChefDk.new(new_resource, nil)
+      p = described_class.new(new_resource, nil)
       p.instance_variable_set(:@package, package)
       p
     end
@@ -239,7 +239,7 @@ describe Chef::Provider::ChefDk do
     let(:new_resource) { double(version: version) }
 
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:new_resource)
+      allow_any_instance_of(described_class).to receive(:new_resource)
         .and_return(new_resource)
     end
 
@@ -263,9 +263,9 @@ describe Chef::Provider::ChefDk do
 
     before(:each) do
       allow(Chef::Resource::RemoteFile).to receive(:new).and_return(remote_file)
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:download_path)
+      allow_any_instance_of(described_class).to receive(:download_path)
         .and_return('/tmp/package.pkg')
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package_url)
+      allow_any_instance_of(described_class).to receive(:package_url)
         .and_return('http://package.com/package.pkg')
     end
 
@@ -308,7 +308,7 @@ describe Chef::Provider::ChefDk do
 
   describe '#download_path' do
     before(:each) do
-      allow_any_instance_of(Chef::Provider::ChefDk).to receive(:package_file)
+      allow_any_instance_of(described_class).to receive(:package_file)
         .and_return('test.deb')
     end
 
