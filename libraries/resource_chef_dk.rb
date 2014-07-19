@@ -91,7 +91,7 @@ class Chef
         platform = node['platform_family'].split('_').map do |i|
           i.capitalize
         end.join
-        Object.const_get("Chef::Provider::ChefDk::#{platform}")
+        Chef::Provider::ChefDk.const_get(platform)
       end
     end
   end
