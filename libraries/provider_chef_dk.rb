@@ -78,56 +78,52 @@ class Chef
       #
       def package
         @package ||= package_resource_class.new(download_path, run_context)
-        @package.provider(package_provider_class)
-        tailor_package_resource_to_platform(@package)
+        @package.provider(package_provider_class) if package_provider_class
+        tailor_package_resource_to_platform
         @package
       end
 
       #
-      # Call the platform-specific methods for a given package
+      # Call any platform customization methods for the package resource
       #
-      # @param [Chef::Resource::Package, Chef::Resource::DmgPackage]
-      # @return [Chef::Resource::Package, Chef::Resource::DmgPackage]
-      #
-      def tailor_package_resource_to_platform(pkg)
-        case node['platform_family']
-        when 'mac_os_x'
-          pkg.app(PACKAGE_NAME)
-          pkg.source("file://#{download_path}")
-          pkg.type('pkg')
-        when 'windows'
-          pkg.source(download_path)
-        else
-          pkg.version(version)
-        end
+      def tailor_package_resource_to_platform
+        @package.version(version)
       end
 
       #
       # The appropriate package resource class for this platform
       #
-      # @return[Chef::Resource::Package, Chef::Resource::DmgPackage]
+      # @return [Chef::Resource::Package]
       #
       def package_resource_class
-        case node['platform_family']
-        when 'mac_os_x' then Resource::DmgPackage
-        when 'windows' then Resource::WindowsPackage
-        else Resource::Package
-        end
+        Chef::Resource::Package
       end
 
       #
-      # The appropriate package provider class for this platform
+      # A specified package provider class, if appropriate
       #
-      # @return[Chef::Provider::Package::Dpkg, Chef::Provider::Package::Rpm,
-      #         Chef::Provider::DmgPackage
+      # @return [NilClass]
       #
       def package_provider_class
-        case node['platform_family']
-        when 'debian' then Provider::Package::Dpkg
-        when 'rhel' then Provider::Package::Rpm
-        when 'mac_os_x' then Provider::DmgPackage
-        when 'windows' then Provider::Package::Windows
-        end
+        nil
+      end
+
+      #
+      # The platform name to be used in the package URL
+      #
+      # @return [String]
+      #
+      def platform
+        node['platform']
+      end
+
+      #
+      # The platform version to be used in the package URL
+      #
+      # @return [String]
+      #
+      def platform_version
+        node['platform_version']
       end
 
       #
@@ -165,33 +161,6 @@ class Chef
       end
 
       #
-      # Determine the platform name used in the package URL
-      # (Red Hat-based distros are all under the generic "el" name)
-      #
-      # @return [String]
-      #
-      def platform
-        node['platform_family'] == 'rhel' ? 'el' : node['platform']
-      end
-
-      #
-      # Determine the platform version used in the package URL
-      # (Red Hat-based systems use the major piece of the version string only
-      # and OS X systems use major + minor but not patch)
-      #
-      # @return [String]
-      #
-      def platform_version
-        case node['platform_family']
-        when 'rhel' then node['platform_version'].to_i.to_s
-        when 'mac_os_x' then node['platform_version'].split('.')[0..1].join('.')
-        when 'windows' then '2008r2'
-        when 'debian' then '12.04'
-        else node['platform_version']
-        end
-      end
-
-      #
       # The filesystem path to download the package to
       #
       # @return [String]
@@ -201,42 +170,44 @@ class Chef
       end
 
       #
-      # Construct the file name of the package for this system
+      # Construct the file name of the package to be installed
       #
       # @return [String]
       #
       def package_file
-        case node['platform_family']
-        when 'rhel' then elements = [PACKAGE_NAME, "#{version}.#{platform}" \
-                         "#{platform_version}.#{node['kernel']['machine']}"]
-        when 'windows' then elements = [PACKAGE_NAME, 'windows',
-                                        "#{version}.windows"]
-        else elements = [PACKAGE_NAME, version]
-        end
-        elements << 'amd64' if node['platform'] == 'ubuntu'
-        elements.join(package_file_separator) << package_file_extension
+        package_file_elements.join(package_file_separator) <<
+          package_file_extension
       end
 
       #
-      # The character separator used in package filenames for this platform
+      # The individual elements to be assembled into a package file name
+      #
+      # @return [Array]
+      #
+      def package_file_elements
+        [PACKAGE_NAME, version]
+      end
+
+      #
+      # The separator character used between elements of the package file name
       #
       # @return [String]
       #
       def package_file_separator
-        node['platform'] == 'ubuntu' ? '_' : '-'
+        '-'
       end
 
+      # Some methods have to be provided by the sub-classes
+      [:package_file_extension].each do |method|
+        define_method(method, proc { fail(NotImplemented, method) })
+      end
+
+      # A custom exception class for unimplemented methods
       #
-      # Return the extension of package files used by this system
-      #
-      # @return [String]
-      #
-      def package_file_extension
-        case node['platform_family']
-        when 'debian' then '.deb'
-        when 'rhel' then '.rpm'
-        when 'mac_os_x' then '.dmg'
-        when 'windows' then '.msi'
+      # @author Jonathan Hartman <j@p4nt5.com>
+      class NotImplemented < StandardError
+        def initialize(method)
+          super("Method `#{method}` has not been implemented")
         end
       end
     end
