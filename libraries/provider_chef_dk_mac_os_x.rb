@@ -19,7 +19,8 @@
 #
 
 require 'chef/provider'
-require 'chef/provider/package/dpkg'
+require 'chef/resource/dmg_package'
+require_relative 'provider_chef_dk'
 require_relative 'resource_chef_dk'
 
 class Chef

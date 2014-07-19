@@ -19,7 +19,7 @@
 #
 
 require 'chef/provider'
-require 'chef/provider/package/dpkg'
+require_relative 'provider_chef_dk'
 require_relative 'resource_chef_dk'
 
 class Chef
@@ -45,7 +45,7 @@ class Chef
         # Override the package file name's elements array
         # (Add an "amd64" for the .deb packages)
         #
-        # @return [String]
+        # @return [Array]
         #
         def package_file_elements
           super << 'amd64'
