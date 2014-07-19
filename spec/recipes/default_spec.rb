@@ -20,9 +20,10 @@
 require 'spec_helper'
 
 describe 'chef-dk::default' do
+  let(:platform) { { platform: 'ubuntu', version: '14.04' } }
   let(:overrides) { {} }
   let(:runner) do
-    ChefSpec::Runner.new do |node|
+    ChefSpec::Runner.new(platform) do |node|
       overrides.each do |k, v|
         node.set['chef_dk'][k] = v
       end

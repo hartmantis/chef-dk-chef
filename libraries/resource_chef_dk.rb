@@ -20,6 +20,10 @@
 
 require 'chef/resource'
 require_relative 'provider_chef_dk'
+require_relative 'provider_chef_dk_debian'
+require_relative 'provider_chef_dk_mac_os_x'
+require_relative 'provider_chef_dk_rhel'
+require_relative 'provider_chef_dk_windows'
 
 class Chef
   class Resource
@@ -34,8 +38,7 @@ class Chef
       def initialize(name, run_context = nil)
         super
         @resource_name = :chef_dk
-        @provider = Provider::ChefDk
-
+        @provider = determine_provider
         @action = :install
         @version = 'latest'
         @package_url = nil
@@ -74,6 +77,21 @@ class Chef
                         'Can\'t set both a `package_url` and a `version`' =>
                           ->(_) { version == 'latest' }
                       })
+      end
+
+      private
+
+      #
+      # Determine what provider is to be used for this platform
+      #
+      # @return [Class]
+      #
+      def determine_provider
+        return nil unless node && node['platform_family']
+        platform = node['platform_family'].split('_').map do |i|
+          i.capitalize
+        end.join
+        Chef::Provider::ChefDk.const_get(platform)
       end
     end
   end
