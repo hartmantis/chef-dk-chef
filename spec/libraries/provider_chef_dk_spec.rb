@@ -22,7 +22,7 @@ require_relative '../../libraries/provider_chef_dk'
 
 describe Chef::Provider::ChefDk do
   let(:base_url) { 'https://opscode-omnibus-packages.s3.amazonaws.com' }
-  let(:platform) { {} }
+  let(:platform) { { } }
   let(:chefdk_version) { nil }
   let(:package_url) { nil }
   let(:new_resource) do
@@ -36,9 +36,6 @@ describe Chef::Provider::ChefDk do
     allow_any_instance_of(described_class).to receive(:node).and_return(
       Fauxhai.mock(platform).data
     )
-    if platform[:platform] == 'windows'
-      stub_const('::File::ALT_SEPARATOR', '\\')
-    end
   end
 
   describe '#whyrun_supported?' do

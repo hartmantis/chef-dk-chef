@@ -20,6 +20,10 @@
 
 require 'chef/resource'
 require_relative 'provider_chef_dk'
+require_relative 'provider_chef_dk_debian'
+require_relative 'provider_chef_dk_mac_os_x'
+require_relative 'provider_chef_dk_rhel'
+require_relative 'provider_chef_dk_windows'
 
 class Chef
   class Resource
@@ -34,8 +38,8 @@ class Chef
       def initialize(name, run_context = nil)
         super
         @resource_name = :chef_dk
-        @provider = Provider::ChefDk
-
+        platform = node['platform_family'].split('_').map { |i| i.capitalize }
+        @provider = Object.const_get("Chef::Provider::ChefDk::#{platform.join}")
         @action = :install
         @version = 'latest'
         @package_url = nil

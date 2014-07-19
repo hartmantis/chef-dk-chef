@@ -21,13 +21,20 @@ require_relative '../spec_helper'
 require_relative '../../libraries/resource_chef_dk'
 
 describe Chef::Resource::ChefDk do
+  let(:platform) { { platform: 'ubuntu', version: '14.04' } }
   let(:version) { nil }
   let(:package_url) { nil }
   let(:resource) do
-    r = Chef::Resource::ChefDk.new('my_chef_dk', nil)
+    r = described_class.new('my_chef_dk', nil)
     r.version(version)
     r.package_url(package_url)
     r
+  end
+
+  before(:each) do
+    allow_any_instance_of(described_class).to receive(:node).and_return(
+      Fauxhai.mock(platform).data
+    )
   end
 
   describe '#initialize' do
@@ -37,6 +44,38 @@ describe Chef::Resource::ChefDk do
 
     it 'defaults the state to uninstalled' do
       expect(resource.installed?).to eq(false)
+    end
+
+    [
+      {
+        platform: 'ubuntu',
+        version: '12.04',
+        expected: 'Chef::Provider::ChefDk::Debian'
+      },
+      {
+        platform: 'centos',
+        version: '6.5',
+        expected: 'Chef::Provider::ChefDk::Rhel'
+      },
+      {
+        platform: 'mac_os_x',
+        version: '10.9.2',
+        expected: 'Chef::Provider::ChefDk::MacOsX'
+      },
+      {
+        platform: 'windows',
+        version: '2012',
+        expected: 'Chef::Provider::ChefDk::Windows'
+      }
+    ].each do |p|
+      context "a #{p[:platform]}-#{p[:version]} node" do
+        let(:platform) { { platform: p[:platform], version: p[:version] } }
+
+        it "uses #{p[:expected]} as the provider" do
+          expected = Object.const_get(p[:expected])
+          expect(resource.instance_variable_get(:@provider)).to eq(expected)
+        end
+      end
     end
   end
 
