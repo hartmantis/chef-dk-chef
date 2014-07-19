@@ -38,8 +38,7 @@ class Chef
       def initialize(name, run_context = nil)
         super
         @resource_name = :chef_dk
-        platform = node['platform_family'].split('_').map { |i| i.capitalize }
-        @provider = Object.const_get("Chef::Provider::ChefDk::#{platform.join}")
+        @provider = determine_provider
         @action = :install
         @version = 'latest'
         @package_url = nil
@@ -78,6 +77,21 @@ class Chef
                         'Can\'t set both a `package_url` and a `version`' =>
                           ->(_) { version == 'latest' }
                       })
+      end
+
+      private
+
+      #
+      # Determine what provider is to be used for this platform
+      #
+      # @return [Class]
+      #
+      def determine_provider
+        return nil unless node && node['platform_family']
+        platform = node['platform_family'].split('_').map do |i|
+          i.capitalize
+        end.join
+        Object.const_get("Chef::Provider::ChefDk::#{platform}")
       end
     end
   end
