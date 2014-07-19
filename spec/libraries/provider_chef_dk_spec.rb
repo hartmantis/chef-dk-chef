@@ -22,7 +22,7 @@ require_relative '../../libraries/provider_chef_dk'
 
 describe Chef::Provider::ChefDk do
   let(:base_url) { 'https://opscode-omnibus-packages.s3.amazonaws.com' }
-  let(:platform) { { } }
+  let(:platform) { {} }
   let(:chefdk_version) { nil }
   let(:package_url) { nil }
   let(:new_resource) do
