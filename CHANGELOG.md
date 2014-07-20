@@ -1,6 +1,12 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
+v1.0.0 (2014-07-19)
+-------------------
+* Update to the latest Chef-DK, v0.2.0-2
+* Add Windows support
+* Refactor the one monolithic provider into platform-specific ones
+
 v0.3.2 (2014-07-03)
 -------------------
 * Fix recipe compilation errors in chef-client/chef-zero, via [@someara][]
