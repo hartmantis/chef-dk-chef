@@ -7,7 +7,6 @@ group :development do
   gem 'guard'
   gem 'guard-rspec'
   gem 'guard-kitchen'
-  gem 'stove'
 end
 
 group :test do
@@ -34,3 +33,4 @@ end
 
 gem 'chef'
 gem 'berkshelf'
+gem 'stove'
