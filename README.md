@@ -11,7 +11,13 @@ A cookbook for installing the Chef Development Kit.
 Requirements
 ============
 
-A RHEL/CentOS/etc. 6, Ubuntu 12.04/13.10, or OS X 10.9.x node.
+As of this writing, Chef-DK is available for RHEL/CentOS/etc. 6, Ubuntu
+12.04/13.10, OS X 10.9.x, and Windows 7/8/2008/2012. Each of these platforms
+is supported by this cookbook.
+
+In some cases, platforms that aren't officially supported by Chef-DK may still
+function. For example, this cookbook can be used to install the OS X package
+onto 10.10 systems, or the Ubuntu package onto 14.04 systems.
 
 This cookbook consumes the
 [dmg cookbook](http://supermarket.getchef.com/cookbooks/dmg) in order to
@@ -63,13 +69,32 @@ into a single resource:
 
 _Note: A `version` and `package_url` cannot be used together_
 
-To Do
-=====
+Providers
+=========
 
-* TODO: Refactor the `platform` and `platform_version` logic to attempt
-  installation of the Ubuntu and OS X packages in other versions of those OSes,
-  maybe split the package types into multiple providers
-* TODO: It's a huge PitA to not have automated testing for OS X and Windows :(
+This cookbook includes a provider for each of its supported platform families.
+By default, the `chef_dk` resource will determine a provider to used based on
+the platform on which Chef is running.
+
+***Chef::Provider::ChefDk***
+
+A generic provider of all non-platform-specific functionality.
+
+***Chef::Provider::ChefDk::Debian***
+
+Provides the Ubuntu platform support.
+
+***Chef::Provider::ChefDk::MacOsX***
+
+Provides the Mac OS X platform support.
+
+***Chef::Provider::ChefDk::Rhel***
+
+Provides the RHEL and RHELalike platform support.
+
+***Chef::Provider::ChefDk::Windows***
+
+Provides the Windows platform support.
 
 Contributing
 ============
