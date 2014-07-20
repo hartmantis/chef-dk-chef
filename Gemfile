@@ -31,6 +31,6 @@ group :integration do
   gem 'cucumber'
 end
 
-gem 'chef'
+gem 'chef', '>= 11'
 gem 'berkshelf'
 gem 'stove'
