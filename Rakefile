@@ -8,6 +8,7 @@ require 'cane/rake_task'
 require 'rspec/core/rake_task'
 require 'foodcritic'
 require 'kitchen/rake_tasks'
+require 'stove/rake_task'
 
 module ChefDk
   # Helper methods for uploading and deleting DigitalOcean build keys
@@ -87,5 +88,7 @@ end
 RSpec::Core::RakeTask.new(:spec)
 
 Kitchen::RakeTasks.new
+
+Stove::RakeTask.new
 
 task default: %w(cane rubocop loc cookbook_test foodcritic spec kitchen:all)
