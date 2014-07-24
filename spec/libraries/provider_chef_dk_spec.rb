@@ -46,7 +46,8 @@ describe Chef::Provider::ChefDk do
 
   describe '#load_current_resource' do
     it 'returns a ChefDk resource' do
-      expect(provider.load_current_resource.class).to eq(Chef::Resource::ChefDk)
+      expected = Chef::Resource::ChefDk
+      expect(provider.load_current_resource).to be_an_instance_of(expected)
     end
   end
 
@@ -127,7 +128,8 @@ describe Chef::Provider::ChefDk do
 
     shared_examples_for 'any node' do
       it 'returns a package resource' do
-        expect(provider.send(:package).class).to eq(package_resource_class)
+        expected = package_resource_class
+        expect(provider.send(:package)).to be_an_instance_of(expected)
       end
     end
 
@@ -268,7 +270,7 @@ describe Chef::Provider::ChefDk do
 
     it 'returns an instance of Chef::Resource::RemoteFile' do
       res = provider.send(:remote_file)
-      expect(res.class).to eq(RSpec::Mocks::Double)
+      expect(res).to be_an_instance_of(RSpec::Mocks::Double)
     end
   end
 
