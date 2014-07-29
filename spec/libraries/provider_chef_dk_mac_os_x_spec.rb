@@ -38,7 +38,9 @@ describe Chef::Provider::ChefDk::MacOsX do
   end
 
   describe '#tailor_package_resource_to_platform' do
-    let(:package) { double(app: true, source: true, type: true) }
+    let(:package) do
+      double(app: true, source: true, type: true, package_id: true)
+    end
     let(:provider) do
       p = described_class.new(new_resource, nil)
       p.instance_variable_set(:@package, package)
@@ -62,6 +64,11 @@ describe Chef::Provider::ChefDk::MacOsX do
 
     it 'calls `type` with `pkg`' do
       expect(package).to receive(:type).with('pkg')
+      provider.send(:tailor_package_resource_to_platform)
+    end
+
+    it 'calls `package_id` with `com.getchef.pkg.chefdk`' do
+      expect(package).to receive(:package_id).with('com.getchef.pkg.chefdk')
       provider.send(:tailor_package_resource_to_platform)
     end
   end
