@@ -39,6 +39,7 @@ class Chef
           @package.app(PACKAGE_NAME)
           @package.source("file://#{download_path}")
           @package.type('pkg')
+          @package.package_id("com.getchef.pkg.#{PACKAGE_NAME}")
         end
 
         #
