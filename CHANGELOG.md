@@ -1,7 +1,7 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
-v?.?.? (????-??-??)
+v1.0.2 (2014-07-31)
 -------------------
 * Fix bug with OS X package reinstalling on every Chef run
 
