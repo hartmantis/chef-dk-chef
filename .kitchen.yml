@@ -9,6 +9,7 @@ platforms:
   - name: ubuntu-14.04
   - name: ubuntu-12.04
   - name: centos-6.5
+  - name: macosx-10.9
 
 suites:
   - name: default

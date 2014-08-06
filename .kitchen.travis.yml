@@ -5,3 +5,9 @@ driver:
   digitalocean_api_key: <%= ENV['DIGITALOCEAN_API_KEY'] %>
   ssh_key: <%= ChefDk::Helpers.private_key_file %>
   ssh_key_ids: <%= ChefDk::Helpers.ssh_key_ids %>
+suites:
+  - name: default
+    run_list:
+      - recipe[chef-dk]
+    attributes:
+    excludes: ['macosx-10.9']
