@@ -312,7 +312,8 @@ describe Chef::Provider::ChefDk do
     end
 
     it 'returns a path in the Chef file_cache_path' do
-      expect(provider.send(:download_path)).to eq('/var/chef/cache/test.deb')
+      expected = File.join(Chef::Config[:file_cache_path], 'test.deb')
+      expect(provider.send(:download_path)).to eq(expected)
     end
   end
 
