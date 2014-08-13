@@ -49,7 +49,7 @@ RSpec.configure do |c|
     @included_recipes = []
     allow_any_instance_of(Chef::RunContext).to receive(:loaded_recipe?)
       .and_return(false)
-    allow_any_instance_of(Chef::Recipe).to receive(:include_recipe) do |i|
+    allow_any_instance_of(Chef::Recipe).to receive(:include_recipe) do |_, i|
       allow_any_instance_of(Chef::RunContext).to receive(:loaded_recipe?)
         .with(i)
         .and_return(true)
