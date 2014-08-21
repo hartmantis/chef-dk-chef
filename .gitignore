@@ -17,3 +17,7 @@ bin/*
 .kitchen/
 .kitchen.local.yml
 .env.sh
+
+# sublime text
+*.sublime-project
+*.sublime-workspace
