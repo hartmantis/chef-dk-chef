@@ -36,6 +36,10 @@ Recipes
 
 Calls the `chef_dk` resource to do a package install
 
+**chefdk_primary**
+
+Installs the ChefDK and updates the path to use the ChefDK embedded tools.
+
 Attributes
 ==========
 

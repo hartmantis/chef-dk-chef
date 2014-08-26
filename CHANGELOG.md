@@ -3,6 +3,7 @@ Chef-DK Cookbook CHANGELOG
 
 v?.?.? (????-??-??)
 -------------------
+* Added chefdk_primary recipe
 
 v1.0.2 (2014-07-31)
 -------------------
