@@ -4,6 +4,9 @@ Chef-DK Cookbook CHANGELOG
 v?.?.? (????-??-??)
 -------------------
 * Support pre-11.12.0 Chef on all platforms but Windows
+* Add chefdk\_primary recipe, via [@patrickayoup][]
+
+[@patrickayoup]: https://github.com/patrickayoup
 
 v1.0.2 (2014-07-31)
 -------------------
