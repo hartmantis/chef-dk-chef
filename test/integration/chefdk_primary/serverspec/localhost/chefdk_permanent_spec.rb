@@ -17,8 +17,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'spec_helper'
+require 'serverspec'
 
-describe file('/home/vagrant/.bashrc')
+include Serverspec::Helper::Exec
+include Serverspec::Helper::DetectOS
+
+describe file('/home/vagrant/.bashrc') do
   its(:content) { should match /chef shell-init bash/ }
 end
