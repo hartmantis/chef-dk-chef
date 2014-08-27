@@ -16,3 +16,7 @@ suites:
     run_list:
       - recipe[chef-dk]
     attributes:
+
+  - name: chefdk_primary
+    run_list:
+      - recipe[chef-dk::chefdk_primary]
