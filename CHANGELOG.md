@@ -3,6 +3,7 @@ Chef-DK Cookbook CHANGELOG
 
 v?.?.? (????-??-??)
 -------------------
+* Support pre-11.12.0 Chef on all platforms but Windows
 
 v1.0.2 (2014-07-31)
 -------------------
