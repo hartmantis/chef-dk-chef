@@ -2,7 +2,7 @@ language: ruby
 
 install:
   - curl -L https://www.opscode.com/chef/install.sh | sudo bash -s -- -P chefdk
-  - sudo chef exec /opt/chefdk/embedded/bin/bundle install --without=development integration
+  - chef exec /opt/chefdk/embedded/bin/bundle install --without=development integration
 
 before_script:
   - ssh-keygen -f $DIGITALOCEAN_SSH_KEY_FILE -b 768 -P ''
