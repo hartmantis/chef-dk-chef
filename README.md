@@ -19,6 +19,10 @@ In some cases, platforms that aren't officially supported by Chef-DK may still
 function. For example, this cookbook can be used to install the OS X package
 onto 10.10 systems, or the Ubuntu package onto 14.04 systems.
 
+Prior to Chef 11.12.0, the core did not offer the `windows_package` resource
+that is used for installation under Windows. _This cookbook will not run on
+Windows under earlier versions of Chef._
+
 This cookbook consumes the
 [dmg cookbook](http://supermarket.getchef.com/cookbooks/dmg) in order to
 support OS X installs.

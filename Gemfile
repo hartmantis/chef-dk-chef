@@ -23,7 +23,6 @@ group :test do
   gem 'test-kitchen'
   gem 'kitchen-digitalocean', '>= 0.7.1'
   gem 'kitchen-vagrant'
-  gem 'vagrant-wrapper'
 end
 
 group :integration do
