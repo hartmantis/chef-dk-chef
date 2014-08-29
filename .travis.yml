@@ -2,22 +2,17 @@ language: ruby
 
 install:
   - curl -L https://www.opscode.com/chef/install.sh | sudo bash -s -- -P chefdk
-  - chef exec /opt/chefdk/embedded/bin/bundle install --without=development integration
+  - chef exec bundle install --without=development integration
 
 before_script:
-  - ssh-keygen -f $DIGITALOCEAN_SSH_KEY_FILE -b 768 -P ''
   # Pending ENV support in Kitchen's Rake tasks and not just the CLI
   - cp .kitchen.travis.yml .kitchen.local.yml
-  - chef exec /opt/chefdk/embedded/bin/rake upload_key
+  - echo -e $DIGITALOCEAN_SSH_KEY_BODY > ~/.ssh/id_rsa
 
-script: chef exec /opt/chefdk/embedded/bin/rake
+script: chef exec rake
 
 after_script:
-  - chef exec /opt/chefdk/embedded/bin/rake delete_key
 
 env:
   global:
     # - KITCHEN_LOCAL_YAML=.kitchen.travis.yml
-    - DIGITALOCEAN_SSH_KEY_FILE=~/.ssh/id_rsa
-    - secure: e+tF3YK130IfBn16zEw0DLeuU03PehR1WRdzLHVj1g5FWbcCzxQyyX7/y3AzoAkuRHsnyv1kLWVk3ynguJB628iOI6XLKzp3U6leeYIjXDGxT+SXZfEkbAyj6xVZHN+CfcJIX6zvRuGeVETzPbLT2F2/Zef1IxZB5PbR1fpQ0q8=
-    - secure: C7cVqYVlL/OfIpQQI9KfsKr/PIFGoa2MmiiEPavxmkZ86+bAlICYqsHZid/9W8wz1sJXGcxaNJ6TcVYpIx3cOF83FxonXbmcQESZPwI+c38IebxoOQjD6eWn+PFEt39vx1w7ssL4OOuPayrnmXTyjKofHW+Ea5KOIxsH52vbFds=
