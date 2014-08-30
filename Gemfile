@@ -21,7 +21,7 @@ group :test do
   gem 'chefspec'
   gem 'fauxhai'
   gem 'test-kitchen'
-  gem 'kitchen-digitalocean', '>= 0.7.1'
+  gem 'kitchen-digitalocean', '>= 0.8.0'
   gem 'fog'
   gem 'kitchen-vagrant'
 end
