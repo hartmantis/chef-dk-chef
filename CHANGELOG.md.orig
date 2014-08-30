@@ -3,8 +3,11 @@ Chef-DK Cookbook CHANGELOG
 
 v?.?.? (????-??-??)
 -------------------
-* Support pre-11.12.0 Chef on all platforms but Windows
+<<<<<<< HEAD
 * Added chefdk_primary recipe
+=======
+* Support pre-11.12.0 Chef on all platforms but Windows
+>>>>>>> master
 
 v1.0.2 (2014-07-31)
 -------------------
