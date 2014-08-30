@@ -19,7 +19,10 @@
 #
 
 require 'chef/provider'
-require 'chef/resource/windows_package'
+# Core Chef didn't get the windows_package resource until 11.12.0
+if Gem::Version.new(Chef::VERSION) >= Gem::Version.new('11.12.0')
+  require 'chef/resource/windows_package'
+end
 require_relative 'provider_chef_dk'
 require_relative 'resource_chef_dk'
 

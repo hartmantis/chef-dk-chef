@@ -17,8 +17,11 @@ bin/*
 .kitchen/
 .kitchen.local.yml
 .env.sh
-Vagrantfile
+<<<<<<< HEAD
 
 # sublime text
 *.sublime-project
 *.sublime-workspace
+=======
+Vagrantfile
+>>>>>>> master
