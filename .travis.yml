@@ -1,15 +1,25 @@
-language: ruby
+language: objective-c
 
 install:
+  # Need Berkshelf to resolve dependencies for the local Chef run
   - curl -L https://www.opscode.com/chef/install.sh | sudo bash -s -- -P chefdk
-  - chef exec bundle install --without=development integration
+  - chef exec berks vendor /tmp/kitchen/cookbooks
+  # Need to delete ChefDK so the local run actually tests something
+  - sudo pkgutil --forget com.getchef.pkg.chefdk
+  - sudo rm -rf /opt/chefdk
+  # Use regular Chef to reinstall ChefDK locally
+  - curl -L https://www.opscode.com/chef/install.sh | sudo bash
+  - sudo chef-client -z -c test/client.rb -j test/dna.json
+  # Then the build can continue on with ChefDK
+  - sudo chef exec bundle install --without=development
 
 before_script:
   # Pending ENV support in Kitchen's Rake tasks and not just the CLI
   - cp .kitchen.travis.yml .kitchen.local.yml
   - echo -e $DIGITALOCEAN_SSH_KEY_BODY > ~/.ssh/id_rsa
 
-script: chef exec rake
+script:
+  - sudo chef exec rspec --default-path test/integration/global_shell_init/serverspec -f d && sudo chef exec rake
 
 after_script:
 
