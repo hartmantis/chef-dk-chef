@@ -29,7 +29,7 @@ class Chef
         super
         @resource_name = :dmg_package
         @action = :install
-        @allowed_actions = [:install, :uninstall]
+        @allowed_actions = [:install, :remove]
       end
 
       def app(arg = nil)

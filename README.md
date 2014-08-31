@@ -70,10 +70,10 @@ Syntax:
 
 Actions:
 
-| Action       | Description                   |
-|--------------|-------------------------------|
-| `:install`   | Default; installs the Chef-DK |
-| `:uninstall` | Uninstalls the Chef-DK        |
+| Action     | Description                   |
+|------------|-------------------------------|
+| `:install` | Default; installs the Chef-DK |
+| `:remove`  | Uninstalls the Chef-DK        |
 
 Attributes:
 
