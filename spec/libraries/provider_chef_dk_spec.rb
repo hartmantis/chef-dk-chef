@@ -103,7 +103,7 @@ describe Chef::Provider::ChefDk do
     end
   end
 
-  describe '#action_uninstall' do
+  describe '#action_remove' do
     let(:remote_file) { double(run_action: true) }
     let(:package) { double(run_action: true) }
     let(:gsi) { double(write_file: true) }
@@ -119,7 +119,7 @@ describe Chef::Provider::ChefDk do
 
     it 'does not modify any bashrc' do
       expect(gsi).not_to receive(:write_file)
-      provider.action_uninstall
+      provider.action_remove
     end
 
     context 'overridden global shell init' do
@@ -129,23 +129,23 @@ describe Chef::Provider::ChefDk do
         expect_any_instance_of(described_class).to receive(:global_shell_init)
           .with(:delete)
         expect(gsi).to receive(:write_file)
-        provider.action_uninstall
+        provider.action_remove
       end
     end
 
     it 'deletes the package remote file' do
       expect(remote_file).to receive(:run_action).with(:delete)
-      provider.action_uninstall
+      provider.action_remove
     end
 
     it 'installs the package file' do
-      expect(package).to receive(:run_action).with(:uninstall)
-      provider.action_uninstall
+      expect(package).to receive(:run_action).with(:remove)
+      provider.action_remove
     end
 
     it 'sets the installed state to false' do
       expect(new_resource).to receive(:'installed=').with(false)
-      provider.action_uninstall
+      provider.action_remove
     end
   end
 

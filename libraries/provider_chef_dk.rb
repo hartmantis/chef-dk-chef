@@ -65,9 +65,9 @@ class Chef
       #
       # Uninstall the ChefDk package and delete the cached file
       #
-      def action_uninstall
+      def action_remove
         global_shell_init(:delete).write_file if new_resource.global_shell_init
-        package.run_action(:uninstall)
+        package.run_action(:remove)
         remote_file.run_action(:delete)
         new_resource.installed = false
       end

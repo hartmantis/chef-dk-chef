@@ -40,7 +40,7 @@ class Chef
         @resource_name = :chef_dk
         @provider = determine_provider
         @action = :install
-        @allowed_actions = [:install, :uninstall]
+        @allowed_actions = [:install, :remove]
 
         @installed = false
       end
