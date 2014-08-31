@@ -15,4 +15,9 @@ suites:
   - name: default
     run_list:
       - recipe[chef-dk]
+  - name: global_shell_init
+    run_list:
+      - recipe[chef-dk]
     attributes:
+      chef_dk:
+        global_shell_init: true

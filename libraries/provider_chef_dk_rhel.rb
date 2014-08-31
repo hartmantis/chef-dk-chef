@@ -83,6 +83,15 @@ class Chef
         def package_file_extension
           '.rpm'
         end
+
+        #
+        # Return the global bashrc file path for this system
+        #
+        # @return [String]
+        #
+        def bashrc_file
+          '/etc/bashrc'
+        end
       end
     end
   end

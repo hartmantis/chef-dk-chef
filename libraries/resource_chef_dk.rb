@@ -40,8 +40,6 @@ class Chef
         @resource_name = :chef_dk
         @provider = determine_provider
         @action = :install
-        @version = 'latest'
-        @package_url = nil
         @allowed_actions = [:install, :uninstall]
 
         @installed = false
@@ -57,14 +55,16 @@ class Chef
         set_or_return(:version,
                       arg,
                       kind_of: String,
+                      default: 'latest',
                       callbacks: {
                         'Can\'t set both a `version` and a `package_url`' =>
-                          ->(_) { package_url.nil? }
+                          ->(_) { package_url.nil? },
+                        'Invalid version string' => ->(a) { valid_version?(a) }
                       })
       end
 
       #
-      # Optinally override the calculated package URL
+      # Optionally override the calculated package URL
       #
       # @param [String] arg
       # @return [String]
@@ -73,10 +73,24 @@ class Chef
         set_or_return(:package_url,
                       arg,
                       kind_of: [String, NilClass],
+                      default: nil,
                       callbacks: {
                         'Can\'t set both a `package_url` and a `version`' =>
                           ->(_) { version == 'latest' }
                       })
+      end
+
+      #
+      # Optionally set ChefDK's Ruby env as the default for all users
+      #
+      # @param [TrueClass, FalseClass, NilClass] arg
+      # @return [TrueClass, FalseClass]
+      #
+      def global_shell_init(arg = nil)
+        set_or_return(:global_shell_init,
+                      arg,
+                      kind_of: [TrueClass, FalseClass],
+                      default: false)
       end
 
       private
@@ -92,6 +106,17 @@ class Chef
           i.capitalize
         end.join
         Chef::Provider::ChefDk.const_get(platform)
+      end
+
+      #
+      # Determine whether string is a valid package version
+      #
+      # @param [String] arg
+      # @return [TrueClass, FalseClass]
+      #
+      def valid_version?(arg)
+        return true if arg == 'latest'
+        arg.match(/^[0-9]+\.[0-9]+\.[0-9]+-[0-9]$/) ? true : false
       end
     end
   end

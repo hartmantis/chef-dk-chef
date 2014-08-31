@@ -74,4 +74,10 @@ describe Chef::Provider::ChefDk::Debian do
       expect(provider.send(:package_file_extension)).to eq('.deb')
     end
   end
+
+  describe '#bashrc_file' do
+    it 'returns "bash.bashrc"' do
+      expect(provider.send(:bashrc_file)).to eq('/etc/bash.bashrc')
+    end
+  end
 end

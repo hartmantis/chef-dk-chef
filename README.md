@@ -38,7 +38,7 @@ Recipes
 
 ***default***
 
-Calls the `chef_dk` resource to do a package install
+Calls the `chef_dk` resource to do a package install.
 
 Attributes
 ==========
@@ -50,6 +50,7 @@ default recipe installs:
 
     default['chef_dk']['version'] = 'latest'
     default['chef_dk']['package_url'] = nil
+    default['chef_dk']['global_shell_init'] = false
 
 Resources
 =========
@@ -59,19 +60,32 @@ Resources
 Wraps the fetching of the package file from S3 and the package installation
 into a single resource:
 
-    chef_dk '<A RESOURCE NAME>' do
+Syntax:
+
+    chef_dk 'my_chef_dk' do
         version '1.2.3-4'
-        package_url 'http://here.is.the/package/url'
+        global_shell_init true
         action :install
     end
 
-* `version` - An optional version to install (default is `'latest'`)
-* `package_url` - An optional override package URL (default is determined at
-  run time based on the OS and desired version)
-* `action` - Action to perform (default is `:install`, also supports
-  `:uninstall`)
+Actions:
 
-_Note: A `version` and `package_url` cannot be used together_
+| Action       | Description                   |
+|--------------|-------------------------------|
+| `:install`   | Default; installs the Chef-DK |
+| `:uninstall` | Uninstalls the Chef-DK        |
+
+Attributes:
+
+| Attribute           | Default    | Description                               |
+|---------------------|------------|-------------------------------------------|
+| `version`           | `'latest'` | Install a specific version\*              |
+| `package_url`       | `nil`      | DL from a specific URL\*                  |
+| `global_shell_init` | `false`    | Set ChefDK as the global default Ruby\*\* |
+
+_\* A `version` and `package_url` cannot be used together_
+
+_\*\* The global Ruby env is set by a bashrc, so not compatible with Windows_
 
 Providers
 =========

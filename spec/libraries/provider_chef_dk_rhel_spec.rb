@@ -80,4 +80,10 @@ describe Chef::Provider::ChefDk::Rhel do
       expect(provider.send(:package_file_extension)).to eq('.rpm')
     end
   end
+
+  describe '#bashrc_file' do
+    it 'returns "bashrc"' do
+      expect(provider.send(:bashrc_file)).to eq('/etc/bashrc')
+    end
+  end
 end

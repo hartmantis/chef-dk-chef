@@ -24,10 +24,12 @@ describe Chef::Resource::ChefDk do
   let(:platform) { { platform: 'ubuntu', version: '14.04' } }
   let(:version) { nil }
   let(:package_url) { nil }
+  let(:global_shell_init) { nil }
   let(:resource) do
     r = described_class.new('my_chef_dk', nil)
     r.version(version)
     r.package_url(package_url)
+    r.global_shell_init(global_shell_init)
     r
   end
 
@@ -37,13 +39,16 @@ describe Chef::Resource::ChefDk do
     )
   end
 
+  shared_examples_for 'an invalid configuration' do
+    it 'raises an exception' do
+      expect { resource }.to raise_error(Chef::Exceptions::ValidationFailed)
+    end
+  end
+
   describe '#initialize' do
     before(:each) do
       allow_any_instance_of(described_class).to receive(:determine_provider)
         .and_return(Chef::Provider)
-    end
-    it 'defaults to the latest version' do
-      expect(resource.instance_variable_get(:@version)).to eq('latest')
     end
 
     it 'defaults the state to uninstalled' do
@@ -57,56 +62,82 @@ describe Chef::Resource::ChefDk do
   end
 
   describe '#version' do
-    context 'with no version override provided' do
+    context 'no override provided' do
       it 'defaults to the latest version' do
         expect(resource.version).to eq('latest')
       end
     end
 
-    context 'with a version override provided' do
+    context 'a valid override provided' do
       let(:version) { '1.2.3-4' }
 
-      it 'returns the overridden version' do
+      it 'returns the override' do
         expect(resource.version).to eq(version)
       end
     end
 
-    context 'with a version AND package_url provided' do
+    context 'an invalid override provided' do
+      let(:version) { 'x.y.z' }
+
+      it_behaves_like 'an invalid configuration'
+    end
+
+    context 'a version AND package_url provided' do
       let(:version) { '1.2.3-4' }
       let(:package_url) { 'http://example.com/pkg.pkg' }
 
-      it 'raises an exception' do
-        expect { resource.version }.to raise_error(
-          Chef::Exceptions::ValidationFailed
-        )
-      end
+      it_behaves_like 'an invalid configuration'
     end
   end
 
   describe '#package_url' do
-    context 'with no override provided' do
+    context 'no override provided' do
       it 'defaults to nil to let the provider calculate a URL' do
         expect(resource.package_url).to eq(nil)
       end
     end
 
-    context 'with a package_url override provided' do
+    context 'a valid override provided' do
       let(:package_url) { 'http://example.com/pkg.pkg' }
 
-      it 'returns the overridden package_url' do
+      it 'returns the override' do
         expect(resource.package_url).to eq(package_url)
       end
     end
 
-    context 'with a package_url AND version override provided' do
+    context 'an invalid override provided' do
+      let(:package_url) { :thing }
+
+      it_behaves_like 'an invalid configuration'
+    end
+
+    context 'a package_url AND version override provided' do
       let(:package_url) { 'http://example.com/pkg.pkg' }
       let(:version) { '1.2.3-4' }
 
-      it 'raises an exception' do
-        expect { resource.package_url }.to raise_error(
-          Chef::Exceptions::ValidationFailed
-        )
+      it_behaves_like 'an invalid configuration'
+    end
+  end
+
+  describe '#global_shell_init' do
+    context 'no override provided' do
+      it 'defaults to false' do
+        expect(resource.global_shell_init).to eq(false)
       end
+    end
+
+    context 'a valid override provided' do
+      let(:global_shell_init) { true }
+
+      it 'returns the override' do
+        expect(resource.global_shell_init).to eq(true)
+      end
+    end
+
+    context 'an invalid override provided' do
+      let(:global_shell_init) { 'wiggles' }
+
+      it_behaves_like 'an invalid configuration'
     end
   end
 
@@ -139,6 +170,32 @@ describe Chef::Resource::ChefDk do
         it "uses #{p[:expected]} as the provider" do
           expect(resource.send(:determine_provider)).to eq(p[:expected])
         end
+      end
+    end
+  end
+
+  describe '#valid_version?' do
+    context 'a "latest" version' do
+      let(:res) { resource.send(:valid_version?, 'latest') }
+
+      it 'returns true' do
+        expect(res).to eq(true)
+      end
+    end
+
+    context 'a valid version' do
+      let(:res) { resource.send(:valid_version?, '1.2.3-1') }
+
+      it 'returns true' do
+        expect(res).to eq(true)
+      end
+    end
+
+    context 'an invalid version' do
+      let(:res) { resource.send(:valid_version?, 'x.y.z') }
+
+      it 'returns false' do
+        expect(res).to eq(false)
       end
     end
   end

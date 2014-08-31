@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Spec:: serverspec/spec_helper
+# Spec:: serverspec/localhost/environment
 #
 # Copyright (C) 2014, Jonathan Hartman
 #
@@ -17,14 +17,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'serverspec'
-require 'pathname'
+require 'spec_helper'
 
-include Serverspec::Helper::Exec
-include Serverspec::Helper::DetectOS
+describe 'Chef-DK environment' do
+  let(:bashrc_file) do
+    case os[:family]
+    when 'Darwin', 'RedHat'
+      '/etc/bashrc'
+    when 'Ubuntu'
+      '/etc/bash.bashrc'
+    else
+      nil
+    end
+  end
 
-RSpec.configure do |c|
-  c.before :all do
-    c.os = backend(Serverspec::Commands::Base).check_os
+  describe 'bashrc file' do
+    it 'contains the chef shell-init command' do
+      matcher = /^eval "\$\(chef shell-init bash\)"$/
+      expect(file(bashrc_file).content).to match(matcher)
+    end
   end
 end

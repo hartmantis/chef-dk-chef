@@ -79,6 +79,15 @@ class Chef
         def package_file_extension
           '.deb'
         end
+
+        #
+        # Return the global bashrc file path for this system
+        #
+        # @return [String]
+        #
+        def bashrc_file
+          '/etc/bash.bashrc'
+        end
       end
     end
   end

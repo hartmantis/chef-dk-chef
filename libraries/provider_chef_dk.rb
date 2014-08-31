@@ -19,8 +19,9 @@
 #
 
 require 'chef/provider'
-require 'chef/provider/package/dpkg'
-require 'chef/provider/package/rpm'
+require 'chef/resource/package'
+require 'chef/resource/remote_file'
+require 'chef/util/file_edit'
 require_relative 'resource_chef_dk'
 
 class Chef
@@ -56,6 +57,7 @@ class Chef
       #
       def action_install
         remote_file.run_action(:create)
+        global_shell_init(:create).write_file if new_resource.global_shell_init
         package.run_action(:install)
         new_resource.installed = true
       end
@@ -64,6 +66,7 @@ class Chef
       # Uninstall the ChefDk package and delete the cached file
       #
       def action_uninstall
+        global_shell_init(:delete).write_file if new_resource.global_shell_init
         package.run_action(:uninstall)
         remote_file.run_action(:delete)
         new_resource.installed = false
@@ -139,6 +142,24 @@ class Chef
       end
 
       #
+      # The resource for the global shell init file
+      #
+      # @return [Chef::Util::FileEdit]
+      #
+      def global_shell_init(action = nil)
+        matcher = /^eval "\$\(chef shell-init bash\)"$/
+        line = 'eval "$(chef shell-init bash)"'
+        @global_shell_init ||= Chef::Util::FileEdit.new(bashrc_file)
+        case action
+        when :create
+          @global_shell_init.insert_line_if_no_match(matcher, line)
+        when :delete
+          @global_shell_init.search_file_delete_line(matcher)
+        end
+        @global_shell_init
+      end
+
+      #
       # The RemoteFile resource for the package
       #
       # @return [Chef::Resource::RemoteFile]
@@ -198,7 +219,7 @@ class Chef
       end
 
       # Some methods have to be provided by the sub-classes
-      [:package_file_extension].each do |method|
+      [:package_file_extension, :bashrc_file].each do |method|
         define_method(method, proc { fail(NotImplemented, method) })
       end
 

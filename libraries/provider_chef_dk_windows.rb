@@ -81,6 +81,13 @@ class Chef
         def package_file_extension
           '.msi'
         end
+
+        #
+        # Windows does not support bashrc files
+        #
+        def bashrc_file
+          fail(Chef::Exceptions::UnsupportedPlatform, node['platform'])
+        end
       end
     end
   end

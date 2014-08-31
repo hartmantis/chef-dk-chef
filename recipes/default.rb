@@ -21,4 +21,5 @@
 chef_dk 'chef_dk' do
   version node['chef_dk']['version']
   package_url node['chef_dk']['package_url']
+  global_shell_init node['chef_dk']['global_shell_init']
 end

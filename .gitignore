@@ -18,3 +18,7 @@ bin/*
 .kitchen.local.yml
 .env.sh
 Vagrantfile
+
+# sublime text
+*.sublime-project
+*.sublime-workspace
