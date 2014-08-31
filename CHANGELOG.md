@@ -4,7 +4,7 @@ Chef-DK Cookbook CHANGELOG
 v?.?.? (????-??-??)
 -------------------
 * Support pre-11.12.0 Chef on all platforms but Windows
-* Add chefdk\_primary recipe, via [@patrickayoup][]
+* Add ability to set `chef shell-init` system-widw, via [@patrickayoup][]
 
 [@patrickayoup]: https://github.com/patrickayoup
 

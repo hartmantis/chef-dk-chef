@@ -19,6 +19,7 @@
 
 require 'chef'
 require 'chefspec'
+require 'tempfile'
 require 'tmpdir'
 require 'fileutils'
 require_relative 'support/provider/dmg_package'

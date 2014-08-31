@@ -25,10 +25,16 @@ describe Chef::Provider::ChefDk do
   let(:platform) { {} }
   let(:chefdk_version) { nil }
   let(:package_url) { nil }
+  let(:global_shell_init) { nil }
+  let(:version) { nil }
   let(:new_resource) do
     double(name: 'my_chef_dk',
+           cookbook_name: 'chef-dk',
            version: chefdk_version,
-           package_url: package_url)
+           package_url: package_url,
+           global_shell_init: global_shell_init,
+           version: version,
+           :installed= => true)
   end
   let(:provider) { described_class.new(new_resource, nil) }
 
@@ -52,17 +58,17 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#action_install' do
-    let(:new_resource) { double(:'installed=' => true) }
     let(:remote_file) { double(run_action: true) }
     let(:package) { double(run_action: true) }
+    let(:gsi) { double(write_file: true) }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:new_resource)
-        .and_return(new_resource)
-      allow_any_instance_of(described_class).to receive(:remote_file)
-        .and_return(remote_file)
-      allow_any_instance_of(described_class).to receive(:package)
-        .and_return(package)
+      [:remote_file, :package].each do |r|
+        allow_any_instance_of(described_class).to receive(r)
+          .and_return(send(r))
+      end
+      allow_any_instance_of(described_class).to receive(:global_shell_init)
+        .and_return(gsi)
     end
 
     it 'downloads the package remote file' do
@@ -79,23 +85,55 @@ describe Chef::Provider::ChefDk do
       expect(new_resource).to receive(:'installed=').with(true)
       provider.action_install
     end
+
+    it 'does not modify any bashrc' do
+      expect(gsi).not_to receive(:write_file)
+      provider.action_install
+    end
+
+    context 'overridden global shell init' do
+      let(:global_shell_init) { true }
+
+      it 'modifies bashrc' do
+        expect_any_instance_of(described_class).to receive(:global_shell_init)
+          .with(:create)
+        expect(gsi).to receive(:write_file)
+        provider.action_install
+      end
+    end
   end
 
   describe '#action_uninstall' do
-    let(:new_resource) { double(:'installed=' => true) }
     let(:remote_file) { double(run_action: true) }
     let(:package) { double(run_action: true) }
+    let(:gsi) { double(write_file: true) }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:new_resource)
-        .and_return(new_resource)
-      allow_any_instance_of(described_class).to receive(:remote_file)
-        .and_return(remote_file)
-      allow_any_instance_of(described_class).to receive(:package)
-        .and_return(package)
+      [:remote_file, :package].each do |r|
+        allow_any_instance_of(described_class).to receive(r)
+          .and_return(send(r))
+      end
+      allow_any_instance_of(described_class).to receive(:global_shell_init)
+        .and_return(gsi)
     end
 
-    it 'downloads the package remote file' do
+    it 'does not modify any bashrc' do
+      expect(gsi).not_to receive(:write_file)
+      provider.action_uninstall
+    end
+
+    context 'overridden global shell init' do
+      let(:global_shell_init) { true }
+
+      it 'modifies bashrc' do
+        expect_any_instance_of(described_class).to receive(:global_shell_init)
+          .with(:delete)
+        expect(gsi).to receive(:write_file)
+        provider.action_uninstall
+      end
+    end
+
+    it 'deletes the package remote file' do
       expect(remote_file).to receive(:run_action).with(:delete)
       provider.action_uninstall
     end
@@ -234,14 +272,6 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#version' do
-    let(:version) { nil }
-    let(:new_resource) { double(version: version) }
-
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:new_resource)
-        .and_return(new_resource)
-    end
-
     context 'a version specified with the resource' do
       let(:version) { '6.6.6' }
 
@@ -254,6 +284,23 @@ describe Chef::Provider::ChefDk do
       it 'returns the default latest version' do
         expect(provider.send(:version)).to eq('0.2.0-2')
       end
+    end
+  end
+
+  describe '#global_shell_init' do
+    before(:each) do
+      @fakebashrc = Tempfile.new('chefdkspec')
+      allow_any_instance_of(described_class).to receive(:bashrc_file)
+        .and_return(@fakebashrc.path)
+    end
+
+    after(:each) do
+      @fakebashrc.delete
+    end
+
+    it 'returns a FileEdit object' do
+      expected = Chef::Util::FileEdit
+      expect(provider.send(:global_shell_init)).to be_an_instance_of(expected)
     end
   end
 
@@ -393,6 +440,14 @@ describe Chef::Provider::ChefDk do
   describe '#package_file_extension' do
     it 'raises an error' do
       expect { provider.send(:package_file_extension) }.to raise_error(
+        Chef::Provider::ChefDk::NotImplemented
+      )
+    end
+  end
+
+  describe '#bashrc_file' do
+    it 'raises an error' do
+      expect { provider.send(:bashrc_file) }.to raise_error(
         Chef::Provider::ChefDk::NotImplemented
       )
     end
