@@ -282,7 +282,7 @@ describe Chef::Provider::ChefDk do
 
     context 'no version provided with the resource' do
       it 'returns the default latest version' do
-        expect(provider.send(:version)).to eq('0.2.0-2')
+        expect(provider.send(:version)).to eq('0.2.1-1')
       end
     end
   end
@@ -332,13 +332,13 @@ describe Chef::Provider::ChefDk do
       allow_any_instance_of(described_class).to receive(:platform_version)
         .and_return('12.04')
       allow_any_instance_of(described_class).to receive(:package_file)
-        .and_return('chefdk_0.2.0-2_amd64.deb')
+        .and_return('chefdk_0.2.1-1_amd64.deb')
     end
 
     context 'with no custom URL provided' do
       it 'pieces together the correct URL' do
         expected = 'https://opscode-omnibus-packages.s3.amazonaws.com' \
-                   '/ubuntu/12.04/x86_64/chefdk_0.2.0-2_amd64.deb'
+                   '/ubuntu/12.04/x86_64/chefdk_0.2.1-1_amd64.deb'
         expect(provider.send(:package_url)).to eq(expected)
       end
     end
@@ -382,34 +382,34 @@ describe Chef::Provider::ChefDk do
       {
         platform: 'ubuntu',
         version: '12.04',
-        elements: %w(chefdk 0.2.0-2 amd64),
+        elements: %w(chefdk 0.2.1-1 amd64),
         separator: '_',
         extension: '.deb',
-        expected: 'chefdk_0.2.0-2_amd64.deb'
+        expected: 'chefdk_0.2.1-1_amd64.deb'
       },
       {
         platform: 'centos',
         version: '6.0',
-        elements: %w(chefdk 0.2.0 2.el6.x86_64),
+        elements: %w(chefdk 0.2.1 1.el6.x86_64),
         separator: '-',
         extension: '.rpm',
-        expected: 'chefdk-0.2.0-2.el6.x86_64.rpm'
+        expected: 'chefdk-0.2.1-1.el6.x86_64.rpm'
       },
       {
         platform: 'mac_os_x',
         version: '10.9.2',
-        elements: %w(chefdk 0.2.0 2),
+        elements: %w(chefdk 0.2.1 1),
         separator: '-',
         extension: '.dmg',
-        expected: 'chefdk-0.2.0-2.dmg'
+        expected: 'chefdk-0.2.1-1.dmg'
       },
       {
         platform: 'windows',
         version: '2012',
-        elements: %w(chefdk windows 0.2.0 2.windows),
+        elements: %w(chefdk windows 0.2.1 1.windows),
         separator: '-',
         extension: '.msi',
-        expected: 'chefdk-windows-0.2.0-2.windows.msi'
+        expected: 'chefdk-windows-0.2.1-1.windows.msi'
       }
     ].each do |p|
       context "a #{p[:platform]}-#{p[:version]} node" do
@@ -427,7 +427,7 @@ describe Chef::Provider::ChefDk do
 
   describe '#package_file_elements' do
     it 'returns the package name and version by default' do
-      expect(provider.send(:package_file_elements)).to eq(%w(chefdk 0.2.0-2))
+      expect(provider.send(:package_file_elements)).to eq(%w(chefdk 0.2.1-1))
     end
   end
 

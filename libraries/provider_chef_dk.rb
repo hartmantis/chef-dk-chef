@@ -31,7 +31,7 @@ class Chef
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDk < Provider
       PACKAGE_NAME ||= 'chefdk'
-      LATEST_VERSION ||= '0.2.0-2'
+      LATEST_VERSION ||= '0.2.1-1'
       BASE_URL ||= 'https://opscode-omnibus-packages.s3.amazonaws.com'
 
       #

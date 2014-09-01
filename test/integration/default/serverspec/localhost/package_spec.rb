@@ -25,13 +25,13 @@ describe 'Chef-DK package' do
     describe package('com.getchef.pkg.chefdk') do
       it 'is installed' do
         expect(described_class).to be_installed.by(:pkgutil)
-          .with_version('0.2.0')
+          .with_version('0.2.1')
       end
     end
   else
     describe package('chefdk') do
       it 'is installed' do
-        expect(described_class).to be_installed.with_version('0.2.0-2')
+        expect(described_class).to be_installed.with_version('0.2.1-1')
       end
     end
   end
