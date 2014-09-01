@@ -78,7 +78,7 @@ describe Chef::Provider::ChefDk::Windows do
 
   describe '#package_file_elements' do
     it 'returns the standard elements + a couple of "windows"' do
-      expected = %w(chefdk windows 0.2.0-2.windows)
+      expected = %w(chefdk windows 0.2.1-1.windows)
       expect(provider.send(:package_file_elements)).to eq(expected)
     end
   end

@@ -3,6 +3,7 @@ Chef-DK Cookbook CHANGELOG
 
 v?.?.? (????-??-??)
 -------------------
+* Update to ChefDK 0.2.1-1 as 'latest' version
 * Support pre-11.12.0 Chef on all platforms but Windows
 * Add ability to set `chef shell-init` system-widw, via [@patrickayoup][]
 

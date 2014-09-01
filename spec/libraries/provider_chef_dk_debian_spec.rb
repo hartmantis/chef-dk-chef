@@ -58,7 +58,7 @@ describe Chef::Provider::ChefDk::Debian do
 
   describe '#package_file_elements' do
     it 'returns the standard elements + `amd64`' do
-      expected = %w(chefdk 0.2.0-2 amd64)
+      expected = %w(chefdk 0.2.1-1 amd64)
       expect(provider.send(:package_file_elements)).to eq(expected)
     end
   end

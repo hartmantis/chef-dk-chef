@@ -54,12 +54,12 @@ class Chef
 
         #
         # Override the platform version to be used in the package URL
-        # (The "10.9" package works just fine in, e.g., 10.10)
+        # (The "10.8" package works just fine in, e.g., 10.9)
         #
         # @return [String]
         #
         def platform_version
-          '10.9'
+          '10.8'
         end
 
         #

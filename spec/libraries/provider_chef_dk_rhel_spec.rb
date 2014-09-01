@@ -70,7 +70,7 @@ describe Chef::Provider::ChefDk::Rhel do
     let(:platform) { { platform: 'centos', version: '6.5' } }
 
     it 'returns the elements to assemble into a RHEL file name' do
-      expected = %w(chefdk 0.2.0-2.el6.x86_64)
+      expected = %w(chefdk 0.2.1-1.el6.x86_64)
       expect(provider.send(:package_file_elements)).to eq(expected)
     end
   end

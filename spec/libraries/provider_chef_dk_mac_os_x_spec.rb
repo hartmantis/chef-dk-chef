@@ -85,8 +85,8 @@ describe Chef::Provider::ChefDk::MacOsX do
       context "a mac_os_x-#{v} node" do
         let(:platform) { { platform: 'mac_os_x', version: v } }
 
-        it 'returns `10.9`' do
-          expect(provider.send(:platform_version)).to eq('10.9')
+        it 'returns `10.8`' do
+          expect(provider.send(:platform_version)).to eq('10.8')
         end
       end
     end
