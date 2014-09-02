@@ -184,7 +184,15 @@ describe Chef::Resource::ChefDk do
     end
 
     context 'a valid version' do
-      let(:res) { resource.send(:valid_version?, '1.2.3-1') }
+      let(:res) { resource.send(:valid_version?, '1.2.3') }
+
+      it 'returns true' do
+        expect(res).to eq(true)
+      end
+    end
+
+    context 'a valid version + build' do
+      let(:res) { resource.send(:valid_version?, '1.2.3-12') }
 
       it 'returns true' do
         expect(res).to eq(true)
