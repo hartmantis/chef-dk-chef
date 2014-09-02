@@ -22,14 +22,18 @@ require_relative '../../libraries/resource_chef_dk'
 
 describe Chef::Resource::ChefDk do
   let(:platform) { { platform: 'ubuntu', version: '14.04' } }
-  let(:version) { nil }
-  let(:package_url) { nil }
-  let(:global_shell_init) { nil }
+  [
+    :version, :prerelease, :nightlies, :package_url, :global_shell_init
+  ].each do |i|
+    let(i) { nil }
+  end
   let(:resource) do
     r = described_class.new('my_chef_dk', nil)
-    r.version(version)
-    r.package_url(package_url)
-    r.global_shell_init(global_shell_init)
+    [
+      :version, :prerelease, :nightlies, :package_url, :global_shell_init
+    ].each do |i|
+      r.send(i, send(i))
+    end
     r
   end
 
@@ -85,6 +89,50 @@ describe Chef::Resource::ChefDk do
     context 'a version AND package_url provided' do
       let(:version) { '1.2.3-4' }
       let(:package_url) { 'http://example.com/pkg.pkg' }
+
+      it_behaves_like 'an invalid configuration'
+    end
+  end
+
+  describe '#prerelease' do
+    context 'no override provided' do
+      it 'defaults to false' do
+        expect(resource.prerelease).to eq(false)
+      end
+    end
+
+    context 'a valid override provided' do
+      let(:prerelease) { true }
+
+      it 'returns the override' do
+        expect(resource.prerelease).to eq(true)
+      end
+    end
+
+    context 'an invalid override provided' do
+      let(:prerelease) { 'monkeys' }
+
+      it_behaves_like 'an invalid configuration'
+    end
+  end
+
+  describe '#nightlies' do
+    context 'no override provided' do
+      it 'defaults to false' do
+        expect(resource.nightlies).to eq(false)
+      end
+    end
+
+    context 'a valid override provided' do
+      let(:nightlies) { true }
+
+      it 'returns the override' do
+        expect(resource.nightlies).to eq(true)
+      end
+    end
+
+    context 'an invalid override provided' do
+      let(:nightlies) { 'monkeys' }
 
       it_behaves_like 'an invalid configuration'
     end

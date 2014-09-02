@@ -64,6 +64,32 @@ class Chef
       end
 
       #
+      # Optionally enable prerelease builds
+      #
+      # @param [TrueClass, FalseClass] arg
+      # @return [TrueClass, FalseClass]
+      #
+      def prerelease(arg = nil)
+        set_or_return(:prerelease,
+                      arg,
+                      kind_of: [TrueClass, FalseClass],
+                      default: false)
+      end
+
+      #
+      # Optionally enable nightly builds
+      #
+      # @param [TrueClass, FalseClass] arg
+      # @return [TrueClass, FalseClass]
+      #
+      def nightlies(arg = nil)
+        set_or_return(:nightlies,
+                      arg,
+                      kind_of: [TrueClass, FalseClass],
+                      default: false)
+      end
+
+      #
       # Optionally override the calculated package URL
       #
       # @param [String] arg
