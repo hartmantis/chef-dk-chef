@@ -19,7 +19,7 @@ before_script:
   - echo -e $DIGITALOCEAN_SSH_KEY_BODY > ~/.ssh/id_rsa
 
 script:
-  - sudo chef exec rspec --default-path test/integration/global_shell_init/serverspec -f d && sudo chef exec rake
+  - chef exec bundle exec rspec --default-path test/integration/global_shell_init/serverspec -f d && chef exec rake
 
 after_script:
 
