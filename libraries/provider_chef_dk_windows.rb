@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Library:: provider/chef_dk_windows
+# Library:: provider_chef_dk_windows
 #
 # Copyright 2014, Jonathan Hartman
 #
@@ -51,35 +51,6 @@ class Chef
         #
         def package_resource_class
           Chef::Resource::WindowsPackage
-        end
-
-        #
-        # Override the platform version to be used in the package URL
-        # (The URL has "2008r2" for all versions of Windows)
-        #
-        # @return [String]
-        #
-        def platform_version
-          '2008r2'
-        end
-
-        #
-        # Override the package file name's elements array
-        # (Add a couple of "windows" for the .msi packages)
-        #
-        # @return [Array]
-        #
-        def package_file_elements
-          [PACKAGE_NAME, 'windows', "#{version}.windows"]
-        end
-
-        #
-        # Return the extension of package files used by this system
-        #
-        # @return [String]
-        #
-        def package_file_extension
-          '.msi'
         end
 
         #

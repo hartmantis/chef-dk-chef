@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Library:: provider/chef_dk_rhel
+# Library:: provider_chef_dk_rhel
 #
 # Copyright 2014, Jonathan Hartman
 #
@@ -39,49 +39,6 @@ class Chef
         #
         def package_provider_class
           Chef::Provider::Package::Rpm
-        end
-
-        #
-        # Override the platform name used in the package URL
-        # (RHEL and RHELalikes use "el")
-        #
-        # @return [String]
-        #
-        def platform
-          'el'
-        end
-
-        #
-        # Override the platform version used in the package URL
-        # (RHEL and RHELalikes use the major version only)
-        #
-        # @return [String]
-        #
-        def platform_version
-          node['platform_version'].to_i.to_s
-        end
-
-        #
-        # Override the elements used to assemble a package file name
-        # (RHEL and RHELalikes use the pla
-        #
-        # @return [Array]
-        #
-        def package_file_elements
-          [
-            PACKAGE_NAME,
-            "#{version}.#{platform}#{platform_version}." <<
-              node['kernel']['machine']
-          ]
-        end
-
-        #
-        # Return the extension of package files used by this system
-        #
-        # @return [String]
-        #
-        def package_file_extension
-          '.rpm'
         end
 
         #

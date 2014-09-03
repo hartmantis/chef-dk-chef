@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Spec:: provider/chef_dk_windows
+# Spec:: provider_chef_dk_windows
 #
 # Copyright (C) 2014, Jonathan Hartman
 #
@@ -61,31 +61,6 @@ describe Chef::Provider::ChefDk::Windows do
     it 'returns Chef::Resource::WindowsPackage' do
       expected = Chef::Resource::WindowsPackage
       expect(provider.send(:package_resource_class)).to eq(expected)
-    end
-  end
-
-  describe '#platform_version' do
-    %w(2012 2008R2).each do |v|
-      context "a windows-#{v} node" do
-        let(:platform) { { platform: 'windows', version: v } }
-
-        it 'returns "2008r2"' do
-          expect(provider.send(:platform_version)).to eq('2008r2')
-        end
-      end
-    end
-  end
-
-  describe '#package_file_elements' do
-    it 'returns the standard elements + a couple of "windows"' do
-      expected = %w(chefdk windows 0.2.1-1.windows)
-      expect(provider.send(:package_file_elements)).to eq(expected)
-    end
-  end
-
-  describe '#package_file_extension' do
-    it 'returns ".msi"' do
-      expect(provider.send(:package_file_extension)).to eq('.msi')
     end
   end
 

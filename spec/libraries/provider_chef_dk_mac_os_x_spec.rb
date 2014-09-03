@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Spec:: provider/chef_dk_mac_os_x
+# Spec:: provider_chef_dk_mac_os_x
 #
 # Copyright (C) 2014, Jonathan Hartman
 #
@@ -77,24 +77,6 @@ describe Chef::Provider::ChefDk::MacOsX do
     it 'returns the DmgPackage resource' do
       expected = Chef::Resource::DmgPackage
       expect(provider.send(:package_resource_class)).to eq(expected)
-    end
-  end
-
-  describe '#platform_version' do
-    %w(10.7.4 10.8.2 10.9.2).each do |v|
-      context "a mac_os_x-#{v} node" do
-        let(:platform) { { platform: 'mac_os_x', version: v } }
-
-        it 'returns `10.8`' do
-          expect(provider.send(:platform_version)).to eq('10.8')
-        end
-      end
-    end
-  end
-
-  describe '#package_file_extension' do
-    it 'returns the `.dmg` extension' do
-      expect(provider.send(:package_file_extension)).to eq('.dmg')
     end
   end
 
