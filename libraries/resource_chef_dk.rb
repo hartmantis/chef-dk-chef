@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Library:: resource/chef_dk
+# Library:: resource_chef_dk
 #
 # Copyright 2014, Jonathan Hartman
 #
