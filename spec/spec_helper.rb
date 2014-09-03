@@ -19,6 +19,7 @@
 
 require 'chef'
 require 'chefspec'
+require 'json'
 require 'tempfile'
 require 'tmpdir'
 require 'fileutils'

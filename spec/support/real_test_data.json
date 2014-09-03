@@ -1,0 +1,121 @@
+[
+  {
+    "platform": {"name": "ubuntu", "version": "12.04" },
+    "version": null,
+    "prerelease": false,
+    "nightlies": false,
+    "expected": {
+      "url": "https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chefdk_0.2.1-1_amd64.deb",
+      "md5": "2decbcacd464371704f008380a876ef8",
+      "sha256": "ec6f27af170e55d3510904f745d778bbf245dbd14034cacecf2aab8992936733"
+    }
+  },
+  {
+    "platform": {"name": "ubuntu", "version": "12.04" },
+    "version": "0.1.0",
+    "prerelease": false,
+    "nightlies": false,
+    "expected": {
+      "url": "https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chefdk_0.1.0-1_amd64.deb",
+      "md5": "f7d53114f96e927261b4b2a2ecd3f232",
+      "sha256": "0d66b93b62a24bd9c9735eefb4cd547bdf441f4a95effdfa068608c3821f85cb"
+    }
+  },
+  {
+    "platform": {"name": "ubuntu", "version": "12.04" },
+    "version": null,
+    "prerelease": true,
+    "nightlies": false,
+    "expected": {}
+  },
+  {
+    "platform": {"name": "ubuntu", "version": "12.04" },
+    "version": null,
+    "prerelease": false,
+    "nightlies": true,
+    "expected": {
+      "url": "https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chefdk_0.2.1%2B20140902085112-1_amd64.deb",
+      "md5": "c2cc9eea58e89609a37c0cea559ead02",
+      "sha256": "f6a56d1f4f876bbe2509711b275e6b468ed0e48632b8c134f1e07280639c7983"
+    }
+  },
+  {
+    "platform": {"name": "ubuntu", "version": "13.10" },
+    "version": "0.2.1",
+    "prerelease": false,
+    "nightlies": false,
+    "expected": {
+      "url": "https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chefdk_0.2.1-1_amd64.deb",
+      "md5": "2decbcacd464371704f008380a876ef8",
+      "sha256": "ec6f27af170e55d3510904f745d778bbf245dbd14034cacecf2aab8992936733"
+    }
+  },
+  {
+    "platform": {"name": "mac_os_x", "version": "10.8.2" },
+    "version": "0.2.1",
+    "prerelease": false,
+    "nightlies": false,
+    "expected": {
+      "url": "https://opscode-omnibus-packages.s3.amazonaws.com/mac_os_x/10.8/x86_64/chefdk-0.2.1-1.dmg",
+      "md5": "4374d8f8f290b3efab6d02b5cedb48d7",
+      "sha256": "d4a6023e21c2c3cfb6773382ae7d6111e2de44ac1064aa2b1c0faddcd3bc1d13"
+    }
+  },
+  {
+    "platform": {"name": "mac_os_x", "version": "10.9.2" },
+    "version": "0.2.1",
+    "prerelease": false,
+    "nightlies": false,
+    "expected": {
+      "url": "https://opscode-omnibus-packages.s3.amazonaws.com/mac_os_x/10.8/x86_64/chefdk-0.2.1-1.dmg",
+      "md5": "4374d8f8f290b3efab6d02b5cedb48d7",
+      "sha256": "d4a6023e21c2c3cfb6773382ae7d6111e2de44ac1064aa2b1c0faddcd3bc1d13"
+    }
+  },
+  {
+    "platform": {"name": "centos", "version": "6.5" },
+    "version": "0.2.1",
+    "prerelease": false,
+    "nightlies": false,
+    "expected": {
+      "url": "https://opscode-omnibus-packages.s3.amazonaws.com/el/6/x86_64/chefdk-0.2.1-1.el6.x86_64.rpm",
+      "md5": "feb2e06fdecae3bae79f8ec8d32d6ab6",
+      "sha256": "afd487ab6f0cd0286a0a3d2808a041c784c064eddb6193d688edfb6741065b56"
+    }
+  },
+  {
+    "platform": {"name": "centos", "version": "7.0" },
+    "version": "0.2.1",
+    "prerelease": false,
+    "nightlies": false,
+    "expected": {
+      "url": "https://opscode-omnibus-packages.s3.amazonaws.com/el/6/x86_64/chefdk-0.2.1-1.el6.x86_64.rpm",
+      "md5": "feb2e06fdecae3bae79f8ec8d32d6ab6",
+      "sha256": "afd487ab6f0cd0286a0a3d2808a041c784c064eddb6193d688edfb6741065b56",
+      "yolo": true
+    }
+  },
+  {
+    "platform": {"name": "windows", "version": "2008R2" },
+    "version": "0.2.1",
+    "prerelease": false,
+    "nightlies": false,
+    "expected": {
+      "url": "https://opscode-omnibus-packages.s3.amazonaws.com/windows/2008r2/x86_64/chefdk-windows-0.2.1-1.windows.msi",
+      "md5": "218a9d79bcea5c2f8493cd6b7f020224",
+      "sha256": "acdb91228d21dca93d3c67f70f8f7580522e78aaaced2a9f7bf8f2c19e5864d6"
+    }
+  },
+  {
+    "platform": {"name": "windows", "version": "2012" },
+    "version": "0.2.1",
+    "prerelease": false,
+    "nightlies": false,
+    "expected": {
+      "url": "https://opscode-omnibus-packages.s3.amazonaws.com/windows/2008r2/x86_64/chefdk-windows-0.2.1-1.windows.msi",
+      "md5": "218a9d79bcea5c2f8493cd6b7f020224",
+      "sha256": "acdb91228d21dca93d3c67f70f8f7580522e78aaaced2a9f7bf8f2c19e5864d6",
+      "yolo": true
+    }
+  }
+]
