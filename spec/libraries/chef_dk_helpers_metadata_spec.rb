@@ -171,7 +171,7 @@ describe ChefDk::Helpers::Metadata do
       { platform: 'ubuntu', version: '12.04', expected: '12.04' },
       { platform: 'centos', version: '6.5', expected: '6.5' },
       { platform: 'mac_os_x', version: '10.9.2', expected: '10.9' },
-      { platform: 'windows', version: '2012', expected: '6.2.9200' }
+      { platform: 'windows', version: '2012', expected: '2012' }
     ].each do |p|
       context "a #{p[:platform]}-#{p[:version]} node" do
         let(:platform) { { platform: p[:platform], version: p[:version] } }

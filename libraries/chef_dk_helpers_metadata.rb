@@ -117,6 +117,12 @@ module ChefDk
         case platform
         when 'mac_os_x'
           node['platform_version'].split('.')[0..1].join('.')
+        when 'windows'
+          # Make a best guess and assume a server OS
+          # See: http://msdn.microsoft.com/en-us/library/windows/desktop/ms724832(v=vs.85).aspx
+          { '6.3' => '2012r2', '6.2' => '2012',
+            '6.1' => '2008r2', '6.0' => '2008'
+          }[node['platform_version'].split('.')[0..1].join('.')]
         else
           node['platform_version']
         end
