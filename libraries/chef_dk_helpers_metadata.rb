@@ -45,7 +45,16 @@ module ChefDk
       # @return [String, NilClass]
       #
       def [](key)
-        to_h[key]
+        key == :filename ? filename : to_h[key]
+      end
+
+      #
+      # Return the filename at the end of the package URL
+      #
+      # @return [String]
+      #
+      def filename
+        url.split('/')[-1]
       end
 
       # Set up accessor methods for each piece of metadata

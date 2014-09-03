@@ -47,12 +47,29 @@ describe ChefDk::Helpers::Metadata do
     before(:each) do
       allow_any_instance_of(described_class).to receive(:to_h)
         .and_return(fake_data)
+      allow_any_instance_of(described_class).to receive(:filename)
+        .and_return('something.pkg')
     end
 
     [:url, :md5, :sha256, :yolo].each do |attr|
       it "has access to the #{attr} data" do
         expect(obj[attr]).to eq(fake_data[attr])
       end
+    end
+
+    it 'has access to the filename' do
+      expect(obj[:filename]).to eq('something.pkg')
+    end
+  end
+
+  describe '#filename' do
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:url)
+        .and_return('https://example.com/somewhere/over/here/thing.pkg')
+    end
+
+    it 'returns just the filename portion of the package URL' do
+      expect(obj.filename).to eq('thing.pkg')
     end
   end
 
