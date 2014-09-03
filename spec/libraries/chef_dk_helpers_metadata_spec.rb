@@ -39,6 +39,40 @@ describe ChefDk::Helpers::Metadata do
     end
   end
 
+  describe '#[]' do
+    let(:fake_data) do
+      { url: 'some url', md5: 'some md5', sha256: 'some sha256', yolo: true }
+    end
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:to_h)
+        .and_return(fake_data)
+    end
+
+    [:url, :md5, :sha256, :yolo].each do |attr|
+      it "has access to the #{attr} data" do
+        expect(obj[attr]).to eq(fake_data[attr])
+      end
+    end
+  end
+
+  [:url, :md5, :sha256, :yolo].each do |method|
+    describe "##{method}" do
+      let(:fake_data) do
+        { url: 'some url', md5: 'some md5', sha256: 'some sha256', yolo: true }
+      end
+
+      before(:each) do
+        allow_any_instance_of(described_class).to receive(:to_h)
+          .and_return(fake_data)
+      end
+
+      it "returns the correct #{method} data" do
+        expect(obj.send(method)).to eq(fake_data[method])
+      end
+    end
+  end
+
   describe '#to_h' do
     context 'fake data' do
       let(:url) do

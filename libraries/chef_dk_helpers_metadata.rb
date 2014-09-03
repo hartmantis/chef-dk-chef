@@ -39,6 +39,21 @@ module ChefDk
       end
 
       #
+      # Make metadata accessible via hash keys
+      #
+      # @param [Symbol] key
+      # @return [String, NilClass]
+      #
+      def [](key)
+        to_h[key]
+      end
+
+      # Set up accessor methods for each piece of metadata
+      [:url, :md5, :sha256, :yolo].each do |attr|
+        define_method(attr) { to_h[attr] }
+      end
+
+      #
       # Convert metadata into a hash
       #
       # @return [Hash]
