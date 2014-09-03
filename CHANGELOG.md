@@ -3,9 +3,11 @@ Chef-DK Cookbook CHANGELOG
 
 v?.?.? (????-??-??)
 -------------------
+* Support optionally installing prerelease or nightly builds
+* Use Chef's Omnitruck metadata service to always know the 'latest' version
 * Update to ChefDK 0.2.1-1 as 'latest' version
 * Support pre-11.12.0 Chef on all platforms but Windows
-* Add ability to set `chef shell-init` system-widw, via [@patrickayoup][]
+* Add ability to set `chef shell-init` system-wide, via [@patrickayoup][]
 
 [@patrickayoup]: https://github.com/patrickayoup
 
