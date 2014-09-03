@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Library:: provider/chef_dk
+# Library:: provider_chef_dk
 #
 # Copyright 2014, Jonathan Hartman
 #
@@ -18,10 +18,13 @@
 # limitations under the License.
 #
 
+require 'net/http'
+require 'uri'
 require 'chef/provider'
 require 'chef/resource/package'
 require 'chef/resource/remote_file'
 require 'chef/util/file_edit'
+require_relative 'chef_dk_helpers_metadata'
 require_relative 'resource_chef_dk'
 
 class Chef
@@ -31,8 +34,7 @@ class Chef
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDk < Provider
       PACKAGE_NAME ||= 'chefdk'
-      LATEST_VERSION ||= '0.2.1-1'
-      BASE_URL ||= 'https://opscode-omnibus-packages.s3.amazonaws.com'
+      METADATA_BASE ||= "https://www.opscode.com/chef/metadata-#{PACKAGE_NAME}"
 
       #
       # WhyRun is supported by this provider
@@ -112,36 +114,6 @@ class Chef
       end
 
       #
-      # The platform name to be used in the package URL
-      #
-      # @return [String]
-      #
-      def platform
-        node['platform']
-      end
-
-      #
-      # The platform version to be used in the package URL
-      #
-      # @return [String]
-      #
-      def platform_version
-        node['platform_version']
-      end
-
-      #
-      # The package version string
-      #
-      # @return [String]
-      #
-      def version
-        @version ||= case new_resource.version.to_s
-                     when '', 'latest' then LATEST_VERSION
-                     else new_resource.version
-                     end
-      end
-
-      #
       # The resource for the global shell init file
       #
       # @return [Chef::Util::FileEdit]
@@ -166,19 +138,9 @@ class Chef
       #
       def remote_file
         @remote_file ||= Resource::RemoteFile.new(download_path, run_context)
-        @remote_file.source(package_url)
+        @remote_file.source(metadata.url)
+        @remote_file.checksum(metadata.sha256)
         @remote_file
-      end
-
-      #
-      # Construct the URL of the package to download for this system
-      #
-      # @return [String]
-      #
-      def package_url
-        @package_url ||= new_resource.package_url ||
-          ::File.join(BASE_URL, platform, platform_version,
-                      node['kernel']['machine'], package_file)
       end
 
       #
@@ -187,39 +149,22 @@ class Chef
       # @return [String]
       #
       def download_path
-        ::File.join(Chef::Config[:file_cache_path], package_file)
+        ::File.join(Chef::Config[:file_cache_path], metadata.filename)
       end
 
       #
-      # Construct the file name of the package to be installed
+      # Get the package metadata
       #
-      # @return [String]
+      # @return [Hash]
       #
-      def package_file
-        package_file_elements.join(package_file_separator) <<
-          package_file_extension
-      end
-
-      #
-      # The individual elements to be assembled into a package file name
-      #
-      # @return [Array]
-      #
-      def package_file_elements
-        [PACKAGE_NAME, version]
-      end
-
-      #
-      # The separator character used between elements of the package file name
-      #
-      # @return [String]
-      #
-      def package_file_separator
-        '-'
+      def metadata
+        @metadata ||= ::ChefDk::Helpers::Metadata.new(PACKAGE_NAME,
+                                                      node,
+                                                      new_resource)
       end
 
       # Some methods have to be provided by the sub-classes
-      [:package_file_extension, :bashrc_file].each do |method|
+      [:bashrc_file].each do |method|
         define_method(method, proc { fail(NotImplemented, method) })
       end
 

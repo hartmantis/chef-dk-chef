@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Spec:: provider/chef_dk
+# Spec:: provider_chef_dk
 #
 # Copyright (C) 2014, Jonathan Hartman
 #
@@ -23,25 +23,24 @@ require_relative '../../libraries/provider_chef_dk'
 describe Chef::Provider::ChefDk do
   let(:base_url) { 'https://opscode-omnibus-packages.s3.amazonaws.com' }
   let(:platform) { {} }
-  let(:chefdk_version) { nil }
-  let(:package_url) { nil }
-  let(:global_shell_init) { nil }
-  let(:version) { nil }
+  [
+    :version, :prerelease, :nightlies, :package_url, :global_shell_init
+  ].each { |i| let(i) { nil } }
+  let(:node) { Fauxhai.mock(platform).data }
   let(:new_resource) do
     double(name: 'my_chef_dk',
            cookbook_name: 'chef-dk',
-           version: chefdk_version,
+           version: version,
+           prerelease: prerelease,
+           nightlies: nightlies,
            package_url: package_url,
            global_shell_init: global_shell_init,
-           version: version,
            :installed= => true)
   end
   let(:provider) { described_class.new(new_resource, nil) }
 
   before(:each) do
-    allow_any_instance_of(described_class).to receive(:node).and_return(
-      Fauxhai.mock(platform).data
-    )
+    allow_any_instance_of(described_class).to receive(:node).and_return(node)
   end
 
   describe '#whyrun_supported?' do
@@ -227,66 +226,6 @@ describe Chef::Provider::ChefDk do
     end
   end
 
-  describe '#platform' do
-    [
-      {
-        platform: 'ubuntu',
-        version: '12.04'
-      },
-      {
-        platform: 'windows',
-        version: '2012'
-      }
-    ].each do |p|
-      context "a #{p[:platform]}-#{p[:version]} node" do
-        let(:platform) { { platform: p[:platform], version: p[:version] } }
-
-        it 'returns the platform name' do
-          expect(provider.send(:platform)).to eq(p[:platform])
-        end
-      end
-    end
-  end
-
-  describe '#platform_version' do
-    [
-      {
-        platform: 'ubuntu',
-        version: '12.04',
-        expected: '12.04'
-      },
-      {
-        platform: 'windows',
-        version: '2012',
-        expected: '6.2.9200'
-      }
-    ].each do |p|
-      context "a #{p[:platform]}-#{p[:version]} node" do
-        let(:platform) { { platform: p[:platform], version: p[:version] } }
-
-        it 'returns the platform version' do
-          expect(provider.send(:platform_version)).to eq(p[:expected])
-        end
-      end
-    end
-  end
-
-  describe '#version' do
-    context 'a version specified with the resource' do
-      let(:version) { '6.6.6' }
-
-      it 'returns the specified version' do
-        expect(provider.send(:version)).to eq('6.6.6')
-      end
-    end
-
-    context 'no version provided with the resource' do
-      it 'returns the default latest version' do
-        expect(provider.send(:version)).to eq('0.2.1-1')
-      end
-    end
-  end
-
   describe '#global_shell_init' do
     before(:each) do
       @fakebashrc = Tempfile.new('chefdkspec')
@@ -305,57 +244,27 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#remote_file' do
-    let(:remote_file) { double(source: true) }
+    let(:metadata) { double(url: 'http://x.com/pack.pkg', sha256: 'lolnope') }
 
     before(:each) do
-      allow(Chef::Resource::RemoteFile).to receive(:new).and_return(remote_file)
+      allow_any_instance_of(described_class).to receive(:metadata)
+        .and_return(metadata)
       allow_any_instance_of(described_class).to receive(:download_path)
-        .and_return('/tmp/package.pkg')
-      allow_any_instance_of(described_class).to receive(:package_url)
-        .and_return('http://package.com/package.pkg')
+        .and_return('/tmp/pack.pkg')
     end
 
     it 'returns an instance of Chef::Resource::RemoteFile' do
-      res = provider.send(:remote_file)
-      expect(res).to be_an_instance_of(RSpec::Mocks::Double)
-    end
-  end
-
-  describe '#package_url' do
-    let(:platform) { { platform: 'ubuntu', version: '12.04' } }
-
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:new_resource)
-        .and_return(new_resource)
-      allow_any_instance_of(described_class).to receive(:platform)
-        .and_return('ubuntu')
-      allow_any_instance_of(described_class).to receive(:platform_version)
-        .and_return('12.04')
-      allow_any_instance_of(described_class).to receive(:package_file)
-        .and_return('chefdk_0.2.1-1_amd64.deb')
-    end
-
-    context 'with no custom URL provided' do
-      it 'pieces together the correct URL' do
-        expected = 'https://opscode-omnibus-packages.s3.amazonaws.com' \
-                   '/ubuntu/12.04/x86_64/chefdk_0.2.1-1_amd64.deb'
-        expect(provider.send(:package_url)).to eq(expected)
-      end
-    end
-
-    context 'with a custom URL provided' do
-      let(:package_url) { 'http://example.com/package.pkg' }
-
-      it 'returns the custom URL' do
-        expect(provider.send(:package_url)).to eq(package_url)
-      end
+      expected = Chef::Resource::RemoteFile
+      expect(provider.send(:remote_file)).to be_an_instance_of(expected)
     end
   end
 
   describe '#download_path' do
+    let(:metadata) { double(filename: 'test.deb') }
+
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:package_file)
-        .and_return('test.deb')
+      allow_any_instance_of(described_class).to receive(:metadata)
+        .and_return(metadata)
     end
 
     it 'returns a path in the Chef file_cache_path' do
@@ -364,84 +273,10 @@ describe Chef::Provider::ChefDk do
     end
   end
 
-  describe '#package_file' do
-    let(:package_file_elements) { nil }
-    let(:package_file_separator) { nil }
-    let(:package_file_extension) { nil }
-
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:package_file_elements)
-        .and_return(package_file_elements)
-      allow_any_instance_of(described_class).to receive(:package_file_separator)
-        .and_return(package_file_separator)
-      allow_any_instance_of(described_class).to receive(:package_file_extension)
-        .and_return(package_file_extension)
-    end
-
-    [
-      {
-        platform: 'ubuntu',
-        version: '12.04',
-        elements: %w(chefdk 0.2.1-1 amd64),
-        separator: '_',
-        extension: '.deb',
-        expected: 'chefdk_0.2.1-1_amd64.deb'
-      },
-      {
-        platform: 'centos',
-        version: '6.0',
-        elements: %w(chefdk 0.2.1 1.el6.x86_64),
-        separator: '-',
-        extension: '.rpm',
-        expected: 'chefdk-0.2.1-1.el6.x86_64.rpm'
-      },
-      {
-        platform: 'mac_os_x',
-        version: '10.9.2',
-        elements: %w(chefdk 0.2.1 1),
-        separator: '-',
-        extension: '.dmg',
-        expected: 'chefdk-0.2.1-1.dmg'
-      },
-      {
-        platform: 'windows',
-        version: '2012',
-        elements: %w(chefdk windows 0.2.1 1.windows),
-        separator: '-',
-        extension: '.msi',
-        expected: 'chefdk-windows-0.2.1-1.windows.msi'
-      }
-    ].each do |p|
-      context "a #{p[:platform]}-#{p[:version]} node" do
-        let(:platform) { { platform: p[:platform], version: p[:version] } }
-        let(:package_file_elements) { p[:elements] }
-        let(:package_file_separator) { p[:separator] }
-        let(:package_file_extension) { p[:extension] }
-
-        it 'returns the correct package file name' do
-          expect(provider.send(:package_file)).to eq(p[:expected])
-        end
-      end
-    end
-  end
-
-  describe '#package_file_elements' do
-    it 'returns the package name and version by default' do
-      expect(provider.send(:package_file_elements)).to eq(%w(chefdk 0.2.1-1))
-    end
-  end
-
-  describe '#package_file_separator' do
-    it 'returns a hyphen' do
-      expect(provider.send(:package_file_separator)).to eq('-')
-    end
-  end
-
-  describe '#package_file_extension' do
-    it 'raises an error' do
-      expect { provider.send(:package_file_extension) }.to raise_error(
-        Chef::Provider::ChefDk::NotImplemented
-      )
+  describe '#metadata' do
+    it 'returns a Metadata instance' do
+      expected = ChefDk::Helpers::Metadata
+      expect(provider.send(:metadata)).to be_an_instance_of(expected)
     end
   end
 
