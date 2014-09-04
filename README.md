@@ -80,6 +80,8 @@ Attributes:
 | Attribute           | Default    | Description                               |
 |---------------------|------------|-------------------------------------------|
 | `version`           | `'latest'` | Install a specific version\*              |
+| `prerelease`        | `false`    | Enable installation of prerelease builds  |
+| `nightlies`         | `false`    | Enable installation of nightly builds     |
 | `package_url`       | `nil`      | DL from a specific URL\*                  |
 | `global_shell_init` | `false`    | Set ChefDK as the global default Ruby\*\* |
 

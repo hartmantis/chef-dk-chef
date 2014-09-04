@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Library:: provider/chef_dk_debian
+# Library:: provider_chef_dk_debian
 #
 # Copyright 2014, Jonathan Hartman
 #
@@ -39,45 +39,6 @@ class Chef
         #
         def package_provider_class
           Chef::Provider::Package::Dpkg
-        end
-
-        #
-        # Override the package URL's platform version
-        # ("12.04" for all the .deb packages)
-        #
-        # @return [String]
-        #
-        def platform_version
-          '12.04'
-        end
-
-        #
-        # Override the package file name's elements array
-        # (Add an "amd64" for the .deb packages)
-        #
-        # @return [Array]
-        #
-        def package_file_elements
-          super << 'amd64'
-        end
-
-        #
-        # Override the package file name's elements separator
-        # (The .deb packages use a "_")
-        #
-        # @return [String]
-        #
-        def package_file_separator
-          '_'
-        end
-
-        #
-        # Return the extension of package files used by this system
-        #
-        # @return [String]
-        #
-        def package_file_extension
-          '.deb'
         end
 
         #

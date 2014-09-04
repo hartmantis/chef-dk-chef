@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Library:: provider/chef_dk_mac_os_x
+# Library:: provider_chef_dk_mac_os_x
 #
 # Copyright 2014, Jonathan Hartman
 #
@@ -50,25 +50,6 @@ class Chef
         #
         def package_resource_class
           Chef::Resource::DmgPackage
-        end
-
-        #
-        # Override the platform version to be used in the package URL
-        # (The "10.8" package works just fine in, e.g., 10.9)
-        #
-        # @return [String]
-        #
-        def platform_version
-          '10.8'
-        end
-
-        #
-        # Return the extension of package files used by this system
-        #
-        # @return [String]
-        #
-        def package_file_extension
-          '.dmg'
         end
 
         #

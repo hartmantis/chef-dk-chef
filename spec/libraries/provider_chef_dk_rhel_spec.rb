@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Spec:: provider/chef_dk_rhel
+# Spec:: provider_chef_dk_rhel
 #
 # Copyright (C) 2014, Jonathan Hartman
 #
@@ -41,43 +41,6 @@ describe Chef::Provider::ChefDk::Rhel do
     it 'returns Chef::Provider::Package::Rpm' do
       expected = Chef::Provider::Package::Rpm
       expect(provider.send(:package_provider_class)).to eq(expected)
-    end
-  end
-
-  describe '#platform' do
-    it 'returns "el"' do
-      expect(provider.send(:platform)).to eq('el')
-    end
-  end
-
-  describe '#platform_version' do
-    {
-      '7.0' => '7',
-      '6.5' => '6',
-      '5.10' => '5'
-    }.each do |full_version, major_version|
-      context "a centos-#{full_version} node" do
-        let(:platform) { { platform: 'centos', version: full_version } }
-
-        it 'returns the major version, "#{major_version}"' do
-          expect(provider.send(:platform_version)).to eq(major_version)
-        end
-      end
-    end
-  end
-
-  describe '#package_file_elements' do
-    let(:platform) { { platform: 'centos', version: '6.5' } }
-
-    it 'returns the elements to assemble into a RHEL file name' do
-      expected = %w(chefdk 0.2.1-1.el6.x86_64)
-      expect(provider.send(:package_file_elements)).to eq(expected)
-    end
-  end
-
-  describe '#package_file_extension' do
-    it 'returns the ".rpm" extension' do
-      expect(provider.send(:package_file_extension)).to eq('.rpm')
     end
   end
 

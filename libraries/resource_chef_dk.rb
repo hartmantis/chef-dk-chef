@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Library:: resource/chef_dk
+# Library:: resource_chef_dk
 #
 # Copyright 2014, Jonathan Hartman
 #
@@ -64,6 +64,32 @@ class Chef
       end
 
       #
+      # Optionally enable prerelease builds
+      #
+      # @param [TrueClass, FalseClass] arg
+      # @return [TrueClass, FalseClass]
+      #
+      def prerelease(arg = nil)
+        set_or_return(:prerelease,
+                      arg,
+                      kind_of: [TrueClass, FalseClass],
+                      default: false)
+      end
+
+      #
+      # Optionally enable nightly builds
+      #
+      # @param [TrueClass, FalseClass] arg
+      # @return [TrueClass, FalseClass]
+      #
+      def nightlies(arg = nil)
+        set_or_return(:nightlies,
+                      arg,
+                      kind_of: [TrueClass, FalseClass],
+                      default: false)
+      end
+
+      #
       # Optionally override the calculated package URL
       #
       # @param [String] arg
@@ -102,10 +128,8 @@ class Chef
       #
       def determine_provider
         return nil unless node && node['platform_family']
-        platform = node['platform_family'].split('_').map do |i|
-          i.capitalize
-        end.join
-        Chef::Provider::ChefDk.const_get(platform)
+        Chef::Provider::ChefDk.const_get(node['platform_family'].split('_')
+                                         .map(&:capitalize).join)
       end
 
       #
@@ -116,7 +140,7 @@ class Chef
       #
       def valid_version?(arg)
         return true if arg == 'latest'
-        arg.match(/^[0-9]+\.[0-9]+\.[0-9]+-[0-9]$/) ? true : false
+        arg.match(/^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$/) ? true : false
       end
     end
   end

@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Spec:: provider/chef_dk_debian
+# Spec:: provider_chef_dk_debian
 #
 # Copyright (C) 2014, Jonathan Hartman
 #
@@ -41,37 +41,6 @@ describe Chef::Provider::ChefDk::Debian do
     it 'returns Chef::Provider::Package::Dpkg' do
       expected = Chef::Provider::Package::Dpkg
       expect(provider.send(:package_provider_class)).to eq(expected)
-    end
-  end
-
-  describe '#platform_version' do
-    %w(12.04 13.10).each do |v|
-      context "a ubuntu-#{v} node" do
-        let(:platform) { { platform: 'ubuntu', version: v } }
-
-        it 'returns `12.04`' do
-          expect(provider.send(:platform_version)).to eq('12.04')
-        end
-      end
-    end
-  end
-
-  describe '#package_file_elements' do
-    it 'returns the standard elements + `amd64`' do
-      expected = %w(chefdk 0.2.1-1 amd64)
-      expect(provider.send(:package_file_elements)).to eq(expected)
-    end
-  end
-
-  describe '#package_file_separator' do
-    it 'returns a `_` separator' do
-      expect(provider.send(:package_file_separator)).to eq('_')
-    end
-  end
-
-  describe '#package_file_extension' do
-    it 'returns the `.deb` extension' do
-      expect(provider.send(:package_file_extension)).to eq('.deb')
     end
   end
 
