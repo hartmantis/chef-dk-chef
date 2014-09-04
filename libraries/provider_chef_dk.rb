@@ -92,7 +92,7 @@ class Chef
       # Call any platform customization methods for the package resource
       #
       def tailor_package_resource_to_platform
-        @package.version(version)
+        @package.version(new_resource.version)
       end
 
       #
