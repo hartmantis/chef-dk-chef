@@ -146,15 +146,27 @@ describe ChefDk::Helpers::Metadata do
   end
 
   describe '#raw_metadata' do
-    let(:murl) { URI('https://fakedomain.example.com/somewhere') }
+    let(:murl) { URI.encode('https://fake.example.com/somewhere') }
+    let(:parsed) { double(read: 'HTTPBODY') }
 
     before(:each) do
       allow_any_instance_of(described_class).to receive(:murl).and_return(murl)
-      allow(Net::HTTP).to receive(:get).with(murl).and_return('HTTPBODY')
+      allow(URI).to receive(:parse).with(murl).and_return(parsed)
     end
 
     it 'returns the results of the HTTP GET' do
       expect(obj.send(:raw_metadata)).to eq('HTTPBODY')
+    end
+
+    context 'a non-existent URL' do
+      before(:each) do
+        allow(URI).to receive(:parse).with(murl)
+          .and_raise(OpenURI::HTTPError.new('404 badness', 'fake'))
+      end
+
+      it 'rescues HTTP, e.g. 404, errors' do
+        expect(obj.send(:raw_metadata)).to eq('')
+      end
     end
   end
 

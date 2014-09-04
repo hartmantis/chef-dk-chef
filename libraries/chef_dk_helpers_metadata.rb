@@ -19,7 +19,7 @@
 #
 
 require 'net/http'
-require 'uri'
+require 'open-uri'
 
 module ChefDk
   module Helpers
@@ -95,7 +95,11 @@ module ChefDk
       # @return [String]
       #
       def raw_metadata
-        @raw_metadata ||= Net::HTTP.get(URI(murl))
+        @raw_metadata ||= begin
+                            URI.parse(murl).read
+                          rescue OpenURI::HTTPError
+                            ''
+                          end
       end
 
       #
