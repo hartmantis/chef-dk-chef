@@ -128,10 +128,8 @@ class Chef
       #
       def determine_provider
         return nil unless node && node['platform_family']
-        platform = node['platform_family'].split('_').map do |i|
-          i.capitalize
-        end.join
-        Chef::Provider::ChefDk.const_get(platform)
+        Chef::Provider::ChefDk.const_get(node['platform_family'].split('_')
+                                         .map(&:capitalize).join)
       end
 
       #
