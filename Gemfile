@@ -34,3 +34,4 @@ end
 gem 'chef', '>= 11'
 gem 'berkshelf'
 gem 'stove'
+gem 'omnijack', '>= 0.1.1'

@@ -21,10 +21,10 @@
 require 'net/http'
 require 'uri'
 require 'chef/provider'
+require 'chef/resource/chef_gem'
 require 'chef/resource/package'
 require 'chef/resource/remote_file'
 require 'chef/util/file_edit'
-require_relative 'chef_dk_helpers_metadata'
 require_relative 'resource_chef_dk'
 
 class Chef
@@ -34,7 +34,6 @@ class Chef
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDk < Provider
       PACKAGE_NAME ||= 'chefdk'
-      METADATA_BASE ||= "https://www.opscode.com/chef/metadata-#{PACKAGE_NAME}"
 
       #
       # WhyRun is supported by this provider
@@ -58,6 +57,7 @@ class Chef
       # Download and install the ChefDk package
       #
       def action_install
+        omnijack_gem.run_action(:install)
         remote_file.run_action(:create)
         global_shell_init(:create).write_file if new_resource.global_shell_init
         package.run_action(:install)
@@ -71,6 +71,7 @@ class Chef
         global_shell_init(:delete).write_file if new_resource.global_shell_init
         package.run_action(:remove)
         remote_file.run_action(:delete)
+        # A full uninstall would also delete the omnijack gem, but ehhh...
         new_resource.installed = false
       end
 
@@ -158,9 +159,21 @@ class Chef
       # @return [Hash]
       #
       def metadata
-        @metadata ||= ::ChefDk::Helpers::Metadata.new(PACKAGE_NAME,
-                                                      node,
-                                                      new_resource)
+        require 'omnijack'
+        @metadata ||= Omnijack::Project::ChefDk.new(
+          version: new_resource.version,
+          prerelease: new_resource.prerelease,
+          nightlies: new_resource.nightlies
+        ).metadata
+      end
+
+      #
+      # A resource for the Omnijack API consumer for Omnitruck
+      #
+      # @return [Chef::Resource::ChefGem]
+      #
+      def omnijack_gem
+        @omnijack_gem ||= Resource::ChefGem.new('omnijack', run_context)
       end
 
       # Some methods have to be provided by the sub-classes

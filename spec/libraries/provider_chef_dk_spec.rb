@@ -57,17 +57,23 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#action_install' do
-    let(:remote_file) { double(run_action: true) }
-    let(:package) { double(run_action: true) }
+    [:omnijack_gem, :remote_file, :package].each do |i|
+      let(i) { double(run_action: true) }
+    end
     let(:gsi) { double(write_file: true) }
 
     before(:each) do
-      [:remote_file, :package].each do |r|
+      [:omnijack_gem, :remote_file, :package].each do |r|
         allow_any_instance_of(described_class).to receive(r)
           .and_return(send(r))
       end
       allow_any_instance_of(described_class).to receive(:global_shell_init)
         .and_return(gsi)
+    end
+
+    it 'installs the omnijack gem' do
+      expect(omnijack_gem).to receive(:run_action).with(:install)
+      provider.action_install
     end
 
     it 'downloads the package remote file' do
@@ -275,8 +281,14 @@ describe Chef::Provider::ChefDk do
 
   describe '#metadata' do
     it 'returns a Metadata instance' do
-      expected = ChefDk::Helpers::Metadata
-      expect(provider.send(:metadata)).to be_an_instance_of(expected)
+      expect(provider.send(:metadata)).to be_an_instance_of(Omnijack::Metadata)
+    end
+  end
+
+  describe '#omnijack_gem' do
+    it 'returns a ChefGem instance' do
+      expected = Chef::Resource::ChefGem
+      expect(provider.send(:omnijack_gem)).to be_an_instance_of(expected)
     end
   end
 
