@@ -10,7 +10,6 @@ berks-cookbooks/
 /cookbooks
 
 # Bundler
-Gemfile.lock
 bin/*
 .bundle/*
 
