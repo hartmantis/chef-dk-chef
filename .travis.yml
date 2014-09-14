@@ -11,7 +11,7 @@ install:
   - curl -L https://www.opscode.com/chef/install.sh | sudo bash
   - sudo chef-client -z -c test/client.rb -j test/dna.json
   # Then the build can continue on with ChefDK
-  - sudo chef exec bundle install --without=development
+  - chef exec bundle install --without=development
 
 before_script:
   # Pending ENV support in Kitchen's Rake tasks and not just the CLI
