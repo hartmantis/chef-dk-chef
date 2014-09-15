@@ -1,0 +1,1 @@
+../../default/serverspec/prepare.sh

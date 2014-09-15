@@ -17,8 +17,8 @@ group :test do
   gem 'foodcritic'
   # TODO: guard-foodcritic has a dep conflict with Berkshelf 3
   # gem 'guard-foodcritic'
-  gem 'rspec'
-  gem 'chefspec'
+  gem 'rspec', '>= 3'
+  gem 'chefspec', '>= 4'
   gem 'fauxhai'
   gem 'test-kitchen'
   gem 'kitchen-digitalocean', '>= 0.8.0'
@@ -27,10 +27,17 @@ group :test do
 end
 
 group :integration do
-  gem 'serverspec'
+  gem 'serverspec', '= 2.0.0.beta20'
   gem 'cucumber'
 end
 
-gem 'chef', '>= 11'
-gem 'berkshelf'
-gem 'stove'
+group :deploy do
+  gem 'stove'
+end
+
+group :production do
+  gem 'chef', '>= 11'
+  gem 'berkshelf', '>= 3'
+  gem 'cleanroom'
+  gem 'omnijack', '>= 0.1.1'
+end

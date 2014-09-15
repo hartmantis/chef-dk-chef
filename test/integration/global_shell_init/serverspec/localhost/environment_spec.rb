@@ -22,9 +22,9 @@ require 'spec_helper'
 describe 'Chef-DK environment' do
   let(:bashrc_file) do
     case os[:family]
-    when 'Darwin', 'RedHat'
+    when 'darwin', 'redhat'
       '/etc/bashrc'
-    when 'Ubuntu'
+    when 'ubuntu'
       '/etc/bash.bashrc'
     else
       nil

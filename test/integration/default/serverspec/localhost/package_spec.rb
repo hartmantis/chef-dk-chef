@@ -20,19 +20,13 @@
 require 'spec_helper'
 
 describe 'Chef-DK package' do
-  case os[:family]
-  when 'Darwin'
-    describe package('com.getchef.pkg.chefdk') do
-      it 'is installed' do
-        expect(described_class).to be_installed.by(:pkgutil)
-          .with_version('0.2.1')
-      end
-    end
-  else
-    describe package('chefdk') do
-      it 'is installed' do
-        expect(described_class).to be_installed.with_version('0.2.1-1')
-      end
+  it 'is installed' do
+    case os[:family]
+    when 'darwin'
+      expect(package('com.getchef.pkg.chefdk')).to be_installed.by(:pkgutil)
+        .with_version('0.2.1')
+    else
+      expect(package('chefdk')).to be_installed.with_version('0.2.1-1')
     end
   end
 end
