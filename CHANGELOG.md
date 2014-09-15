@@ -3,6 +3,7 @@ Chef-DK Cookbook CHANGELOG
 
 v?.?.? (????-??-??)
 -------------------
+* Use the Omnijack Ruby Gem for queries to the Omnitruck API
 * Support optionally installing prerelease or nightly builds
 * Use Chef's Omnitruck metadata service to always know the 'latest' version
 * Update to ChefDK 0.2.1-1 as 'latest' version

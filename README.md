@@ -11,13 +11,13 @@ A cookbook for installing the Chef Development Kit.
 Requirements
 ============
 
-As of this writing, Chef-DK is available for RHEL/CentOS/etc. 6, Ubuntu
-12.04/13.10, OS X 10.9.x, and Windows 7/8/2008/2012. Each of these platforms
-is supported by this cookbook.
+As of version 0.2.1, Chef-DK is available for RHEL/CentOS/etc. 6, Ubuntu
+12.04/13.10, OS X 10.8.x/10.9.x, and Windows 7/8/2008/2012. Each of these
+platforms is supported by this cookbook.
 
 In some cases, platforms that aren't officially supported by Chef-DK may still
 function. For example, this cookbook can be used to install the OS X package
-onto 10.10 systems, or the Ubuntu package onto 14.04 systems.
+onto 10.10 systems, or the Ubuntu package onto 14.04 systems. YMMV.
 
 Prior to Chef 11.12.0, the core did not offer the `windows_package` resource
 that is used for installation under Windows. _This cookbook will not run on
@@ -25,13 +25,20 @@ Windows under earlier versions of Chef._
 
 This cookbook consumes the
 [dmg cookbook](http://supermarket.getchef.com/cookbooks/dmg) in order to
-support OS X installs.
+support OS X installs. That cookbook's limitations, such as the inability
+to upgrade or uninstall packages, are thus present in the OS X implementation
+here.
+
+Package download information is obtained from Chef's
+[Omnitruck API](https://github.com/opscode/opscode-omnitruck) using the
+[Omnijack Gem](https://github.com/RoboticCheese/omnijack-ruby) that is
+installed at runtime.
 
 Usage
 =====
 
 This cookbook can be implemented either by calling its resource directly, or
-adding the recipe that wraps it to your run_list.
+adding the recipe that wraps it to your run\_list.
 
 Recipes
 =======
