@@ -6,7 +6,7 @@ maintainer_email 'j@p4nt5.com'
 license          'Apache v2.0'
 description      'Installs/configures the Chef-DK'
 long_description 'Installs/configures the Chef-DK'
-version          '1.0.3'
+version          '2.0.0'
 
 depends          'dmg', '~> 2.2'
 
@@ -14,5 +14,5 @@ supports         'ubuntu', '>= 12.04'
 %w(redhat centos scientific amazon).each do |os|
   supports       os, '>= 6.0'
 end
-supports         'mac_os_x', '>= 10.9'
+supports         'mac_os_x', '>= 10.8'
 supports         'windows'
