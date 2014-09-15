@@ -1,6 +1,9 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
+v?.?.? (????-??-??)
+-------------------
+
 v2.0.0 (2014-09-15)
 -------------------
 * Use the Omnijack Ruby Gem for queries to the Omnitruck API
