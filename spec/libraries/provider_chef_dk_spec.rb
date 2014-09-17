@@ -61,9 +61,11 @@ describe Chef::Provider::ChefDk do
       let(i) { double(run_action: true) }
     end
     let(:gsi) { double(write_file: true) }
+    let(:yolo) { false }
+    let(:metadata) { double(yolo: yolo) }
 
     before(:each) do
-      [:omnijack_gem, :remote_file, :package].each do |r|
+      [:omnijack_gem, :remote_file, :package, :metadata].each do |r|
         allow_any_instance_of(described_class).to receive(r)
           .and_return(send(r))
       end
@@ -103,6 +105,17 @@ describe Chef::Provider::ChefDk do
         expect_any_instance_of(described_class).to receive(:global_shell_init)
           .with(:create)
         expect(gsi).to receive(:write_file)
+        provider.action_install
+      end
+    end
+
+    context 'a "yolo" package' do
+      let(:yolo) { true }
+
+      it 'logs a warning to Chef' do
+        expect(Chef::Log).to receive(:warn).with('Using a ChefDk package ' \
+                                                 'not officially supported ' \
+                                                 'on this platform')
         provider.action_install
       end
     end

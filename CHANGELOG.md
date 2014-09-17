@@ -3,6 +3,7 @@ Chef-DK Cookbook CHANGELOG
 
 v?.?.? (????-??-??)
 -------------------
+* Log a warning message on "yolo" unsupported package installs
 
 v2.0.0 (2014-09-15)
 -------------------
