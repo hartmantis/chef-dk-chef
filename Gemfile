@@ -27,7 +27,7 @@ group :test do
 end
 
 group :integration do
-  gem 'serverspec', '= 2.0.0.beta20'
+  gem 'serverspec', '= 2.0.0.beta21'
   gem 'cucumber'
 end
 
