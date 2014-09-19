@@ -294,7 +294,10 @@ describe Chef::Provider::ChefDk do
 
   describe '#metadata' do
     it 'returns a Metadata instance' do
-      expect(provider.send(:metadata)).to be_an_instance_of(Omnijack::Metadata)
+      require 'omnijack'
+      expect_any_instance_of(Omnijack::Project::ChefDk).to receive(:metadata)
+        .and_return('A METADATA OBJECT')
+      expect(provider.send(:metadata)).to eq('A METADATA OBJECT')
     end
   end
 
