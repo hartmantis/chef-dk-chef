@@ -176,6 +176,8 @@ class Chef
       #
       def omnijack_gem
         @omnijack_gem ||= Resource::ChefGem.new('omnijack', run_context)
+        @omnijack_gem.version('>= 0.2.0')
+        @omnijack_gem
       end
 
       # Some methods have to be provided by the sub-classes
