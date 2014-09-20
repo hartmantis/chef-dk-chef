@@ -1,8 +1,9 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
-v?.?.? (????-??-??)
+v2.0.1 (2014-09-19)
 -------------------
+* Fix failure when installing Chef-DK 0.22+ on Mac
 * Log a warning message on "yolo" unsupported package installs
 
 v2.0.0 (2014-09-15)
