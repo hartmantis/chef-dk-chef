@@ -24,9 +24,9 @@ describe 'Chef-DK package' do
     case os[:family]
     when 'darwin'
       expect(package('com.getchef.pkg.chefdk')).to be_installed.by(:pkgutil)
-        .with_version('0.2.1')
+        .with_version('0.2.2')
     else
-      expect(package('chefdk')).to be_installed.with_version('0.2.1-1')
+      expect(package('chefdk')).to be_installed.with_version('0.2.2-1')
     end
   end
 end
