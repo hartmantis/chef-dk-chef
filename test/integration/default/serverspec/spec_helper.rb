@@ -17,6 +17,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+begin
+  require 'omnijack'
+rescue LoadError
+  require 'rubygems/dependency_installer'
+  Gem::DependencyInstaller.new.install('omnijack')
+  require 'omnijack'
+end
 require 'serverspec'
 
 set :backend, :exec

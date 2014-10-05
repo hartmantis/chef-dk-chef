@@ -21,12 +21,14 @@ require 'spec_helper'
 
 describe 'Chef-DK package' do
   it 'is installed' do
+    metadata = Omnijack::Project::ChefDk.new.metadata
     case os[:family]
     when 'darwin'
       expect(package('com.getchef.pkg.chefdk')).to be_installed.by(:pkgutil)
-        .with_version('0.2.2')
+        .with_version(metadata.version)
     else
-      expect(package('chefdk')).to be_installed.with_version('0.2.2-1')
+      expect(package('chefdk')).to be_installed
+        .with_version("#{metadata.version}-#{metadata.build}")
     end
   end
 end
