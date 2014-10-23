@@ -25,7 +25,7 @@ module ChefSpec
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     module ChefDkMatchers
-      ChefSpec::Runner.define_runner_method :chef_dk
+      ChefSpec.define_matcher :chef_dk
 
       def install_chef_dk(resource_name)
         ChefSpec::Matchers::ResourceMatcher.new(:chef_dk,

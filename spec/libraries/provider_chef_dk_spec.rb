@@ -293,11 +293,58 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#metadata' do
-    it 'returns a Metadata instance' do
+    before(:each) do
       require 'omnijack'
-      expect_any_instance_of(Omnijack::Project::ChefDk).to receive(:metadata)
-        .and_return('A METADATA OBJECT')
-      expect(provider.send(:metadata)).to eq('A METADATA OBJECT')
+      allow_any_instance_of(Omnijack::Project::ChefDk).to receive(:metadata)
+        .and_return('SOME METADATA')
+    end
+
+    context 'Ubuntu' do
+      let(:platform) { { platform: 'ubuntu', version: '14.04' } }
+
+      it 'fetches and returns the metadata instance' do
+        expect(Omnijack::Project::ChefDk).to receive(:new).with(
+          platform: 'ubuntu',
+          platform_version: '14.04',
+          machine_arch: 'x86_64',
+          version: nil,
+          prerelease: nil,
+          nightlies: nil
+        ).and_call_original
+        expect(provider.send(:metadata)).to eq('SOME METADATA')
+      end
+    end
+
+    context 'Mac OS X' do
+      let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
+
+      it 'fetches and returns the metadata instance' do
+        expect(Omnijack::Project::ChefDk).to receive(:new).with(
+          platform: 'mac_os_x',
+          platform_version: '10.9.2',
+          machine_arch: 'x86_64',
+          version: nil,
+          prerelease: nil,
+          nightlies: nil
+        ).and_call_original
+        expect(provider.send(:metadata)).to eq('SOME METADATA')
+      end
+    end
+
+    context 'Windows' do
+      let(:platform) { { platform: 'windows', version: '2012' } }
+
+      it 'fetches and returns the metadata instance' do
+        expect(Omnijack::Project::ChefDk).to receive(:new).with(
+          platform: 'windows',
+          platform_version: '6.2.9200',
+          machine_arch: 'x86_64',
+          version: nil,
+          prerelease: nil,
+          nightlies: nil
+        ).and_call_original
+        expect(provider.send(:metadata)).to eq('SOME METADATA')
+      end
     end
   end
 

@@ -163,6 +163,9 @@ class Chef
       def metadata
         require 'omnijack'
         @metadata ||= Omnijack::Project::ChefDk.new(
+          platform: node['platform'],
+          platform_version: node['platform_version'],
+          machine_arch: node['kernel']['machine'],
           version: new_resource.version,
           prerelease: new_resource.prerelease,
           nightlies: new_resource.nightlies
@@ -176,7 +179,7 @@ class Chef
       #
       def omnijack_gem
         @omnijack_gem ||= Resource::ChefGem.new('omnijack', run_context)
-        @omnijack_gem.version('>= 0.2.0')
+        @omnijack_gem.version('~> 1.0.0.rc.1')
         @omnijack_gem
       end
 
