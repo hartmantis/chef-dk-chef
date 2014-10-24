@@ -11,9 +11,9 @@ A cookbook for installing the Chef Development Kit.
 Requirements
 ============
 
-As of version 0.2.1, Chef-DK is available for RHEL/CentOS/etc. 6, Ubuntu
-12.04/13.10, OS X 10.8.x/10.9.x, and Windows 7/8/2008/2012. Each of these
-platforms is supported by this cookbook.
+As of version 0.3.0, Chef-DK packages are available for RHEL/CentOS/etc. 6,
+Ubuntu 12.04/13.10, Debian 6/7, OS X 10.8/10.9, and Windows 7/8/2008/2012. Each
+of these platforms is supported by this cookbook.
 
 In some cases, platforms that aren't officially supported by Chef-DK may still
 function. For example, this cookbook can be used to install the OS X package
