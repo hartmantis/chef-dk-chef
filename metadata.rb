@@ -11,6 +11,7 @@ version          '2.0.2'
 depends          'dmg', '~> 2.2'
 
 supports         'ubuntu', '>= 12.04'
+supports         'debian', '>= 6.0'
 %w(redhat centos scientific amazon).each do |os|
   supports       os, '>= 6.0'
 end

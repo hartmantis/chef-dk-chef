@@ -8,7 +8,10 @@ provisioner:
 platforms:
   - name: ubuntu-14.04
   - name: ubuntu-12.04
+  - name: debian-7.6
+  - name: debian-6.0.10
   - name: centos-6.5
+  - name: macosx-10.8
   - name: macosx-10.9
 
 suites:
