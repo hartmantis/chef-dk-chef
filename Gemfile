@@ -19,10 +19,12 @@ group :test do
   # gem 'guard-foodcritic'
   gem 'rspec', '>= 3'
   gem 'chefspec', '>= 4'
+  gem 'simplecov'
+  gem 'simplecov-console'
+  gem 'coveralls'
   gem 'fauxhai'
   gem 'test-kitchen'
   gem 'kitchen-digitalocean', '>= 0.8.0'
-  gem 'fog'
   gem 'kitchen-vagrant'
 end
 
@@ -38,6 +40,4 @@ end
 group :production do
   gem 'chef', '>= 11'
   gem 'berkshelf', '>= 3'
-  gem 'cleanroom'
-  gem 'omnijack', '>= 1.0.0.rc.1'
 end
