@@ -24,7 +24,7 @@ describe 'Chef-DK environment' do
     case os[:family]
     when 'darwin', 'redhat'
       '/etc/bashrc'
-    when 'ubuntu'
+    when 'ubuntu', 'debian'
       '/etc/bash.bashrc'
     else
       nil
