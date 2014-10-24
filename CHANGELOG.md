@@ -1,7 +1,7 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
-v2.0.2 (2014-10-21)
+v2.0.2 (2014-10-24)
 -------------------
 * Update required version of Omnijack; fix issues with Ruby exceptions being
   thrown on nodes with Chef installed via system packages

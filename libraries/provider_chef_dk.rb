@@ -179,7 +179,7 @@ class Chef
       #
       def omnijack_gem
         @omnijack_gem ||= Resource::ChefGem.new('omnijack', run_context)
-        @omnijack_gem.version('~> 1.0.0.rc.1')
+        @omnijack_gem.version('~> 1.0')
         @omnijack_gem
       end
 
