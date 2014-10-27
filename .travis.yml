@@ -1,6 +1,7 @@
 language: objective-c
 
 install:
+  - curl -o $SSL_CERT_FILE http://curl.haxx.se/ca/cacert.pem
   # Need Berkshelf to resolve dependencies for the local Chef run
   - curl -L https://www.opscode.com/chef/install.sh | sudo bash -s -- -P chefdk
   - chef exec berks vendor /tmp/kitchen/cookbooks
@@ -27,3 +28,4 @@ after_script:
 env:
   global:
     # - KITCHEN_LOCAL_YAML=.kitchen.travis.yml
+    - SSL_CERT_FILE=/tmp/cacert.pem
