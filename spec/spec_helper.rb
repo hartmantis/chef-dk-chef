@@ -68,9 +68,9 @@ RSpec.configure do |c|
 end
 
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
-    Coveralls::SimpleCov::Formatter,
-    SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::Console
+  Coveralls::SimpleCov::Formatter,
+  SimpleCov::Formatter::HTMLFormatter,
+  SimpleCov::Formatter::Console
 ]
 SimpleCov.minimum_coverage 90
 SimpleCov.start

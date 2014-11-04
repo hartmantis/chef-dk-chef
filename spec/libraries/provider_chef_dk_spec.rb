@@ -83,6 +83,13 @@ describe Chef::Provider::ChefDk do
       provider.action_install
     end
 
+    it 'calls the bashrc create logic' do
+      expect_any_instance_of(described_class).to receive(:global_shell_init)
+        .with(:create)
+      expect(gsi).to receive(:write_file)
+      provider.action_install
+    end
+
     it 'installs the package file' do
       expect(package).to receive(:run_action).with(:install)
       provider.action_install
@@ -91,22 +98,6 @@ describe Chef::Provider::ChefDk do
     it 'sets the installed state to true' do
       expect(new_resource).to receive(:'installed=').with(true)
       provider.action_install
-    end
-
-    it 'does not modify any bashrc' do
-      expect(gsi).not_to receive(:write_file)
-      provider.action_install
-    end
-
-    context 'overridden global shell init' do
-      let(:global_shell_init) { true }
-
-      it 'modifies bashrc' do
-        expect_any_instance_of(described_class).to receive(:global_shell_init)
-          .with(:create)
-        expect(gsi).to receive(:write_file)
-        provider.action_install
-      end
     end
 
     context 'a "yolo" package' do
@@ -135,20 +126,11 @@ describe Chef::Provider::ChefDk do
         .and_return(gsi)
     end
 
-    it 'does not modify any bashrc' do
-      expect(gsi).not_to receive(:write_file)
+    it 'calls the bashrc delete logic' do
+      expect_any_instance_of(described_class).to receive(:global_shell_init)
+        .with(:delete)
+      expect(gsi).to receive(:write_file)
       provider.action_remove
-    end
-
-    context 'overridden global shell init' do
-      let(:global_shell_init) { true }
-
-      it 'modifies bashrc' do
-        expect_any_instance_of(described_class).to receive(:global_shell_init)
-          .with(:delete)
-        expect(gsi).to receive(:write_file)
-        provider.action_remove
-      end
     end
 
     it 'deletes the package remote file' do
@@ -265,52 +247,92 @@ describe Chef::Provider::ChefDk do
       end
     end
 
-    context 'no action (default)' do
-      it_behaves_like 'any instance'
+    shared_examples_for 'no action' do
+      it 'does not call insert_line_if_no_match' do
+        expect_any_instance_of(Chef::Util::FileEdit)
+          .not_to receive(:insert_line_if_no_match)
+      end
 
-      it 'does nothing to the file' do
+      it 'does not call search_file_delete_line' do
+        expect_any_instance_of(Chef::Util::FileEdit)
+          .not_to receive(:search_file_delete_line)
+      end
+
+      it 'will do nothing to the file' do
+        @fakebashrc.write('some stuff')
+        @fakebashrc.seek(0)
         res
         @fakebashrc.seek(0)
-        expect(@fakebashrc.read).to eq('')
+        expect(@fakebashrc.read).to eq('some stuff')
+      end
+    end
+
+    context 'no action (default)' do
+      context 'global shell init disabled (default)' do
+        it_behaves_like 'any instance'
+        it_behaves_like 'no action'
+      end
+
+      context 'global shell init enabled' do
+        let(:global_shell_init) { true }
+
+        it_behaves_like 'any instance'
+        it_behaves_like 'no action'
       end
     end
 
     context 'a create action' do
       let(:action) { :create }
 
-      it_behaves_like 'any instance'
-
-      it 'calls insert_line_if_no_match' do
-        expect_any_instance_of(Chef::Util::FileEdit)
-          .to receive(:insert_line_if_no_match)
-        res
+      context 'global shell init disabled (default)' do
+        it_behaves_like 'any instance'
+        it_behaves_like 'no action'
       end
 
-      it 'will write to the file' do
-        res.write_file
-        @fakebashrc.seek(0)
-        expected = "eval \"$(chef shell-init bash)\"\n"
-        expect(@fakebashrc.read).to eq(expected)
+      context 'global shell init enabled' do
+        let(:global_shell_init) { true }
+
+        it_behaves_like 'any instance'
+
+        it 'calls insert_line_if_no_match' do
+          expect_any_instance_of(Chef::Util::FileEdit)
+            .to receive(:insert_line_if_no_match)
+          res
+        end
+
+        it 'will write to the file' do
+          res.write_file
+          @fakebashrc.seek(0)
+          expected = "eval \"$(chef shell-init bash)\"\n"
+          expect(@fakebashrc.read).to eq(expected)
+        end
       end
     end
 
     context 'a delete action' do
       let(:action) { :delete }
 
-      it_behaves_like 'any instance'
-
-      it 'calls search_file_delete_line' do
-        expect_any_instance_of(Chef::Util::FileEdit)
-          .to receive(:search_file_delete_line)
-        res
+      context 'global shell init disabled (default)' do
+        it_behaves_like 'any instance'
+        it_behaves_like 'no action'
       end
 
-      it 'will delete from the file' do
-        @fakebashrc.write("eval \"$(chef shell-init bash)\"\n")
-        @fakebashrc.seek(0)
-        res.write_file
-        @fakebashrc.seek(0)
-        expect(@fakebashrc.read).to eq('')
+      context 'global shell init enabled' do
+        let(:global_shell_init) { true }
+
+        it 'calls search_file_delete_line' do
+          expect_any_instance_of(Chef::Util::FileEdit)
+            .to receive(:search_file_delete_line)
+          res
+        end
+
+        it 'will delete from the file' do
+          @fakebashrc.write("eval \"$(chef shell-init bash)\"\n")
+          @fakebashrc.seek(0)
+          res.write_file
+          @fakebashrc.seek(0)
+          expect(@fakebashrc.read).to eq('')
+        end
       end
     end
   end
@@ -348,57 +370,68 @@ describe Chef::Provider::ChefDk do
   describe '#metadata' do
     before(:each) do
       require 'omnijack'
+      allow_any_instance_of(described_class).to receive(:metadata_params)
+        .and_return(some: 'things')
       allow_any_instance_of(Omnijack::Project::ChefDk).to receive(:metadata)
         .and_return('SOME METADATA')
     end
 
+    it 'fetches and returns the metadata instance' do
+      expect(Omnijack::Project::ChefDk).to receive(:new).with(some: 'things')
+        .and_call_original
+      expect(provider.send(:metadata)).to eq('SOME METADATA')
+    end
+  end
+
+  describe '#metadata_params' do
     context 'Ubuntu' do
       let(:platform) { { platform: 'ubuntu', version: '14.04' } }
 
-      it 'fetches and returns the metadata instance' do
-        expect(Omnijack::Project::ChefDk).to receive(:new).with(
+      it 'returns the correct params hash' do
+        expected = {
           platform: 'ubuntu',
           platform_version: '14.04',
           machine_arch: 'x86_64',
           version: nil,
           prerelease: nil,
           nightlies: nil
-        ).and_call_original
-        expect(provider.send(:metadata)).to eq('SOME METADATA')
+        }
+        expect(provider.send(:metadata_params)).to eq(expected)
       end
     end
 
     context 'Mac OS X' do
       let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
 
-      it 'fetches and returns the metadata instance' do
-        expect(Omnijack::Project::ChefDk).to receive(:new).with(
+      it 'returns the correct params hash' do
+        expected = {
           platform: 'mac_os_x',
           platform_version: '10.9.2',
           machine_arch: 'x86_64',
           version: nil,
           prerelease: nil,
           nightlies: nil
-        ).and_call_original
-        expect(provider.send(:metadata)).to eq('SOME METADATA')
+        }
+        expect(provider.send(:metadata_params)).to eq(expected)
       end
     end
 
     context 'Windows' do
       let(:platform) { { platform: 'windows', version: '2012' } }
 
-      it 'fetches and returns the metadata instance' do
-        expect(Omnijack::Project::ChefDk).to receive(:new).with(
+      it 'returns the correct params hash' do
+        expected = {
           platform: 'windows',
           platform_version: '6.2.9200',
           machine_arch: 'x86_64',
           version: nil,
           prerelease: nil,
           nightlies: nil
-        ).and_call_original
-        expect(provider.send(:metadata)).to eq('SOME METADATA')
+        }
+        expect(provider.send(:metadata_params)).to eq(expected)
       end
     end
+
   end
 
   describe '#omnijack_gem' do

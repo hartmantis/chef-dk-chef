@@ -61,7 +61,7 @@ class Chef
         metadata.yolo && Chef::Log.warn('Using a ChefDk package not ' \
                                         'officially supported on this platform')
         remote_file.run_action(:create)
-        global_shell_init(:create).write_file if new_resource.global_shell_init
+        global_shell_init(:create).write_file
         package.run_action(:install)
         new_resource.installed = true
       end
@@ -70,7 +70,7 @@ class Chef
       # Uninstall the ChefDk package and delete the cached file
       #
       def action_remove
-        global_shell_init(:delete).write_file if new_resource.global_shell_init
+        global_shell_init(:delete).write_file
         package.run_action(:remove)
         remote_file.run_action(:delete)
         # A full uninstall would also delete the omnijack gem, but ehhh...
@@ -125,11 +125,11 @@ class Chef
         matcher = /^eval "\$\(chef shell-init bash\)"$/
         line = 'eval "$(chef shell-init bash)"'
         @global_shell_init ||= Chef::Util::FileEdit.new(bashrc_file)
+        return @global_shell_init unless new_resource.global_shell_init
         case action
-        when :create
-          @global_shell_init.insert_line_if_no_match(matcher, line)
-        when :delete
-          @global_shell_init.search_file_delete_line(matcher)
+        when :create then @global_shell_init.insert_line_if_no_match(matcher,
+                                                                     line)
+        when :delete then @global_shell_init.search_file_delete_line(matcher)
         end
         @global_shell_init
       end
@@ -162,14 +162,21 @@ class Chef
       #
       def metadata
         require 'omnijack'
-        @metadata ||= Omnijack::Project::ChefDk.new(
-          platform: node['platform'],
+        @metadata ||= Omnijack::Project::ChefDk.new(metadata_params).metadata
+      end
+
+      #
+      # Construct the hash of parameters for Omnijack to get the right metadata
+      #
+      # @return [Hash]
+      #
+      def metadata_params
+        { platform: node['platform'],
           platform_version: node['platform_version'],
           machine_arch: node['kernel']['machine'],
           version: new_resource.version,
           prerelease: new_resource.prerelease,
-          nightlies: new_resource.nightlies
-        ).metadata
+          nightlies: new_resource.nightlies }
       end
 
       #
