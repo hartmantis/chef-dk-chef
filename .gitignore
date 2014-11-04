@@ -16,6 +16,7 @@ Gemfile.lock
 
 .kitchen/
 .kitchen.local.yml
+coverage/
 .env.sh
 Vagrantfile
 

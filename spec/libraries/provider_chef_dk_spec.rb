@@ -246,6 +246,9 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#global_shell_init' do
+    let(:action) { nil }
+    let(:res) { provider.send(:global_shell_init, action) }
+
     before(:each) do
       @fakebashrc = Tempfile.new('chefdkspec')
       allow_any_instance_of(described_class).to receive(:bashrc_file)
@@ -256,9 +259,59 @@ describe Chef::Provider::ChefDk do
       @fakebashrc.delete
     end
 
-    it 'returns a FileEdit object' do
-      expected = Chef::Util::FileEdit
-      expect(provider.send(:global_shell_init)).to be_an_instance_of(expected)
+    shared_examples_for 'any instance' do
+      it 'returns a FileEdit object' do
+        expect(res).to be_an_instance_of(Chef::Util::FileEdit)
+      end
+    end
+
+    context 'no action (default)' do
+      it_behaves_like 'any instance'
+
+      it 'does nothing to the file' do
+        res
+        @fakebashrc.seek(0)
+        expect(@fakebashrc.read).to eq('')
+      end
+    end
+
+    context 'a create action' do
+      let(:action) { :create }
+
+      it_behaves_like 'any instance'
+
+      it 'calls insert_line_if_no_match' do
+        expect_any_instance_of(Chef::Util::FileEdit)
+          .to receive(:insert_line_if_no_match)
+        res
+      end
+
+      it 'will write to the file' do
+        res.write_file
+        @fakebashrc.seek(0)
+        expected = "eval \"$(chef shell-init bash)\"\n"
+        expect(@fakebashrc.read).to eq(expected)
+      end
+    end
+
+    context 'a delete action' do
+      let(:action) { :delete }
+
+      it_behaves_like 'any instance'
+
+      it 'calls search_file_delete_line' do
+        expect_any_instance_of(Chef::Util::FileEdit)
+          .to receive(:search_file_delete_line)
+        res
+      end
+
+      it 'will delete from the file' do
+        @fakebashrc.write("eval \"$(chef shell-init bash)\"\n")
+        @fakebashrc.seek(0)
+        res.write_file
+        @fakebashrc.seek(0)
+        expect(@fakebashrc.read).to eq('')
+      end
     end
   end
 
