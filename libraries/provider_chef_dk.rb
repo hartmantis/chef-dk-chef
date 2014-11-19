@@ -156,12 +156,20 @@ class Chef
       # @return [String]
       #
       def download_path
-        f = if new_resource.package_url
-              ::File.basename(new_resource.package_url)
-            else
-              metadata.filename
-            end
-        ::File.join(Chef::Config[:file_cache_path], f)
+        ::File.join(Chef::Config[:file_cache_path], filename)
+      end
+
+      #
+      # The base name of the package file
+      #
+      # @return [String]
+      #
+      def filename
+        if new_resource.package_url
+          ::File.basename(new_resource.package_url)
+        else
+          metadata.filename
+        end
       end
 
       #

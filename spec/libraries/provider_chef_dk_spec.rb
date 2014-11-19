@@ -390,6 +390,18 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#download_path' do
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:filename)
+        .and_return('test.deb')
+    end
+
+    it 'returns a path in the Chef file_cache_path' do
+      expected = File.join(Chef::Config[:file_cache_path], 'test.deb')
+      expect(provider.send(:download_path)).to eq(expected)
+    end
+  end
+
+  describe '#filename' do
     let(:metadata) { double(filename: 'test.deb') }
 
     before(:each) do
@@ -398,9 +410,8 @@ describe Chef::Provider::ChefDk do
     end
 
     context 'no package_url (default)' do
-      it 'returns a path in the Chef file_cache_path' do
-        expected = File.join(Chef::Config[:file_cache_path], 'test.deb')
-        expect(provider.send(:download_path)).to eq(expected)
+      it 'returns a filename from the metadata' do
+        expect(provider.send(:filename)).to eq('test.deb')
       end
     end
 
@@ -408,8 +419,7 @@ describe Chef::Provider::ChefDk do
       let(:package_url) { 'file:///tmp/somewhere/package.pkg' }
 
       it 'returns the base name of the package_url file' do
-        expected = File.join(Chef::Config[:file_cache_path], 'package.pkg')
-        expect(provider.send(:download_path)).to eq(expected)
+        expect(provider.send(:filename)).to eq('package.pkg')
       end
     end
   end
