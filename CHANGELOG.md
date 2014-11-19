@@ -1,6 +1,10 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
+v?.?.? (????-??-??)
+-------------------
+* Fix bug with `package_url` option not being respected
+
 v2.0.3 (2014-10-24)
 -------------------
 * Switch release tool from Stove to Emeril

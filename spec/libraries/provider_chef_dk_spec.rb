@@ -347,9 +347,45 @@ describe Chef::Provider::ChefDk do
         .and_return('/tmp/pack.pkg')
     end
 
-    it 'returns an instance of Chef::Resource::RemoteFile' do
-      expected = Chef::Resource::RemoteFile
-      expect(provider.send(:remote_file)).to be_an_instance_of(expected)
+    shared_examples_for 'any node' do
+      it 'returns an instance of Chef::Resource::RemoteFile' do
+        expected = Chef::Resource::RemoteFile
+        expect(provider.send(:remote_file)).to be_an_instance_of(expected)
+      end
+    end
+
+    context 'no package_url (default)' do
+      it_behaves_like 'any node'
+
+      it 'sets the file source' do
+        expect_any_instance_of(Chef::Resource::RemoteFile).to receive(:source)
+          .with('http://x.com/pack.pkg')
+        provider.send(:remote_file)
+      end
+
+      it 'sets the file checksum' do
+        expect_any_instance_of(Chef::Resource::RemoteFile).to receive(:checksum)
+          .with('lolnope')
+        provider.send(:remote_file)
+      end
+    end
+
+    context 'a package_url provided' do
+      let(:package_url) { 'file:///tmp/path/thing.deb' }
+
+      it_behaves_like 'any node'
+
+      it 'sets the file source' do
+        expect_any_instance_of(Chef::Resource::RemoteFile).to receive(:source)
+          .with('file:///tmp/path/thing.deb')
+        provider.send(:remote_file)
+      end
+
+      it 'sets no file checksum' do
+        expect_any_instance_of(Chef::Resource::RemoteFile)
+          .not_to receive(:checksum)
+        provider.send(:remote_file)
+      end
     end
   end
 
@@ -361,9 +397,20 @@ describe Chef::Provider::ChefDk do
         .and_return(metadata)
     end
 
-    it 'returns a path in the Chef file_cache_path' do
-      expected = File.join(Chef::Config[:file_cache_path], 'test.deb')
-      expect(provider.send(:download_path)).to eq(expected)
+    context 'no package_url (default)' do
+      it 'returns a path in the Chef file_cache_path' do
+        expected = File.join(Chef::Config[:file_cache_path], 'test.deb')
+        expect(provider.send(:download_path)).to eq(expected)
+      end
+    end
+
+    context 'a package_url provided' do
+      let(:package_url) { 'file:///tmp/somewhere/package.pkg' }
+
+      it 'returns the base name of the package_url file' do
+        expected = File.join(Chef::Config[:file_cache_path], 'package.pkg')
+        expect(provider.send(:download_path)).to eq(expected)
+      end
     end
   end
 
