@@ -13,6 +13,7 @@ platforms:
   - name: centos-6.5
   - name: macosx-10.8
   - name: macosx-10.9
+  - name: macosx-10.10
 
 suites:
   - name: default
