@@ -141,8 +141,12 @@ class Chef
       #
       def remote_file
         @remote_file ||= Resource::RemoteFile.new(download_path, run_context)
-        @remote_file.source(metadata.url)
-        @remote_file.checksum(metadata.sha256)
+        if new_resource.package_url
+          @remote_file.source(new_resource.package_url)
+        else
+          @remote_file.source(metadata.url)
+          @remote_file.checksum(metadata.sha256)
+        end
         @remote_file
       end
 
@@ -152,7 +156,20 @@ class Chef
       # @return [String]
       #
       def download_path
-        ::File.join(Chef::Config[:file_cache_path], metadata.filename)
+        ::File.join(Chef::Config[:file_cache_path], filename)
+      end
+
+      #
+      # The base name of the package file
+      #
+      # @return [String]
+      #
+      def filename
+        if new_resource.package_url
+          ::File.basename(new_resource.package_url)
+        else
+          metadata.filename
+        end
       end
 
       #

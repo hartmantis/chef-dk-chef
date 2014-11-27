@@ -29,18 +29,14 @@ describe Chef::Provider::ChefDk::MacOsX do
            version: chefdk_version,
            package_url: package_url)
   end
-  let(:metadata_version) { '0.2.2' }
-  let(:metadata_filename) { 'chefdk-0.2.2-1.dmg' }
-  let(:metadata) do
-    double(version: metadata_version, filename: metadata_filename)
-  end
+  let(:filename) { 'chefdk-0.2.2-1.dmg' }
   let(:provider) { described_class.new(new_resource, nil) }
 
   before(:each) do
     allow_any_instance_of(described_class).to receive(:node)
       .and_return(Fauxhai.mock(platform).data)
-    allow_any_instance_of(described_class).to receive(:metadata)
-      .and_return(metadata)
+    allow_any_instance_of(described_class).to receive(:filename)
+      .and_return(filename)
   end
 
   describe '#tailor_package_resource_to_platform' do
@@ -51,6 +47,7 @@ describe Chef::Provider::ChefDk::MacOsX do
              type: true,
              package_id: true)
     end
+
     let(:provider) do
       p = described_class.new(new_resource, nil)
       p.instance_variable_set(:@package, package)
@@ -63,33 +60,15 @@ describe Chef::Provider::ChefDk::MacOsX do
         .and_return('/tmp/blah.pkg')
     end
 
-    context 'a newer version of Chef-DK' do
-      let(:metadata_version) { '0.2.2' }
-
-      it 'calls `app` with the new naming style' do
-        expect(package).to receive(:app).with('chefdk-0.2.2-1')
-        res
-      end
-
-      it 'calls `volumes_dir` with the new naming style' do
-        expected = 'Chef Development Kit'
-        expect(package).to receive(:volumes_dir).with(expected)
-        res
-      end
+    it 'calls `app` with the new naming style' do
+      expect(package).to receive(:app).with('chefdk-0.2.2-1')
+      res
     end
 
-    context 'an older version of Chef-DK' do
-      let(:metadata_version) { '0.2.1' }
-
-      it 'calls `app` with the old naming style' do
-        expect(package).to receive(:app).with('chefdk')
-        res
-      end
-
-      it 'calls `volumes_dir` with the old naming style' do
-        expect(package).to receive(:volumes_dir).with('chefdk')
-        res
-      end
+    it 'calls `volumes_dir` with the new naming style' do
+      expected = 'Chef Development Kit'
+      expect(package).to receive(:volumes_dir).with(expected)
+      res
     end
 
     it 'calls `source` with the local file path' do

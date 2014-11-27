@@ -36,12 +36,8 @@ class Chef
         # (An `app`, `source`, and `type` for .dmg packages)
         #
         def tailor_package_resource_to_platform
-          # TODO: This can be simplified as soon as we're ready to drop support
-          # for installing Chef-DK < 0.2.2
-          new = Gem::Version.new(metadata.version) >= Gem::Version.new('0.2.2')
-          @package.app(new ? metadata.filename.gsub(/\.dmg$/, '') : \
-                       PACKAGE_NAME)
-          @package.volumes_dir(new ? 'Chef Development Kit' : PACKAGE_NAME)
+          @package.app(filename.gsub(/\.dmg$/, ''))
+          @package.volumes_dir('Chef Development Kit')
           @package.source("file://#{download_path}")
           @package.type('pkg')
           @package.package_id("com.getchef.pkg.#{PACKAGE_NAME}")
