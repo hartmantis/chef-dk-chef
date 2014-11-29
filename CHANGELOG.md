@@ -1,7 +1,7 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
-v?.?.? (????-??-??)
+v3.0.0 (2014-11-28)
 -------------------
 * Drop support for Chef-DK < 0.2.2
 * Fix bug with `package_url` option not being respected
