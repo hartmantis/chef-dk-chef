@@ -8,7 +8,7 @@ require 'cane/rake_task'
 require 'rspec/core/rake_task'
 require 'foodcritic'
 require 'kitchen/rake_tasks'
-require 'emeril/rake'
+require 'stove/rake_task'
 
 Cane::RakeTask.new
 
@@ -36,6 +36,6 @@ RSpec::Core::RakeTask.new(:spec)
 
 Kitchen::RakeTasks.new
 
-Emeril::RakeTasks.new
+Stove::RakeTask.new
 
 task default: %w(cane rubocop loc cookbook_test foodcritic spec kitchen:all)

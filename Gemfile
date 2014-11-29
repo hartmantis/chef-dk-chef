@@ -34,7 +34,7 @@ group :integration do
 end
 
 group :deploy do
-  gem 'emeril'
+  gem 'stove'
 end
 
 group :production do
