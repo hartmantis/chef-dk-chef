@@ -73,31 +73,61 @@ describe Chef::Provider::ChefDk do
         .and_return(gsi)
     end
 
-    it 'installs the omnijack gem' do
-      expect(omnijack_gem).to receive(:run_action).with(:install)
-      provider.action_install
+    shared_examples_for 'any platform' do
+      it 'installs the omnijack gem' do
+        expect(omnijack_gem).to receive(:run_action).with(:install)
+        provider.action_install
+      end
+
+      it 'downloads the package remote file' do
+        expect(remote_file).to receive(:run_action).with(:create)
+        provider.action_install
+      end
+
+      it 'installs the package file' do
+        expect(package).to receive(:run_action).with(:install)
+        provider.action_install
+      end
+
+      it 'sets the installed state to true' do
+        expect(new_resource).to receive(:'installed=').with(true)
+        provider.action_install
+      end
     end
 
-    it 'downloads the package remote file' do
-      expect(remote_file).to receive(:run_action).with(:create)
-      provider.action_install
+    shared_examples_for 'a platform with a bashrc' do
+      it 'calls the bashrc create logic' do
+        expect_any_instance_of(described_class).to receive(:global_shell_init)
+          .with(:create)
+        expect(gsi).to receive(:write_file)
+        provider.action_install
+      end
     end
 
-    it 'calls the bashrc create logic' do
-      expect_any_instance_of(described_class).to receive(:global_shell_init)
-        .with(:create)
-      expect(gsi).to receive(:write_file)
-      provider.action_install
+    context 'Ubuntu' do
+      let(:platform) { { platform: 'ubuntu', version: '14.04' } }
+
+      it_behaves_like 'any platform'
+      it_behaves_like 'a platform with a bashrc'
     end
 
-    it 'installs the package file' do
-      expect(package).to receive(:run_action).with(:install)
-      provider.action_install
+    context 'Mac OS X' do
+      let(:platform) { { platform: 'mac_os_x', version: '10.10' } }
+
+      it_behaves_like 'any platform'
+      it_behaves_like 'a platform with a bashrc'
     end
 
-    it 'sets the installed state to true' do
-      expect(new_resource).to receive(:'installed=').with(true)
-      provider.action_install
+    context 'Windows' do
+      let(:platform) { { platform: 'windows', version: '2012R2' } }
+
+      it_behaves_like 'any platform'
+
+      it 'does not call the bashrc create logic' do
+        expect_any_instance_of(described_class)
+          .not_to receive(:global_shell_init)
+        provider.action_remove
+      end
     end
 
     context 'a "yolo" package' do
@@ -126,26 +156,56 @@ describe Chef::Provider::ChefDk do
         .and_return(gsi)
     end
 
-    it 'calls the bashrc delete logic' do
-      expect_any_instance_of(described_class).to receive(:global_shell_init)
-        .with(:delete)
-      expect(gsi).to receive(:write_file)
-      provider.action_remove
+    shared_examples_for 'any platform' do
+      it 'deletes the package remote file' do
+        expect(remote_file).to receive(:run_action).with(:delete)
+        provider.action_remove
+      end
+
+      it 'installs the package file' do
+        expect(package).to receive(:run_action).with(:remove)
+        provider.action_remove
+      end
+
+      it 'sets the installed state to false' do
+        expect(new_resource).to receive(:'installed=').with(false)
+        provider.action_remove
+      end
     end
 
-    it 'deletes the package remote file' do
-      expect(remote_file).to receive(:run_action).with(:delete)
-      provider.action_remove
+    shared_examples_for 'a platform with a bashrc' do
+      it 'calls the bashrc delete logic' do
+        expect_any_instance_of(described_class).to receive(:global_shell_init)
+          .with(:delete)
+        expect(gsi).to receive(:write_file)
+        provider.action_remove
+      end
     end
 
-    it 'installs the package file' do
-      expect(package).to receive(:run_action).with(:remove)
-      provider.action_remove
+    context 'Ubuntu' do
+      let(:platform) { { platform: 'ubuntu', version: '14.04' } }
+
+      it_behaves_like 'any platform'
+      it_behaves_like 'a platform with a bashrc'
     end
 
-    it 'sets the installed state to false' do
-      expect(new_resource).to receive(:'installed=').with(false)
-      provider.action_remove
+    context 'Mac OS X' do
+      let(:platform) { { platform: 'mac_os_x', version: '10.10' } }
+
+      it_behaves_like 'any platform'
+      it_behaves_like 'a platform with a bashrc'
+    end
+
+    context 'Windows' do
+      let(:platform) { { platform: 'windows', version: '2012R2' } }
+
+      it_behaves_like 'any platform'
+
+      it 'does not call the bashrc delete logic' do
+        expect_any_instance_of(described_class)
+          .not_to receive(:global_shell_init)
+        provider.action_remove
+      end
     end
   end
 
