@@ -57,9 +57,11 @@ class Chef
       # Download and install the ChefDk package
       #
       def action_install
-        omnijack_gem.run_action(:install)
-        metadata.yolo && Chef::Log.warn('Using a ChefDk package not ' \
+        if new_resource.package_url.nil?
+          omnijack_gem.run_action(:install)
+          metadata.yolo && Chef::Log.warn('Using a ChefDk package not ' \
                                         'officially supported on this platform')
+        end
         remote_file.run_action(:create)
         unless node['platform'] == 'windows'
           global_shell_init(:create).write_file
