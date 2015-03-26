@@ -74,11 +74,6 @@ describe Chef::Provider::ChefDk do
     end
 
     shared_examples_for 'any platform' do
-      it 'installs the omnijack gem' do
-        expect(omnijack_gem).to receive(:run_action).with(:install)
-        provider.action_install
-      end
-
       it 'downloads the package remote file' do
         expect(remote_file).to receive(:run_action).with(:create)
         provider.action_install
@@ -104,11 +99,19 @@ describe Chef::Provider::ChefDk do
       end
     end
 
+    shared_examples_for 'no package_url provided' do
+      it 'installs the omnijack gem' do
+        expect(omnijack_gem).to receive(:run_action).with(:install)
+        provider.action_install
+      end
+    end
+
     context 'Ubuntu' do
       let(:platform) { { platform: 'ubuntu', version: '14.04' } }
 
       it_behaves_like 'any platform'
       it_behaves_like 'a platform with a bashrc'
+      it_behaves_like 'no package_url provided'
     end
 
     context 'Mac OS X' do
@@ -116,12 +119,14 @@ describe Chef::Provider::ChefDk do
 
       it_behaves_like 'any platform'
       it_behaves_like 'a platform with a bashrc'
+      it_behaves_like 'no package_url provided'
     end
 
     context 'Windows' do
       let(:platform) { { platform: 'windows', version: '2012R2' } }
 
       it_behaves_like 'any platform'
+      it_behaves_like 'no package_url provided'
 
       it 'does not call the bashrc create logic' do
         expect_any_instance_of(described_class)
@@ -137,6 +142,16 @@ describe Chef::Provider::ChefDk do
         expect(Chef::Log).to receive(:warn).with('Using a ChefDk package ' \
                                                  'not officially supported ' \
                                                  'on this platform')
+        provider.action_install
+      end
+    end
+
+    context 'a package_url provided' do
+      let(:package_url) { 'http://example.com/pkg' }
+
+      it 'skips the Omnijack gem' do
+        expect_any_instance_of(described_class).not_to receive(:omnijack_gem)
+        expect_any_instance_of(described_class).not_to receive(:metadata)
         provider.action_install
       end
     end
@@ -548,7 +563,6 @@ describe Chef::Provider::ChefDk do
         expect(provider.send(:metadata_params)).to eq(expected)
       end
     end
-
   end
 
   describe '#omnijack_gem' do
