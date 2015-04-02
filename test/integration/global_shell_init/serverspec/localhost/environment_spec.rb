@@ -26,8 +26,6 @@ describe 'Chef-DK environment' do
       '/etc/bashrc'
     when 'ubuntu', 'debian'
       '/etc/bash.bashrc'
-    else
-      nil
     end
   end
 

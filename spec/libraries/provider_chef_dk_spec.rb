@@ -488,7 +488,6 @@ describe Chef::Provider::ChefDk do
         expect(provider.send(:metadata_params)).to eq(expected)
       end
     end
-
   end
 
   describe '#omnijack_gem' do
