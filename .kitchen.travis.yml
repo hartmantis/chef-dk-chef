@@ -1,9 +1,21 @@
 ---
 driver:
-  name: digitalocean
+  name: ec2
+  flavor_id: t2.micro
+  security_group_ids:
+    - test-kitchen-builds
 platforms:
-  - name: ubuntu-14-04-x64
-  - name: ubuntu-12-04-x64
-# - name: debian-7-0-x64
+  - name: ubuntu-14-04
+    driver:
+      image_id: ami-9a562df2
+      username: ubuntu
+  - name: ubuntu-12.04
+    driver:
+      image_id: ami-0d9c9f64
+      username: ubuntu
+  - name: debian-7.1.0
 # - name: debian-6-0-x64
-  - name: centos-6-5-x64
+  - name: centos-6.4
+  - name: windows-2012r2
+    driver:
+      image_id: ami-ac3a1cc4

@@ -16,10 +16,10 @@ install:
 before_script:
   # Pending ENV support in Kitchen's Rake tasks and not just the CLI
   - cp .kitchen.travis.yml .kitchen.local.yml
-  - echo -e $DIGITALOCEAN_SSH_KEY_BODY > ~/.ssh/id_rsa
+  - echo -e $AWS_SSH_KEY_BODY > ~/.ssh/id_rsa
 
 script:
-  - chef exec bundle exec rspec --default-path test/integration/global_shell_init/serverspec -f d && chef exec rake
+  - chef exec bundle exec rspec --default-path test/integration/global_shell_init/serverspec -f d && chef exec rake && chef exec bundle exec kitchen test -c 5
 
 after_script:
   - chef exec bundle exec kitchen destroy

@@ -14,6 +14,9 @@ platforms:
   - name: macosx-10.8
   - name: macosx-10.9
   - name: macosx-10.10
+  - name: windows-2012r2
+    driver:
+      box: kensykora/windows_2012_r2_standard
 
 suites:
   - name: default
@@ -25,6 +28,8 @@ suites:
     attributes:
       chef_dk:
         global_shell_init: true
+    excludes:
+      - windows-2012r2
   - name: install_from_specific_url
     run_list:
       - recipe[chef-dk]
@@ -38,7 +43,7 @@ suites:
       - centos-6.5
       - macosx-10.8
       - macosx-10.9
-      - ubuntu-12-04-x64
-      - debian-7-0-x64
-      - debian-6-0-x64
-      - centos-6-5-x64
+      - ubuntu.12.04
+      - debian-7.1.0
+      - centos-6.4
+      - windows-2012r2
