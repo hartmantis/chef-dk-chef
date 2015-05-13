@@ -1,8 +1,14 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
-v?.?.? (????-??-??)
+v3.0.1 (2015-05-13)
 -------------------
+* Fix errors in Windows from trying to set up an unsupported shell-init, via
+  [@mcallb][]
+* Don't install the Omnijack gem when a `package_url` is provided, via
+  [@mcallb][]
+
+[@mcallb]: https://github.com/mcallb
 
 v3.0.0 (2014-11-28)
 -------------------
