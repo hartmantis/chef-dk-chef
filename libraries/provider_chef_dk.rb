@@ -57,12 +57,7 @@ class Chef
       # Download and install the ChefDk package
       #
       def action_install
-        if new_resource.package_url.nil?
-          omnijack_gem.run_action(:install)
-          metadata.yolo && Chef::Log.warn(
-            'Using a ChefDk package not officially supported on this platform'
-          )
-        end
+        omnijack_gem.run_action(:install)
         remote_file.run_action(:create)
         node['platform'] == 'windows' || global_shell_init(:create).write_file
         package.run_action(:install)
@@ -181,8 +176,14 @@ class Chef
       # @return [Hash]
       #
       def metadata
-        require 'omnijack'
-        @metadata ||= Omnijack::Project::ChefDk.new(metadata_params).metadata
+        unless @metadata
+          require 'omnijack'
+          @metadata = Omnijack::Project::ChefDk.new(metadata_params).metadata
+          @metadata.yolo && Chef::Log.warn('Using a ChefDk package not ' \
+                                           'officially supported on this ' \
+                                           'platform')
+        end
+        @metadata
       end
 
       #
@@ -205,8 +206,12 @@ class Chef
       # @return [Chef::Resource::ChefGem]
       #
       def omnijack_gem
-        @omnijack_gem ||= Resource::ChefGem.new('omnijack', run_context)
-        @omnijack_gem.version('~> 1.0')
+        unless @omnijack_gem
+          package_url = new_resource.package_url
+          @omnijack_gem = Resource::ChefGem.new('omnijack', run_context)
+          @omnijack_gem.version('~> 1.0')
+          @omnijack_gem.only_if { package_url.nil? }
+        end
         @omnijack_gem
       end
 

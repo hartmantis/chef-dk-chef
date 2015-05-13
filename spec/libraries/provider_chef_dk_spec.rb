@@ -44,11 +44,9 @@ describe Chef::Provider::ChefDk do
       let(i) { double(run_action: true) }
     end
     let(:gsi) { double(write_file: true) }
-    let(:yolo) { false }
-    let(:metadata) { double(yolo: yolo) }
 
     before(:each) do
-      [:omnijack_gem, :remote_file, :package, :metadata].each do |r|
+      [:omnijack_gem, :remote_file, :package].each do |r|
         allow_any_instance_of(described_class).to receive(r)
           .and_return(send(r))
       end
@@ -71,6 +69,11 @@ describe Chef::Provider::ChefDk do
         expect(new_resource).to receive(:'installed=').with(true)
         provider.action_install
       end
+
+      it 'installs the omnijack gem' do
+        expect(omnijack_gem).to receive(:run_action).with(:install)
+        provider.action_install
+      end
     end
 
     shared_examples_for 'a platform with a bashrc' do
@@ -82,19 +85,11 @@ describe Chef::Provider::ChefDk do
       end
     end
 
-    shared_examples_for 'no package_url provided' do
-      it 'installs the omnijack gem' do
-        expect(omnijack_gem).to receive(:run_action).with(:install)
-        provider.action_install
-      end
-    end
-
     context 'Ubuntu' do
       let(:platform) { { platform: 'ubuntu', version: '14.04' } }
 
       it_behaves_like 'any platform'
       it_behaves_like 'a platform with a bashrc'
-      it_behaves_like 'no package_url provided'
     end
 
     context 'Mac OS X' do
@@ -102,40 +97,17 @@ describe Chef::Provider::ChefDk do
 
       it_behaves_like 'any platform'
       it_behaves_like 'a platform with a bashrc'
-      it_behaves_like 'no package_url provided'
     end
 
     context 'Windows' do
       let(:platform) { { platform: 'windows', version: '2012R2' } }
 
       it_behaves_like 'any platform'
-      it_behaves_like 'no package_url provided'
 
       it 'does not call the bashrc create logic' do
         expect_any_instance_of(described_class)
           .not_to receive(:global_shell_init)
         provider.action_remove
-      end
-    end
-
-    context 'a "yolo" package' do
-      let(:yolo) { true }
-
-      it 'logs a warning to Chef' do
-        expect(Chef::Log).to receive(:warn).with('Using a ChefDk package ' \
-                                                 'not officially supported ' \
-                                                 'on this platform')
-        provider.action_install
-      end
-    end
-
-    context 'a package_url provided' do
-      let(:package_url) { 'http://example.com/pkg' }
-
-      it 'skips the Omnijack gem' do
-        expect_any_instance_of(described_class).not_to receive(:omnijack_gem)
-        expect_any_instance_of(described_class).not_to receive(:metadata)
-        provider.action_install
       end
     end
   end
@@ -483,18 +455,32 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#metadata' do
+    let(:yolo) { false }
+    let(:metadata) { double(yolo: yolo) }
+
     before(:each) do
       require 'omnijack'
       allow_any_instance_of(described_class).to receive(:metadata_params)
         .and_return(some: 'things')
       allow_any_instance_of(Omnijack::Project::ChefDk).to receive(:metadata)
-        .and_return('SOME METADATA')
+        .and_return(metadata)
     end
 
     it 'fetches and returns the metadata instance' do
       expect(Omnijack::Project::ChefDk).to receive(:new).with(some: 'things')
         .and_call_original
-      expect(provider.send(:metadata)).to eq('SOME METADATA')
+      expect(provider.send(:metadata)).to eq(metadata)
+    end
+
+    context 'a "yolo" package' do
+      let(:yolo) { true }
+
+      it 'logs a warning to Chef' do
+        expect(Chef::Log).to receive(:warn).with('Using a ChefDk package ' \
+                                                 'not officially supported ' \
+                                                 'on this platform')
+        provider.send(:metadata)
+      end
     end
   end
 
