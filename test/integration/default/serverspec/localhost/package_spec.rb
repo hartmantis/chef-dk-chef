@@ -1,31 +1,25 @@
 # Encoding: UTF-8
-#
-# Cookbook Name:: chef-dk
-# Spec:: serverspec/localhost/package
-#
-# Copyright (C) 2014, Jonathan Hartman
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-require 'spec_helper'
+require_relative '../spec_helper'
 
 describe 'Chef-DK package' do
-  it 'is installed' do
-    case os[:family]
-    when 'darwin'
-      expect(package('com.getchef.pkg.chefdk')).to be_installed.by(:pkgutil)
-    else
-      expect(package('chefdk')).to be_installed
+  describe package('com.getchef.pkg.chefdk'), if: os[:family] == 'darwin' do
+    it 'is installed' do
+      expect(subject).to be_installed.by(:pkgutil)
+    end
+  end
+
+  # On Windows, the package name changes to reflect each ChefDK version
+  describe package('Chef Development Kit v*'), if: os[:family] == 'windows' do
+    it 'is installed' do
+      expect(subject).to be_installed
+    end
+  end
+
+  describe package('chefdk'),
+           if: %w(ubuntu debian redhat).include?(os[:family]) do
+    it 'is installed' do
+      expect(subject).to be_installed
     end
   end
 end

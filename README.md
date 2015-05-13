@@ -1,12 +1,12 @@
 Chef-DK Cookbook
 ================
-[![Cookbook Version](http://img.shields.io/cookbook/v/chef-dk.svg)][cookbook]
-[![Build Status](http://img.shields.io/travis/RoboticCheese/chef-dk-chef.svg)][travis]
-[![Code Climate](http://img.shields.io/codeclimate/github/RoboticCheese/chef-dk-chef.svg)][codeclimate]
-[![Coverage Status](http://img.shields.io/coveralls/RoboticCheese/chef-dk-chef.svg)][coveralls]
+[![Cookbook Version](https://img.shields.io/cookbook/v/chef-dk.svg)][cookbook]
+[![Build Status](https://img.shields.io/travis/RoboticCheese/chef-dk-chef.svg)][travis]
+[![Code Climate](https://img.shields.io/codeclimate/github/RoboticCheese/chef-dk-chef.svg)][codeclimate]
+[![Coverage Status](https://img.shields.io/coveralls/RoboticCheese/chef-dk-chef.svg)][coveralls]
 
-[cookbook]: https://supermarket.getchef.com/cookbooks/chef-dk
-[travis]: http://travis-ci.org/RoboticCheese/chef-dk-chef
+[cookbook]: https://supermarket.chef.io/cookbooks/chef-dk
+[travis]: https://travis-ci.org/RoboticCheese/chef-dk-chef
 [codeclimate]: https://codeclimate.com/github/RoboticCheese/chef-dk-chef
 [coveralls]: https://coveralls.io/r/RoboticCheese/chef-dk-chef
 
@@ -28,7 +28,7 @@ that is used for installation under Windows. _This cookbook will not run on
 Windows under earlier versions of Chef._
 
 This cookbook consumes the
-[dmg cookbook](http://supermarket.getchef.com/cookbooks/dmg) in order to
+[dmg cookbook](https://supermarket.chef.io/cookbooks/dmg) in order to
 support OS X installs. That cookbook's limitations, such as the inability
 to upgrade or uninstall packages, are thus present in the OS X implementation
 here.
@@ -141,7 +141,7 @@ License & Authors
 =================
 - Author: Jonathan Hartman <j@p4nt5.com>
 
-Copyright 2014, Jonathan Hartman
+Copyright 2014-2015, Jonathan Hartman
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

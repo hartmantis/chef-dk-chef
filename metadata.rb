@@ -1,5 +1,6 @@
 # Encoding: UTF-8
-
+#
+# rubocop:disable SingleSpaceBeforeFirstArg
 name             'chef-dk'
 maintainer       'Jonathan Hartman'
 maintainer_email 'j@p4nt5.com'
@@ -17,3 +18,4 @@ supports         'debian', '>= 6.0'
 end
 supports         'mac_os_x', '>= 10.8'
 supports         'windows'
+# rubocop:enable SingleSpaceBeforeFirstArg

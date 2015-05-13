@@ -3,7 +3,7 @@
 # Cookbook Name:: chef-dk
 # Library:: provider_chef_dk_mac_os_x
 #
-# Copyright 2014, Jonathan Hartman
+# Copyright 2014-2015 Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

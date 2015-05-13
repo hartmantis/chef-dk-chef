@@ -1,9 +1,9 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Spec:: support/matchers/chef_dk
+# Library:: matchers
 #
-# Copyright (C) 2014, Jonathan Hartman
+# Copyright (C) 2014-2015 Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,21 +17,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'spec_helper'
+if defined?(ChefSpec)
+  ChefSpec.define_matcher(:chef_dk)
 
-module ChefSpec
-  module API
-    # Some simple matchers for the chef_dk resource
-    #
-    # @author Jonathan Hartman <j@p4nt5.com>
-    module ChefDkMatchers
-      ChefSpec.define_matcher :chef_dk
-
-      def install_chef_dk(resource_name)
-        ChefSpec::Matchers::ResourceMatcher.new(:chef_dk,
-                                                :install,
-                                                resource_name)
-      end
-    end
+  def install_chef_dk(name)
+    ChefSpec::Matchers::ResourceMatcher.new(:chef_dk, :install, name)
   end
 end
