@@ -8,12 +8,19 @@ provisioner:
 platforms:
   - name: ubuntu-14.04
   - name: ubuntu-12.04
-  - name: debian-7.6
+  - name: debian-7.8
   - name: debian-6.0.10
-  - name: centos-6.5
-  - name: macosx-10.8
-  - name: macosx-10.9
+  - name: centos-6.6
+  # - name: macosx-10.8
+  # - name: macosx-10.9
   - name: macosx-10.10
+    driver:
+      box: roboticcheese/macosx-10.10
+      ssh:
+        insert_key: false
+  - name: windows-2012
+    driver:
+      box: roboticcheese/windows-2012
 
 suites:
   - name: default
@@ -33,12 +40,13 @@ suites:
         package_url: https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chefdk_0.3.4-1_amd64.deb
     excludes:
       - ubuntu-12.04
-      - debian-7.6
+      - debian-7.8
       - debian-6.0.10
-      - centos-6.5
-      - macosx-10.8
-      - macosx-10.9
+      - centos-6.6
+      - macosx-10.10
+      - windows-2012
       - ubuntu-12-04-x64
       - debian-7-0-x64
       - debian-6-0-x64
       - centos-6-5-x64
+      - macosx

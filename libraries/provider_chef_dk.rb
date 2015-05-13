@@ -3,7 +3,7 @@
 # Cookbook Name:: chef-dk
 # Library:: provider_chef_dk
 #
-# Copyright 2014, Jonathan Hartman
+# Copyright 2014-2015 Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,10 +58,8 @@ class Chef
       #
       def action_install
         omnijack_gem.run_action(:install)
-        metadata.yolo && Chef::Log.warn('Using a ChefDk package not ' \
-                                        'officially supported on this platform')
         remote_file.run_action(:create)
-        global_shell_init(:create).write_file
+        node['platform'] == 'windows' || global_shell_init(:create).write_file
         package.run_action(:install)
         new_resource.installed = true
       end
@@ -70,7 +68,7 @@ class Chef
       # Uninstall the ChefDk package and delete the cached file
       #
       def action_remove
-        global_shell_init(:delete).write_file
+        node['platform'] == 'windows' || global_shell_init(:delete).write_file
         package.run_action(:remove)
         remote_file.run_action(:delete)
         # A full uninstall would also delete the omnijack gem, but ehhh...
@@ -178,8 +176,14 @@ class Chef
       # @return [Hash]
       #
       def metadata
-        require 'omnijack'
-        @metadata ||= Omnijack::Project::ChefDk.new(metadata_params).metadata
+        unless @metadata
+          require 'omnijack'
+          @metadata = Omnijack::Project::ChefDk.new(metadata_params).metadata
+          @metadata.yolo && Chef::Log.warn('Using a ChefDk package not ' \
+                                           'officially supported on this ' \
+                                           'platform')
+        end
+        @metadata
       end
 
       #
@@ -202,8 +206,12 @@ class Chef
       # @return [Chef::Resource::ChefGem]
       #
       def omnijack_gem
-        @omnijack_gem ||= Resource::ChefGem.new('omnijack', run_context)
-        @omnijack_gem.version('~> 1.0')
+        unless @omnijack_gem
+          package_url = new_resource.package_url
+          @omnijack_gem = Resource::ChefGem.new('omnijack', run_context)
+          @omnijack_gem.version('~> 1.0')
+          @omnijack_gem.only_if { package_url.nil? }
+        end
         @omnijack_gem
       end
 

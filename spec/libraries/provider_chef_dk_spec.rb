@@ -1,21 +1,4 @@
 # Encoding: UTF-8
-#
-# Cookbook Name:: chef-dk
-# Spec:: provider_chef_dk
-#
-# Copyright (C) 2014, Jonathan Hartman
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 require_relative '../spec_helper'
 require_relative '../../libraries/provider_chef_dk'
@@ -61,11 +44,9 @@ describe Chef::Provider::ChefDk do
       let(i) { double(run_action: true) }
     end
     let(:gsi) { double(write_file: true) }
-    let(:yolo) { false }
-    let(:metadata) { double(yolo: yolo) }
 
     before(:each) do
-      [:omnijack_gem, :remote_file, :package, :metadata].each do |r|
+      [:omnijack_gem, :remote_file, :package].each do |r|
         allow_any_instance_of(described_class).to receive(r)
           .and_return(send(r))
       end
@@ -73,41 +54,60 @@ describe Chef::Provider::ChefDk do
         .and_return(gsi)
     end
 
-    it 'installs the omnijack gem' do
-      expect(omnijack_gem).to receive(:run_action).with(:install)
-      provider.action_install
-    end
-
-    it 'downloads the package remote file' do
-      expect(remote_file).to receive(:run_action).with(:create)
-      provider.action_install
-    end
-
-    it 'calls the bashrc create logic' do
-      expect_any_instance_of(described_class).to receive(:global_shell_init)
-        .with(:create)
-      expect(gsi).to receive(:write_file)
-      provider.action_install
-    end
-
-    it 'installs the package file' do
-      expect(package).to receive(:run_action).with(:install)
-      provider.action_install
-    end
-
-    it 'sets the installed state to true' do
-      expect(new_resource).to receive(:'installed=').with(true)
-      provider.action_install
-    end
-
-    context 'a "yolo" package' do
-      let(:yolo) { true }
-
-      it 'logs a warning to Chef' do
-        expect(Chef::Log).to receive(:warn).with('Using a ChefDk package ' \
-                                                 'not officially supported ' \
-                                                 'on this platform')
+    shared_examples_for 'any platform' do
+      it 'downloads the package remote file' do
+        expect(remote_file).to receive(:run_action).with(:create)
         provider.action_install
+      end
+
+      it 'installs the package file' do
+        expect(package).to receive(:run_action).with(:install)
+        provider.action_install
+      end
+
+      it 'sets the installed state to true' do
+        expect(new_resource).to receive(:'installed=').with(true)
+        provider.action_install
+      end
+
+      it 'installs the omnijack gem' do
+        expect(omnijack_gem).to receive(:run_action).with(:install)
+        provider.action_install
+      end
+    end
+
+    shared_examples_for 'a platform with a bashrc' do
+      it 'calls the bashrc create logic' do
+        expect_any_instance_of(described_class).to receive(:global_shell_init)
+          .with(:create)
+        expect(gsi).to receive(:write_file)
+        provider.action_install
+      end
+    end
+
+    context 'Ubuntu' do
+      let(:platform) { { platform: 'ubuntu', version: '14.04' } }
+
+      it_behaves_like 'any platform'
+      it_behaves_like 'a platform with a bashrc'
+    end
+
+    context 'Mac OS X' do
+      let(:platform) { { platform: 'mac_os_x', version: '10.10' } }
+
+      it_behaves_like 'any platform'
+      it_behaves_like 'a platform with a bashrc'
+    end
+
+    context 'Windows' do
+      let(:platform) { { platform: 'windows', version: '2012R2' } }
+
+      it_behaves_like 'any platform'
+
+      it 'does not call the bashrc create logic' do
+        expect_any_instance_of(described_class)
+          .not_to receive(:global_shell_init)
+        provider.action_remove
       end
     end
   end
@@ -126,26 +126,56 @@ describe Chef::Provider::ChefDk do
         .and_return(gsi)
     end
 
-    it 'calls the bashrc delete logic' do
-      expect_any_instance_of(described_class).to receive(:global_shell_init)
-        .with(:delete)
-      expect(gsi).to receive(:write_file)
-      provider.action_remove
+    shared_examples_for 'any platform' do
+      it 'deletes the package remote file' do
+        expect(remote_file).to receive(:run_action).with(:delete)
+        provider.action_remove
+      end
+
+      it 'installs the package file' do
+        expect(package).to receive(:run_action).with(:remove)
+        provider.action_remove
+      end
+
+      it 'sets the installed state to false' do
+        expect(new_resource).to receive(:'installed=').with(false)
+        provider.action_remove
+      end
     end
 
-    it 'deletes the package remote file' do
-      expect(remote_file).to receive(:run_action).with(:delete)
-      provider.action_remove
+    shared_examples_for 'a platform with a bashrc' do
+      it 'calls the bashrc delete logic' do
+        expect_any_instance_of(described_class).to receive(:global_shell_init)
+          .with(:delete)
+        expect(gsi).to receive(:write_file)
+        provider.action_remove
+      end
     end
 
-    it 'installs the package file' do
-      expect(package).to receive(:run_action).with(:remove)
-      provider.action_remove
+    context 'Ubuntu' do
+      let(:platform) { { platform: 'ubuntu', version: '14.04' } }
+
+      it_behaves_like 'any platform'
+      it_behaves_like 'a platform with a bashrc'
     end
 
-    it 'sets the installed state to false' do
-      expect(new_resource).to receive(:'installed=').with(false)
-      provider.action_remove
+    context 'Mac OS X' do
+      let(:platform) { { platform: 'mac_os_x', version: '10.10' } }
+
+      it_behaves_like 'any platform'
+      it_behaves_like 'a platform with a bashrc'
+    end
+
+    context 'Windows' do
+      let(:platform) { { platform: 'windows', version: '2012R2' } }
+
+      it_behaves_like 'any platform'
+
+      it 'does not call the bashrc delete logic' do
+        expect_any_instance_of(described_class)
+          .not_to receive(:global_shell_init)
+        provider.action_remove
+      end
     end
   end
 
@@ -425,18 +455,32 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#metadata' do
+    let(:yolo) { false }
+    let(:metadata) { double(yolo: yolo) }
+
     before(:each) do
       require 'omnijack'
       allow_any_instance_of(described_class).to receive(:metadata_params)
         .and_return(some: 'things')
       allow_any_instance_of(Omnijack::Project::ChefDk).to receive(:metadata)
-        .and_return('SOME METADATA')
+        .and_return(metadata)
     end
 
     it 'fetches and returns the metadata instance' do
       expect(Omnijack::Project::ChefDk).to receive(:new).with(some: 'things')
         .and_call_original
-      expect(provider.send(:metadata)).to eq('SOME METADATA')
+      expect(provider.send(:metadata)).to eq(metadata)
+    end
+
+    context 'a "yolo" package' do
+      let(:yolo) { true }
+
+      it 'logs a warning to Chef' do
+        expect(Chef::Log).to receive(:warn).with('Using a ChefDk package ' \
+                                                 'not officially supported ' \
+                                                 'on this platform')
+        provider.send(:metadata)
+      end
     end
   end
 
@@ -488,7 +532,6 @@ describe Chef::Provider::ChefDk do
         expect(provider.send(:metadata_params)).to eq(expected)
       end
     end
-
   end
 
   describe '#omnijack_gem' do

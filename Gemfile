@@ -5,6 +5,7 @@ source 'https://rubygems.org'
 group :development do
   gem 'yard-chef'
   gem 'guard'
+  gem 'guard-foodcritic'
   gem 'guard-rspec'
   gem 'guard-kitchen'
 end
@@ -15,8 +16,6 @@ group :test do
   gem 'countloc'
   gem 'rubocop'
   gem 'foodcritic'
-  # TODO: guard-foodcritic has a dep conflict with Berkshelf 3
-  # gem 'guard-foodcritic'
   gem 'rspec', '>= 3'
   gem 'chefspec', '>= 4'
   gem 'simplecov'
@@ -25,7 +24,9 @@ group :test do
   gem 'fauxhai'
   gem 'test-kitchen'
   gem 'kitchen-digitalocean', '>= 0.8.0'
+  gem 'kitchen-localhost'
   gem 'kitchen-vagrant'
+  gem 'winrm-transport'
 end
 
 group :integration do
