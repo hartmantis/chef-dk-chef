@@ -1,6 +1,9 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
+v?.?.? (????-??-??)
+-------------------
+
 v3.0.1 (2015-05-13)
 -------------------
 * Fix errors in Windows from trying to set up an unsupported shell-init, via
