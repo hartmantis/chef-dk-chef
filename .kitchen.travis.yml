@@ -5,7 +5,12 @@ platforms:
   - name: ubuntu-14-04-x64
   - name: ubuntu-12-04-x64
   - name: debian-7-0-x64
+  # The Debian 6 Digital Ocean image doesn't have sudo installed
   - name: debian-6-0-x64
+    provisioner:
+      sudo_command:
+    verifier:
+      sudo_command:
   - name: centos-6-5-x64
   - name: macosx
     driver:
