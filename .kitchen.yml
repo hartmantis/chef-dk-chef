@@ -11,6 +11,7 @@ platforms:
   - name: debian-7.8
   - name: debian-6.0.10
   - name: centos-6.6
+  - name: fedora-21
   # - name: macosx-10.8
   # - name: macosx-10.9
   - name: macosx-10.10
@@ -43,10 +44,12 @@ suites:
       - debian-7.8
       - debian-6.0.10
       - centos-6.6
+      - fedora-21
       - macosx-10.10
       - windows-2012
       - ubuntu-12-04-x64
       - debian-7-0-x64
       - debian-6-0-x64
       - centos-6-5-x64
+      - fedora-21-x64
       - macosx

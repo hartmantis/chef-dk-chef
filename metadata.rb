@@ -16,6 +16,7 @@ supports         'debian', '>= 6.0'
 %w(redhat centos scientific amazon).each do |os|
   supports       os, '>= 6.0'
 end
+supports         'fedora'
 supports         'mac_os_x', '>= 10.8'
 supports         'windows'
 # rubocop:enable SingleSpaceBeforeFirstArg

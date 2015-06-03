@@ -1,6 +1,7 @@
 ---
 driver:
   name: digitalocean
+  region: nyc3
 platforms:
   - name: ubuntu-14-04-x64
   - name: ubuntu-12-04-x64
@@ -12,6 +13,7 @@ platforms:
     verifier:
       sudo_command:
   - name: centos-6-5-x64
+  - name: fedora-21-x64
   - name: macosx
     driver:
       name: localhost
