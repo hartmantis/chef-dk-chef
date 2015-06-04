@@ -1,8 +1,11 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
-v?.?.? (????-??-??)
+v3.1.0 (2015-06-03)
 -------------------
+* Add support for installing on Fedora, via [@joemiller][]
+
+[@joemiller]: https://github.com/joemiller
 
 v3.0.1 (2015-05-13)
 -------------------
