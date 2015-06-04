@@ -9,7 +9,8 @@ describe 'Chef-DK environment' do
     end
   end
 
-  describe file('/etc/bashrc'), if: %w(darwin redhat).include?(os[:family]) do
+  describe file('/etc/bashrc'),
+           if: %w(darwin redhat fedora).include?(os[:family]) do
     it_behaves_like 'file with chef shell-init'
   end
 
