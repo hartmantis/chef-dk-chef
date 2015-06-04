@@ -7,7 +7,7 @@ maintainer_email 'j@p4nt5.com'
 license          'Apache v2.0'
 description      'Installs/configures the Chef-DK'
 long_description 'Installs/configures the Chef-DK'
-version          '3.1.0'
+version          '3.1.1'
 
 depends          'dmg', '~> 2.2'
 
