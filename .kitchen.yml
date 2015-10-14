@@ -53,3 +53,10 @@ suites:
       - centos-6-5-x64
       - fedora-21-x64
       - macosx
+  - name: chefdk_gem
+    run_list:
+      - recipe[chef-dk::chefdk_gem]
+    excludes:
+      - macosx-10.10
+      - macosx
+      - windows-2012
