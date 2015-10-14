@@ -4,6 +4,12 @@ Chef-DK Cookbook CHANGELOG
 v?.?.? (????-??-??)
 -------------------
 
+v3.2.0 (2015-10-13)
+-------------------
+* Add support for installing gems to a user's chef-dk gemset
+
+[@fhanson]: https://github.com/fhanson
+
 v3.1.0 (2015-06-03)
 -------------------
 * Add support for installing on Fedora, via [@joemiller][]
