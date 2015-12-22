@@ -9,7 +9,7 @@ description      'Installs/configures the Chef-DK'
 long_description 'Installs/configures the Chef-DK'
 version          '3.1.1'
 
-depends          'dmg', '~> 2.2'
+depends          'dmg', '~> 2.3'
 
 supports         'ubuntu', '>= 12.04'
 supports         'debian', '>= 6.0'
