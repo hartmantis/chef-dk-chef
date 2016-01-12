@@ -1,12 +1,16 @@
 Chef-DK Cookbook
 ================
 [![Cookbook Version](https://img.shields.io/cookbook/v/chef-dk.svg)][cookbook]
-[![Build Status](https://img.shields.io/travis/RoboticCheese/chef-dk-chef.svg)][travis]
+[![OS X Build Status](https://img.shields.io/travis/RoboticCheese/chef-dk-chef.svg)][travis]
+[![Windows Build Status](https://img.shields.io/appveyor/ci/RoboticCheese/chef-dk-chef.svg)][appveyor]
+[![Linux Build Status](https://img.shields.io/circleci/project/RoboticCheese/chef-dk-chef.svg)][circle]
 [![Code Climate](https://img.shields.io/codeclimate/github/RoboticCheese/chef-dk-chef.svg)][codeclimate]
 [![Coverage Status](https://img.shields.io/coveralls/RoboticCheese/chef-dk-chef.svg)][coveralls]
 
 [cookbook]: https://supermarket.chef.io/cookbooks/chef-dk
 [travis]: https://travis-ci.org/RoboticCheese/chef-dk-chef
+[appveyor]: https://ci.appveyor.com/project/RoboticCheese/chef-dk-chef
+[circle]: https://circleci.com/gh/RoboticCheese/chef-dk-chef
 [codeclimate]: https://codeclimate.com/github/RoboticCheese/chef-dk-chef
 [coveralls]: https://coveralls.io/r/RoboticCheese/chef-dk-chef
 
@@ -15,13 +19,13 @@ A cookbook for installing the Chef Development Kit.
 Requirements
 ============
 
-As of version 0.3.5, Chef-DK packages are available for RHEL/CentOS/etc. 6,
-Ubuntu 12.04/13.10, Debian 6/7, OS X 10.8/10.9/10.10, and Windows 7/8/2008/2012.
-Each of these platforms is supported by this cookbook.
+As of version 0.10.0, Chef-DK packages are available for RHEL/CentOS/etc. 7/6,
+Ubuntu 14.04/13.04/12.04, Debian 7/6, OS X 10.11//10.10/10.9/10.8, and Windows
+10/8.1/8/7/2012/2008. Each of these platforms is supported by this cookbook.
 
 In some cases, platforms that aren't officially supported by Chef-DK may still
 function. For example, this cookbook could be used to install the Ubuntu package
-onto a 14.04 system. YMMV.
+onto a 15.10 system. YMMV.
 
 Prior to Chef 11.12.0, the core did not offer the `windows_package` resource
 that is used for installation under Windows. _This cookbook will not run on
