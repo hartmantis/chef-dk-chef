@@ -12,8 +12,6 @@ end
 
 group :test do
   gem 'rake'
-  gem 'cane'
-  gem 'countloc'
   gem 'rubocop'
   gem 'foodcritic'
   gem 'rspec', '>= 3'
