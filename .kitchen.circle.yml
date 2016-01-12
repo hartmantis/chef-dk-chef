@@ -12,5 +12,4 @@ platforms:
   - name: debian-6
   - name: centos-7
   - name: centos-6
-  - name: fedora-23
   - name: fedora-22

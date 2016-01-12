@@ -518,12 +518,12 @@ describe Chef::Provider::ChefDk do
     end
 
     context 'Windows' do
-      let(:platform) { { platform: 'windows', version: '2012' } }
+      let(:platform) { { platform: 'windows', version: '2012R2' } }
 
       it 'returns the correct params hash' do
         expected = {
           platform: 'windows',
-          platform_version: '6.2.9200',
+          platform_version: '6.3.9600',
           machine_arch: 'x86_64',
           version: nil,
           prerelease: nil,

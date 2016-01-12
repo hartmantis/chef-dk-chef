@@ -191,7 +191,7 @@ describe Chef::Resource::ChefDk do
       },
       {
         platform: 'windows',
-        version: '2012',
+        version: '2012R2',
         expected: Chef::Provider::ChefDk::Windows
       }
     ].each do |p|

@@ -13,7 +13,6 @@ platforms:
   - name: debian-6.0.10
   - name: centos-7.2
   - name: centos-6.7
-  - name: fedora-23
   - name: fedora-22
   - name: macosx-10.10
     driver:
@@ -53,7 +52,6 @@ suites:
       - centos-7
       - centos-6.7
       - centos-6
-      - fedora-23
       - fedora-22
       - macosx-10.10
       - macosx
