@@ -23,3 +23,15 @@ chef_dk 'chef_dk' do
   package_url node['chef_dk']['package_url']
   global_shell_init node['chef_dk']['global_shell_init']
 end
+
+Dir['/opt/chefdk/bin/*'].map {|f| File.basename(f)}.each do |script|
+  template "chefdk_wrapper_#{script}" do
+    source 'chefdk_wrapper.erb'
+    path  File.join(node['chef_dk']['wrapper_path'],script)
+    owner 'root'
+    group 'root'
+    mode  '0555'
+    variables(command: script)
+    only_if { node['chef_dk']['wrappers'] }
+  end
+end

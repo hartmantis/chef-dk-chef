@@ -33,6 +33,12 @@ suites:
     attributes:
       chef_dk:
         global_shell_init: true
+  - name: wrappers
+    run_list:
+      - recipe[chef-dk]
+    attributes:
+      chef_dk:
+        wrappers: true
   - name: install_from_specific_url
     run_list:
       - recipe[chef-dk]
