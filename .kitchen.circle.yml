@@ -1,0 +1,15 @@
+---
+driver:
+  name: docker
+  privileged: true
+
+platforms:
+  - name: ubuntu-15.10
+  - name: ubuntu-14.04
+  - name: ubuntu-12.04
+  - name: debian-8
+  - name: debian-7
+  - name: debian-6
+  - name: centos-7
+  - name: centos-6
+  - name: fedora-22
