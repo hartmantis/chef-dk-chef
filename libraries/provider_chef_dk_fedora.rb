@@ -29,6 +29,7 @@ class Chef
       #
       # @author Jonathan Hartman <j@p4nt5.com>
       class Fedora < ChefDk::Rhel
+        provides :chef_dk, platform: 'fedora'
       end
     end
   end

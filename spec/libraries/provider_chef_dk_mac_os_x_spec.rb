@@ -4,25 +4,35 @@ require_relative '../spec_helper'
 require_relative '../../libraries/provider_chef_dk_mac_os_x'
 
 describe Chef::Provider::ChefDk::MacOsX do
-  let(:platform) { {} }
-  let(:chefdk_version) { nil }
-  let(:package_url) { nil }
-  let(:new_resource) do
-    double(name: 'my_chef_dk',
-           version: chefdk_version,
-           package_url: package_url)
-  end
-  let(:filename) { 'chefdk-0.2.2-1.dmg' }
-  let(:provider) { described_class.new(new_resource, nil) }
+  let(:name) { 'default' }
+  let(:run_context) { ChefSpec::SoloRunner.new.converge.run_context }
+  let(:new_resource) { Chef::Resource::ChefDk.new(name, run_context) }
+  let(:provider) { described_class.new(new_resource, run_context) }
 
-  before(:each) do
-    allow_any_instance_of(described_class).to receive(:node)
-      .and_return(Fauxhai.mock(platform).data)
-    allow_any_instance_of(described_class).to receive(:filename)
-      .and_return(filename)
+  describe '.provides?' do
+    let(:platform) { nil }
+    let(:node) { ChefSpec::Macros.stub_node('node.example', platform) }
+    let(:res) { described_class.provides?(node, new_resource) }
+
+    context 'Mac OS X' do
+      let(:platform) { { platform: 'mac_os_x', version: '10.10' } }
+
+      it 'returns true' do
+        expect(res).to eq(true)
+      end
+    end
+
+    context 'Ubuntu' do
+      let(:platform) { { platform: 'ubuntu', version: '14.04' } }
+
+      it 'returns false' do
+        expect(res).to eq(false)
+      end
+    end
   end
 
   describe '#tailor_package_resource_to_platform' do
+    let(:filename) { 'chefdk-0.2.2-1.dmg' }
     let(:package) do
       double(app: true,
              volumes_dir: true,
@@ -30,7 +40,6 @@ describe Chef::Provider::ChefDk::MacOsX do
              type: true,
              package_id: true)
     end
-
     let(:provider) do
       p = described_class.new(new_resource, nil)
       p.instance_variable_set(:@package, package)
@@ -39,6 +48,8 @@ describe Chef::Provider::ChefDk::MacOsX do
     let(:res) { provider.send(:tailor_package_resource_to_platform) }
 
     before(:each) do
+      allow_any_instance_of(described_class).to receive(:filename)
+        .and_return(filename)
       allow_any_instance_of(described_class).to receive(:download_path)
         .and_return('/tmp/blah.pkg')
     end

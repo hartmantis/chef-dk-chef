@@ -33,18 +33,8 @@ describe Chef::Resource::ChefDk do
   end
 
   describe '#initialize' do
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:determine_provider)
-        .and_return(Chef::Provider)
-    end
-
     it 'defaults the state to uninstalled' do
       expect(resource.installed?).to eq(false)
-    end
-
-    it 'sets the provider correctly' do
-      expected = Chef::Provider
-      expect(resource.instance_variable_get(:@provider)).to eq(expected)
     end
   end
 
@@ -169,39 +159,6 @@ describe Chef::Resource::ChefDk do
       let(:global_shell_init) { 'wiggles' }
 
       it_behaves_like 'an invalid configuration'
-    end
-  end
-
-  describe '#determine_provider' do
-    [
-      {
-        platform: 'ubuntu',
-        version: '12.04',
-        expected: Chef::Provider::ChefDk::Debian
-      },
-      {
-        platform: 'centos',
-        version: '6.5',
-        expected: Chef::Provider::ChefDk::Rhel
-      },
-      {
-        platform: 'mac_os_x',
-        version: '10.9.2',
-        expected: Chef::Provider::ChefDk::MacOsX
-      },
-      {
-        platform: 'windows',
-        version: '2012R2',
-        expected: Chef::Provider::ChefDk::Windows
-      }
-    ].each do |p|
-      context "a #{p[:platform]}-#{p[:version]} node" do
-        let(:platform) { { platform: p[:platform], version: p[:version] } }
-
-        it "uses #{p[:expected]} as the provider" do
-          expect(resource.send(:determine_provider)).to eq(p[:expected])
-        end
-      end
     end
   end
 

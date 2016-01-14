@@ -4,20 +4,31 @@ require_relative '../spec_helper'
 require_relative '../../libraries/provider_chef_dk_fedora'
 
 describe Chef::Provider::ChefDk::Fedora do
-  let(:platform) { {} }
-  let(:chefdk_version) { nil }
-  let(:package_url) { nil }
-  let(:new_resource) do
-    double(name: 'my_chef_dk',
-           version: chefdk_version,
-           package_url: package_url)
-  end
-  let(:provider) { described_class.new(new_resource, nil) }
+  let(:name) { 'default' }
+  let(:run_context) { ChefSpec::SoloRunner.new.converge.run_context }
+  let(:new_resource) { Chef::Resource::ChefDk.new(name, run_context) }
+  let(:provider) { described_class.new(new_resource, run_context) }
 
-  before(:each) do
-    allow_any_instance_of(described_class).to receive(:node).and_return(
-      Fauxhai.mock(platform).data
-    )
+  describe '.provides?' do
+    let(:platform) { nil }
+    let(:node) { ChefSpec::Macros.stub_node('node.example', platform) }
+    let(:res) { described_class.provides?(node, new_resource) }
+
+    context 'Fedora' do
+      let(:platform) { { platform: 'fedora', version: '22' } }
+
+      it 'returns true' do
+        expect(res).to eq(true)
+      end
+    end
+
+    context 'CentOS' do
+      let(:platform) { { platform: 'centos', version: '7.0' } }
+
+      it 'returns false' do
+        expect(res).to eq(false)
+      end
+    end
   end
 
   describe '#package_provider_class' do

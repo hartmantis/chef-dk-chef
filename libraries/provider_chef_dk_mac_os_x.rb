@@ -29,6 +29,8 @@ class Chef
       #
       # @author Jonathan Hartman <j@p4nt5.com>
       class MacOsX < ChefDk
+        provides :chef_dk, platform_family: 'mac_os_x'
+
         private
 
         #
