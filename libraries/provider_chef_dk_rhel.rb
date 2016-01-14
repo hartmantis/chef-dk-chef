@@ -30,6 +30,8 @@ class Chef
       #
       # @author Jonathan Hartman <j@p4nt5.com>
       class Rhel < ChefDk
+        provides :chef_dk, platform_family: 'rhel'
+
         private
 
         #

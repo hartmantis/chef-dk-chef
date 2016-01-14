@@ -39,7 +39,6 @@ class Chef
       def initialize(name, run_context = nil)
         super
         @resource_name = :chef_dk
-        @provider = determine_provider
         @action = :install
         @allowed_actions = [:install, :remove]
 
@@ -121,17 +120,6 @@ class Chef
       end
 
       private
-
-      #
-      # Determine what provider is to be used for this platform
-      #
-      # @return [Class]
-      #
-      def determine_provider
-        return nil unless node && node['platform_family']
-        Chef::Provider::ChefDk.const_get(node['platform_family'].split('_')
-                                         .map(&:capitalize).join)
-      end
 
       #
       # Determine whether string is a valid package version

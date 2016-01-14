@@ -3,6 +3,7 @@ Chef-DK Cookbook CHANGELOG
 
 v?.?.? (????-??-??)
 -------------------
+* Update to modern provider resolution (breaking compatibility with Chef < 12)
 
 v3.1.0 (2015-06-03)
 -------------------
