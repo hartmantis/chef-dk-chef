@@ -1,6 +1,7 @@
 # Encoding: UTF-8
 
 require_relative '../spec_helper'
+require_relative '../../libraries/resource_chef_dk'
 require_relative '../../libraries/provider_chef_dk_mac_os_x'
 
 describe Chef::Provider::ChefDk::MacOsX do
@@ -31,60 +32,109 @@ describe Chef::Provider::ChefDk::MacOsX do
     end
   end
 
-  describe '#tailor_package_resource_to_platform' do
-    let(:filename) { 'chefdk-0.2.2-1.dmg' }
-    let(:package) do
-      double(app: true,
-             volumes_dir: true,
-             source: true,
-             type: true,
-             package_id: true)
+  describe '#install!' do
+    let(:package_url) { nil }
+    let(:new_resource) do
+      r = super()
+      r.package_url(package_url) unless package_url.nil?
+      r
     end
-    let(:provider) do
-      p = described_class.new(new_resource, nil)
-      p.instance_variable_set(:@package, package)
-      p
+    let(:metadata) do
+      double(url: 'http://example.com/cdk.dmg', sha256: '12345')
     end
-    let(:res) { provider.send(:tailor_package_resource_to_platform) }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:filename)
-        .and_return(filename)
-      allow_any_instance_of(described_class).to receive(:download_path)
-        .and_return('/tmp/blah.pkg')
+      %i(chef_gem dmg_package).each do |r|
+        allow_any_instance_of(described_class).to receive(r)
+      end
+      allow_any_instance_of(described_class).to receive(:global_shell_init)
+        .and_return(double(write_file: true))
+      allow_any_instance_of(described_class).to receive(:metadata)
+        .and_return(metadata)
+      allow_any_instance_of(described_class).to receive(:node)
+        .and_return('platform' => 'mac_os_x')
     end
 
-    it 'calls `app` with the new naming style' do
-      expect(package).to receive(:app).with('chefdk-0.2.2-1')
-      res
+    context 'no package source provided' do
+      let(:package_url) { nil }
+
+      it 'installs the package via metadata' do
+        p = provider
+        expect(p).to receive(:dmg_package).with('Chef Development Kit')
+          .and_yield
+        expect(p).to receive(:app).with('cdk')
+        expect(p).to receive(:volumes_dir).with('Chef Development Kit')
+        expect(p).to receive(:source).with('http://example.com/cdk.dmg')
+        expect(p).to receive(:type).with('pkg')
+        expect(p).to receive(:package_id).with('com.getchef.pkg.chefdk')
+        expect(p).to receive(:checksum).with('12345')
+        p.send(:install!)
+      end
     end
 
-    it 'calls `volumes_dir` with the new naming style' do
-      expected = 'Chef Development Kit'
-      expect(package).to receive(:volumes_dir).with(expected)
-      res
+    context 'a remote package source provided' do
+      let(:package_url) { 'http://example.com/other.dmg' }
+
+      it 'installs the package via the source' do
+        p = provider
+        expect(p).to receive(:dmg_package).with('Chef Development Kit')
+          .and_yield
+        expect(p).to receive(:app).with('other')
+        expect(p).to receive(:volumes_dir).with('Chef Development Kit')
+        expect(p).to receive(:source).with('http://example.com/other.dmg')
+        expect(p).to receive(:type).with('pkg')
+        expect(p).to receive(:package_id).with('com.getchef.pkg.chefdk')
+        expect(p).to_not receive(:checksum)
+        p.send(:install!)
+      end
     end
 
-    it 'calls `source` with the local file path' do
-      expect(package).to receive(:source).with('file:///tmp/blah.pkg')
-      provider.send(:tailor_package_resource_to_platform)
-    end
+    context 'a local package source provided' do
+      let(:package_url) { '/tmp/chefdk.dmg' }
 
-    it 'calls `type` with `pkg`' do
-      expect(package).to receive(:type).with('pkg')
-      provider.send(:tailor_package_resource_to_platform)
-    end
-
-    it 'calls `package_id` with `com.getchef.pkg.chefdk`' do
-      expect(package).to receive(:package_id).with('com.getchef.pkg.chefdk')
-      provider.send(:tailor_package_resource_to_platform)
+      it 'installs the package via the source' do
+        p = provider
+        expect(p).to receive(:dmg_package).with('Chef Development Kit')
+          .and_yield
+        expect(p).to receive(:app).with('chefdk')
+        expect(p).to receive(:volumes_dir).with('Chef Development Kit')
+        expect(p).to receive(:source).with('file:///tmp/chefdk.dmg')
+        expect(p).to receive(:type).with('pkg')
+        expect(p).to receive(:package_id).with('com.getchef.pkg.chefdk')
+        expect(p).to_not receive(:checksum)
+        p.send(:install!)
+      end
     end
   end
 
-  describe '#package_resource_class' do
-    it 'returns the DmgPackage resource' do
-      expected = Chef::Resource::DmgPackage
-      expect(provider.send(:package_resource_class)).to eq(expected)
+  describe '#remove!' do
+    before(:each) do
+      %i(directory execute).each do |r|
+        allow_any_instance_of(described_class).to receive(r)
+      end
+      allow_any_instance_of(described_class).to receive(:global_shell_init)
+        .and_return(double(write_file: true))
+      allow_any_instance_of(described_class).to receive(:node)
+        .and_return('platform' => 'mac_os_x')
+    end
+
+    it 'deletes the application and additional dirs' do
+      p = provider
+      ['/opt/chefdk', File.expand_path('~/.chefdk')].each do |d|
+        expect(p).to receive(:directory).with(d).and_yield
+        expect(p).to receive(:recursive).with(true)
+        expect(p).to receive(:action).with(:delete)
+      end
+      p.send(:remove!)
+    end
+
+    it 'forgets the package from pkgutil' do
+      p = provider
+      expect(p).to receive(:execute)
+        .with('pkgutil --forget com.getchef.pkg.chefdk').and_yield
+      expect(p).to receive(:only_if)
+        .with('pkgutil --pkg-info com.getchef.pkg.chefdk')
+      p.send(:remove!)
     end
   end
 
