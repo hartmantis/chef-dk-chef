@@ -18,23 +18,15 @@
 # limitations under the License.
 #
 
-require 'net/http'
-require 'uri'
-require 'chef/provider'
-require 'chef/resource/chef_gem'
-require 'chef/resource/package'
-require 'chef/resource/remote_file'
+require 'chef/provider/lwrp_base'
 require 'chef/util/file_edit'
-require_relative 'resource_chef_dk'
 
 class Chef
   class Provider
     # A Chef provider for the Chef-DK packages
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class ChefDk < Provider
-      PACKAGE_NAME ||= 'chefdk'
-
+    class ChefDk < LWRPBase
       #
       # WhyRun is supported by this provider
       #
@@ -45,73 +37,36 @@ class Chef
       end
 
       #
-      # Load and return the current resource
+      # Install the ChefDK.
       #
-      # @return [Chef::Resource::ChefDk]
-      #
-      def load_current_resource
-        @current_resource ||= Resource::ChefDk.new(new_resource.name)
-      end
-
-      #
-      # Download and install the ChefDk package
-      #
-      def action_install
-        omnijack_gem.run_action(:install)
-        remote_file.run_action(:create)
+      action :install do
+        chef_gem 'omnijack' do
+          version '~> 1.0'
+          compile_time false
+          only_if { new_resource.package_url.nil? }
+        end
+        install!
         node['platform'] == 'windows' || global_shell_init(:create).write_file
-        package.run_action(:install)
         new_resource.installed = true
       end
 
       #
-      # Uninstall the ChefDk package and delete the cached file
+      # Remove the ChefDK.
       #
-      def action_remove
+      action :remove do
         node['platform'] == 'windows' || global_shell_init(:delete).write_file
-        package.run_action(:remove)
-        remote_file.run_action(:delete)
-        # A full uninstall would also delete the omnijack gem, but ehhh...
+        remove!
         new_resource.installed = false
       end
 
       private
 
-      #
-      # The Package resource for the package
-      #
-      # @return [Chef::Resource::Package, Chef::Resource::DmgPackage]
-      #
-      def package
-        @package ||= package_resource_class.new(download_path, run_context)
-        @package.provider(package_provider_class) if package_provider_class
-        tailor_package_resource_to_platform
-        @package
-      end
-
-      #
-      # Call any platform customization methods for the package resource
-      #
-      def tailor_package_resource_to_platform
-        @package.version(new_resource.version)
-      end
-
-      #
-      # The appropriate package resource class for this platform
-      #
-      # @return [Chef::Resource::Package]
-      #
-      def package_resource_class
-        Chef::Resource::Package
-      end
-
-      #
-      # A specified package provider class, if appropriate
-      #
-      # @return [NilClass]
-      #
-      def package_provider_class
-        nil
+      # Some methods have to be provided by the sub-classes
+      [:bashrc_file, :install!, :remove!].each do |method|
+        define_method(method) do
+          fail(NotImplementedError,
+               "`#{method}` method must be implemented for `#{self.class}`")
+        end
       end
 
       #
@@ -133,57 +88,18 @@ class Chef
       end
 
       #
-      # The RemoteFile resource for the package
-      #
-      # @return [Chef::Resource::RemoteFile]
-      #
-      def remote_file
-        @remote_file ||= Resource::RemoteFile.new(download_path, run_context)
-        if new_resource.package_url
-          @remote_file.source(new_resource.package_url)
-        else
-          @remote_file.source(metadata.url)
-          @remote_file.checksum(metadata.sha256)
-        end
-        @remote_file
-      end
-
-      #
-      # The filesystem path to download the package to
-      #
-      # @return [String]
-      #
-      def download_path
-        ::File.join(Chef::Config[:file_cache_path], filename)
-      end
-
-      #
-      # The base name of the package file
-      #
-      # @return [String]
-      #
-      def filename
-        if new_resource.package_url
-          ::File.basename(new_resource.package_url)
-        else
-          metadata.filename
-        end
-      end
-
-      #
-      # Get the package metadata
+      # Get the package metadata.
       #
       # @return [Hash]
       #
       def metadata
-        unless @metadata
+        @metadata ||= begin
           require 'omnijack'
-          @metadata = Omnijack::Project::ChefDk.new(metadata_params).metadata
-          @metadata.yolo && Chef::Log.warn('Using a ChefDk package not ' \
-                                           'officially supported on this ' \
-                                           'platform')
+          m = Omnijack::Project::ChefDk.new(metadata_params).metadata
+          m.yolo && Chef::Log.warn('Using a ChefDk package not officially' \
+                                   'supported on this platform')
+          m
         end
-        @metadata
       end
 
       #
@@ -198,35 +114,6 @@ class Chef
           version: new_resource.version,
           prerelease: new_resource.prerelease,
           nightlies: new_resource.nightlies }
-      end
-
-      #
-      # A resource for the Omnijack API consumer for Omnitruck
-      #
-      # @return [Chef::Resource::ChefGem]
-      #
-      def omnijack_gem
-        unless @omnijack_gem
-          package_url = new_resource.package_url
-          @omnijack_gem = Resource::ChefGem.new('omnijack', run_context)
-          @omnijack_gem.version('~> 1.0')
-          @omnijack_gem.only_if { package_url.nil? }
-        end
-        @omnijack_gem
-      end
-
-      # Some methods have to be provided by the sub-classes
-      [:bashrc_file].each do |method|
-        define_method(method, proc { fail(NotImplemented, method) })
-      end
-
-      # A custom exception class for unimplemented methods
-      #
-      # @author Jonathan Hartman <j@p4nt5.com>
-      class NotImplemented < StandardError
-        def initialize(method)
-          super("Method `#{method}` has not been implemented")
-        end
       end
     end
   end

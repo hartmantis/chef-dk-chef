@@ -23,7 +23,6 @@ require_relative 'provider_chef_dk'
 require_relative 'provider_chef_dk_debian'
 require_relative 'provider_chef_dk_mac_os_x'
 require_relative 'provider_chef_dk_rhel'
-require_relative 'provider_chef_dk_fedora'
 require_relative 'provider_chef_dk_windows'
 
 class Chef

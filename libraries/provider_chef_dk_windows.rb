@@ -32,15 +32,24 @@ class Chef
 
         private
 
+        #
+        # Use a windows_package resource to install the Chef-DK.
+        #
+        # (see Chef::Provider::ChefDk#install!)
+        #
         def install!
           super
-          source = new_resource.package_url || metadata.url
           windows_package 'Chef Development Kit' do
-            source source
+            source new_resource.package_url || metadata.url
             checksum metadata.sha256 unless new_resource.package_url
           end
         end
 
+        #
+        # Use a windows_package resource to remove the Chef-DK.
+        #
+        # (see Chef::Provider::ChefDk#remove!)
+        #
         def remove!
           super
           windows_package 'Chef Development Kit' do
