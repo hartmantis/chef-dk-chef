@@ -1,6 +1,7 @@
 # Encoding: UTF-8
 
 require_relative '../spec_helper'
+require_relative '../../libraries/resource_chef_dk'
 require_relative '../../libraries/provider_chef_dk_debian'
 
 describe Chef::Provider::ChefDk::Debian do
@@ -31,10 +32,107 @@ describe Chef::Provider::ChefDk::Debian do
     end
   end
 
-  describe '#package_provider_class' do
-    it 'returns Chef::Provider::Package::Dpkg' do
-      expected = Chef::Provider::Package::Dpkg
-      expect(provider.send(:package_provider_class)).to eq(expected)
+  describe '#install!' do
+    let(:package_url) { nil }
+    let(:new_resource) do
+      r = super()
+      r.package_url(package_url) unless package_url.nil?
+      r
+    end
+    let(:metadata) do
+      double(url: 'http://example.com/cdk.deb', sha256: '12345')
+    end
+
+    before(:each) do
+      %i(chef_gem remote_file dpkg_package).each do |r|
+        allow_any_instance_of(described_class).to receive(r)
+      end
+      allow_any_instance_of(described_class).to receive(:global_shell_init)
+        .and_return(double(write_file: true))
+      allow_any_instance_of(described_class).to receive(:metadata)
+        .and_return(metadata)
+      allow_any_instance_of(described_class).to receive(:node)
+        .and_return('platform' => 'ubuntu')
+    end
+
+    context 'no package source provided' do
+      let(:package_url) { nil }
+
+      it 'downloads the package from the metadata source' do
+        p = provider
+        expect(p).to receive(:remote_file).with(
+          "#{Chef::Config[:file_cache_path]}/cdk.deb"
+        ).and_yield
+        expect(p).to receive(:source).with('http://example.com/cdk.deb')
+        p.send(:install!)
+      end
+
+      it 'installs the downloaded package' do
+        p = provider
+        expect(p).to receive(:dpkg_package).with(
+          "#{Chef::Config[:file_cache_path]}/cdk.deb"
+        )
+        p.send(:install!)
+      end
+    end
+
+    context 'a remote package source provided' do
+      let(:package_url) { 'http://example.com/other.deb' }
+
+      it 'downloads the package via the source' do
+        p = provider
+        expect(p).to receive(:remote_file).with(
+          "#{Chef::Config[:file_cache_path]}/other.deb"
+        ).and_yield
+        expect(p).to receive(:source).with('http://example.com/other.deb')
+        p.send(:install!)
+      end
+
+      it 'installs the downloaded package' do
+        p = provider
+        expect(p).to receive(:dpkg_package).with(
+          "#{Chef::Config[:file_cache_path]}/other.deb"
+        )
+        p.send(:install!)
+      end
+    end
+
+    context 'a local package source provided' do
+      let(:package_url) { '/tmp/chefdk.deb' }
+
+      it 'copies the package via the source' do
+        p = provider
+        expect(p).to receive(:remote_file).with(
+          "#{Chef::Config[:file_cache_path]}/chefdk.deb"
+        ).and_yield
+        expect(p).to receive(:source).with('/tmp/chefdk.deb')
+        p.send(:install!)
+      end
+
+      it 'installs the downloaded package' do
+        p = provider
+        expect(p).to receive(:dpkg_package).with(
+          "#{Chef::Config[:file_cache_path]}/chefdk.deb"
+        )
+        p.send(:install!)
+      end
+    end
+  end
+
+  describe '#remove!' do
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:package)
+      allow_any_instance_of(described_class).to receive(:global_shell_init)
+        .and_return(double(write_file: true))
+      allow_any_instance_of(described_class).to receive(:node)
+        .and_return('platform' => 'ubuntu')
+    end
+
+    it 'removes the Chef-DK package' do
+      p = provider
+      expect(p).to receive(:package).with('chefdk').and_yield
+      expect(p).to receive(:action).with(:remove)
+      p.send(:remove!)
     end
   end
 
