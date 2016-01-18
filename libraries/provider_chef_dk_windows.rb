@@ -18,14 +18,12 @@
 # limitations under the License.
 #
 
-require 'chef/provider'
-require 'chef/resource/windows_package'
+require 'chef/provider/lwrp_base'
 require_relative 'provider_chef_dk'
-require_relative 'resource_chef_dk'
 
 class Chef
   class Provider
-    class ChefDk < Provider
+    class ChefDk < LWRPBase
       # A Chef provider for the Chef-DK Windows packages
       #
       # @author Jonathan Hartman <j@p4nt5.com>
@@ -34,22 +32,20 @@ class Chef
 
         private
 
-        #
-        # Override the package resource platform-specific tailoring
-        # (A `source` for .msi packages)
-        #
-        def tailor_package_resource_to_platform
-          @package.source(download_path)
+        def install!
+          super
+          source = new_resource.package_url || metadata.url
+          windows_package 'Chef Development Kit' do
+            source source
+            checksum metadata.sha256 unless new_resource.package_url
+          end
         end
 
-        #
-        # Override the class to be used for the package resource
-        # (Chef::Resource::WindowsPackage for .msi packages)
-        #
-        # @return [Chef::Resource::WindowsPackage]
-        #
-        def package_resource_class
-          Chef::Resource::WindowsPackage
+        def remove!
+          super
+          windows_package 'Chef Development Kit' do
+            action :remove
+          end
         end
 
         #

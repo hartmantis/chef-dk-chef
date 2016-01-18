@@ -1,6 +1,7 @@
 # Encoding: UTF-8
 
 require_relative '../spec_helper'
+require_relative '../../libraries/resource_chef_dk'
 require_relative '../../libraries/provider_chef_dk_windows'
 
 describe Chef::Provider::ChefDk::Windows do
@@ -31,29 +32,79 @@ describe Chef::Provider::ChefDk::Windows do
     end
   end
 
-  describe '#tailor_package_resource_to_platform' do
-    let(:package) { double(source: true) }
-    let(:provider) do
-      p = described_class.new(new_resource, nil)
-      p.instance_variable_set(:@package, package)
-      p
+  describe '#install!' do
+    let(:package_url) { nil }
+    let(:new_resource) do
+      r = super()
+      r.package_url(package_url) unless package_url.nil?
+      r
+    end
+    let(:metadata) do
+      double(url: 'http://example.com/cdk.msi', sha256: '12345')
     end
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:download_path)
-        .and_return('/tmp/blah.msi')
+      %i(chef_gem windows_package).each do |r|
+        allow_any_instance_of(described_class).to receive(r)
+      end
+      allow_any_instance_of(described_class).to receive(:metadata)
+        .and_return(metadata)
+      allow_any_instance_of(described_class).to receive(:node)
+        .and_return('platform' => 'windows')
     end
 
-    it 'calls `source` with the local file path' do
-      expect(package).to receive(:source).with('/tmp/blah.msi')
-      provider.send(:tailor_package_resource_to_platform)
+    context 'no package source provided' do
+      let(:package_url) { nil }
+
+      it 'installs the package via metadata' do
+        p = provider
+        expect(p).to receive(:windows_package).with('Chef Development Kit')
+          .and_yield
+        expect(p).to receive(:source).with('http://example.com/cdk.msi')
+        expect(p).to receive(:checksum).with('12345')
+        p.send(:install!)
+      end
+    end
+
+    context 'a remote package source provided' do
+      let(:package_url) { 'http://example.com/other.msi' }
+
+      it 'installs the package via the source' do
+        p = provider
+        expect(p).to receive(:windows_package).with('Chef Development Kit')
+          .and_yield
+        expect(p).to receive(:source).with('http://example.com/other.msi')
+        expect(p).to_not receive(:checksum)
+        p.send(:install!)
+      end
+    end
+
+    context 'a local package source provided' do
+      let(:package_url) { '/tmp/chefdk.msi' }
+
+      it 'installs the package via the source' do
+        p = provider
+        expect(p).to receive(:windows_package).with('Chef Development Kit')
+          .and_yield
+        expect(p).to receive(:source).with('/tmp/chefdk.msi')
+        expect(p).to_not receive(:checksum)
+        p.send(:install!)
+      end
     end
   end
 
-  describe '#package_resource_class' do
-    it 'returns Chef::Resource::WindowsPackage' do
-      expected = Chef::Resource::WindowsPackage
-      expect(provider.send(:package_resource_class)).to eq(expected)
+  describe '#remove!' do
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:node)
+        .and_return('platform' => 'windows')
+    end
+
+    it 'removes the ChefDK package' do
+      p = provider
+      expect(p).to receive(:windows_package).with('Chef Development Kit')
+        .and_yield
+      expect(p).to receive(:action).with(:remove)
+      p.send(:remove!)
     end
   end
 
