@@ -128,7 +128,7 @@ class Chef
       #
       def valid_version?(arg)
         return true if arg == 'latest'
-        arg.match(/^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$/) ? true : false
+        arg =~ /^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$/ ? true : false
       end
     end
   end
