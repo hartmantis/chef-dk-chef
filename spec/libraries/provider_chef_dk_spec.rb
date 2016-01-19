@@ -150,6 +150,7 @@ describe Chef::Provider::ChefDk do
           /^eval "\$\(chef shell-init bash\)"$/,
           'eval "$(chef shell-init bash)"'
         )
+        expect(p).to receive(:write_file)
         expect(p).to receive(:only_if)
         p.send(:global_shell_init, action)
       end
@@ -169,6 +170,7 @@ describe Chef::Provider::ChefDk do
         expect(fe).to receive(:search_file_delete_line).with(
           /^eval "\$\(chef shell-init bash\)"$/
         )
+        expect(p).to receive(:write_file)
         expect(p).to receive(:only_if)
         p.send(:global_shell_init, action)
       end

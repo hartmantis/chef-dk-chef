@@ -75,13 +75,15 @@ class Chef
       # @return [Chef::Util::FileEdit]
       #
       def global_shell_init(action)
+        bf = bashrc_file
         ruby_block "#{action} Chef global shell-init" do
           block do
             matcher = /^eval "\$\(chef shell-init bash\)"$/
             line = 'eval "$(chef shell-init bash)"'
-            f = Chef::Util::FileEdit.new(bashrc_file)
+            f = Chef::Util::FileEdit.new(bf)
             f.insert_line_if_no_match(matcher, line) if action == :create
             f.search_file_delete_line(matcher) if action == :delete
+            f.write_file
           end
           only_if { action == :delete || new_resource.global_shell_init }
         end
