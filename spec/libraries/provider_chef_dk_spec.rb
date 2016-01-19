@@ -38,7 +38,7 @@ describe Chef::Provider::ChefDk do
         expect(p).to receive(:chef_gem).with('omnijack').and_yield
         expect(p).to receive(:version).with('~> 1.0')
         expect(p).to receive(:compile_time).with(false)
-        expect(p).to receive(:only_if).and_yield
+        expect(p).to receive(:not_if).and_yield
         expect(new_resource).to receive(:package_url)
         p.action_install
       end

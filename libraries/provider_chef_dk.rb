@@ -43,17 +43,17 @@ class Chef
         chef_gem 'omnijack' do
           version '~> 1.0'
           compile_time false
-          only_if { new_resource.package_url.nil? }
+          not_if { new_resource.package_url }
         end
         install!
-        node['platform'] == 'windows' || global_shell_init(:create)
+        global_shell_init(:create) unless node['platform'] == 'windows'
       end
 
       #
       # Remove the ChefDK.
       #
       action :remove do
-        node['platform'] == 'windows' || global_shell_init(:delete)
+        global_shell_init(:delete) unless node['platform'] == 'windows'
         remove!
       end
 
@@ -80,12 +80,8 @@ class Chef
             matcher = /^eval "\$\(chef shell-init bash\)"$/
             line = 'eval "$(chef shell-init bash)"'
             f = Chef::Util::FileEdit.new(bashrc_file)
-            case action
-            when :create
-              f.insert_line_if_no_match(matcher, line)
-            when :delete
-              f.search_file_delete_line(matcher)
-            end
+            f.insert_line_if_no_match(matcher, line) if action == :create
+            f.search_file_delete_line(matcher) if action == :delete
           end
           only_if { action == :delete || new_resource.global_shell_init }
         end

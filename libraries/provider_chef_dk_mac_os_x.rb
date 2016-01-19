@@ -28,8 +28,6 @@ class Chef
       #
       # @author Jonathan Hartman <j@p4nt5.com>
       class MacOsX < ChefDk
-        PATH ||= '/opt/chefdk'
-
         provides :chef_dk, platform_family: 'mac_os_x'
 
         private
@@ -42,7 +40,7 @@ class Chef
         def install!
           s = package_source
           dmg_package 'Chef Development Kit' do
-            app ::File.basename(s).gsub(/\.dmg$/, '')
+            app ::File.basename(s, '.dmg')
             volumes_dir 'Chef Development Kit'
             source "#{'file://' if s.start_with?('/')}#{s}"
             type 'pkg'
@@ -58,7 +56,7 @@ class Chef
         # (see Chef::Provider::ChefDk#remove!)
         #
         def remove!
-          [PATH, ::File.expand_path('~/.chefdk')].each do |d|
+          ['/opt/chefdk', ::File.expand_path('~/.chefdk')].each do |d|
             directory d do
               recursive true
               action :delete
