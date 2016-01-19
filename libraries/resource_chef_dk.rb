@@ -31,17 +31,11 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDk < Resource
-      attr_accessor :installed
-
-      alias_method :installed?, :installed
-
       def initialize(name, run_context = nil)
         super
         @resource_name = :chef_dk
         @action = :install
         @allowed_actions = [:install, :remove]
-
-        @installed = false
       end
 
       #

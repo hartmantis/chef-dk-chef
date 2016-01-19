@@ -47,7 +47,6 @@ class Chef
         end
         install!
         node['platform'] == 'windows' || global_shell_init(:create).write_file
-        new_resource.installed = true
       end
 
       #
@@ -56,7 +55,6 @@ class Chef
       action :remove do
         node['platform'] == 'windows' || global_shell_init(:delete).write_file
         remove!
-        new_resource.installed = false
       end
 
       private

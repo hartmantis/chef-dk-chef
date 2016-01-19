@@ -51,12 +51,6 @@ describe Chef::Provider::ChefDk do
         expect(p).to receive(:install!)
         p.action_install
       end
-
-      it 'sets the installed status to true' do
-        p = provider
-        expect(new_resource).to receive(:installed=).with(true)
-        p.action_install
-      end
     end
 
     context 'Ubuntu' do
@@ -97,12 +91,6 @@ describe Chef::Provider::ChefDk do
         p = provider
         expect(p).to receive(:remove!)
         p.action_remove
-      end
-
-      it 'sets the installed status to false' do
-        p = provider
-        expect(new_resource).to receive(:installed=).with(false)
-        p.action_install
       end
     end
 

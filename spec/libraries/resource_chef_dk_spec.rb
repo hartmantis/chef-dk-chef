@@ -32,12 +32,6 @@ describe Chef::Resource::ChefDk do
     end
   end
 
-  describe '#initialize' do
-    it 'defaults the state to uninstalled' do
-      expect(resource.installed?).to eq(false)
-    end
-  end
-
   describe '#version' do
     context 'no override provided' do
       it 'defaults to the latest version' do
