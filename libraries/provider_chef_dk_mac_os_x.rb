@@ -40,12 +40,11 @@ class Chef
         # (see Chef::Provider::ChefDk#install!)
         #
         def install!
-          super
-          source = new_resource.package_url || metadata.url
+          s = package_source
           dmg_package 'Chef Development Kit' do
-            app ::File.basename(source).gsub(/\.dmg$/, '')
+            app ::File.basename(s).gsub(/\.dmg$/, '')
             volumes_dir 'Chef Development Kit'
-            source "#{'file://' if source.start_with?('/')}#{source}"
+            source "#{'file://' if s.start_with?('/')}#{s}"
             type 'pkg'
             package_id 'com.getchef.pkg.chefdk'
             checksum metadata.sha256 unless new_resource.package_url
@@ -59,7 +58,6 @@ class Chef
         # (see Chef::Provider::ChefDk#remove!)
         #
         def remove!
-          super
           [PATH, ::File.expand_path('~/.chefdk')].each do |d|
             directory d do
               recursive true

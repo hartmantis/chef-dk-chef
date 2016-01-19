@@ -24,15 +24,12 @@ describe Chef::Provider::ChefDk do
 
   describe '#action_install' do
     let(:node) { nil }
-    let(:global_shell_init) { double(write_file: true) }
 
     before(:each) do
-      %i(chef_gem install!).each do |r|
-        allow_any_instance_of(described_class).to receive(r)
+      %i(chef_gem global_shell_init install!).each do |m|
+        allow_any_instance_of(described_class).to receive(m)
       end
       allow_any_instance_of(described_class).to receive(:node).and_return(node)
-      allow_any_instance_of(described_class).to receive(:global_shell_init)
-        .with(:create).and_return(global_shell_init)
     end
 
     shared_examples_for 'any platform' do
@@ -58,9 +55,10 @@ describe Chef::Provider::ChefDk do
 
       it_behaves_like 'any platform'
 
-      it 'writes the bashrc file' do
-        expect(global_shell_init).to receive(:write_file)
-        provider.action_install
+      it 'sends a :create to global_shell_init' do
+        p = provider
+        expect(p).to receive(:global_shell_init).with(:create)
+        p.action_install
       end
     end
 
@@ -69,9 +67,10 @@ describe Chef::Provider::ChefDk do
 
       it_behaves_like 'any platform'
 
-      it 'does not write the bashrc file' do
-        expect(global_shell_init).to_not receive(:write_file)
-        provider.action_install
+      it 'does not send a :create to global_shell_init' do
+        p = provider
+        expect(p).to_not receive(:global_shell_init)
+        p.action_install
       end
     end
   end
@@ -80,10 +79,10 @@ describe Chef::Provider::ChefDk do
     let(:node) { nil }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:remove!)
+      %i(global_shell_init remove!).each do |m|
+        allow_any_instance_of(described_class).to receive(m)
+      end
       allow_any_instance_of(described_class).to receive(:node).and_return(node)
-      allow_any_instance_of(described_class).to receive(:global_shell_init)
-        .with(:delete).and_return(global_shell_init)
     end
 
     shared_examples_for 'any platform' do
@@ -99,9 +98,10 @@ describe Chef::Provider::ChefDk do
 
       it_behaves_like 'any platform'
 
-      it 'writes the bashrc file' do
-        expect(global_shell_init).to receive(:write_file)
-        provider.action_install
+      it 'sends a :delete to global_shell_init' do
+        p = provider
+        expect(p).to receive(:global_shell_init).with(:delete)
+        p.action_remove
       end
     end
 
@@ -110,9 +110,10 @@ describe Chef::Provider::ChefDk do
 
       it_behaves_like 'any platform'
 
-      it 'does not write the bashrc file' do
-        expect(global_shell_init).to_not receive(:write_file)
-        provider.action_install
+      it 'does not send a :delete to global_shell_init' do
+        p = provider
+        expect(p).to_not receive(:global_shell_init)
+        p.action_remove
       end
     end
   end
@@ -126,111 +127,85 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#global_shell_init' do
+    let(:bashrc_file) { '/tmp/bashrc' }
     let(:action) { nil }
-    let(:res) { provider.send(:global_shell_init, action) }
 
     before(:each) do
-      @fakebashrc = Tempfile.new('chefdkspec')
       allow_any_instance_of(described_class).to receive(:bashrc_file)
-        .and_return(@fakebashrc.path)
+        .and_return(bashrc_file)
     end
 
-    after(:each) do
-      @fakebashrc.delete
-    end
-
-    shared_examples_for 'any instance' do
-      it 'returns a FileEdit object' do
-        expect(res).to be_an_instance_of(Chef::Util::FileEdit)
-      end
-    end
-
-    shared_examples_for 'no action' do
-      it 'does not call insert_line_if_no_match' do
-        expect_any_instance_of(Chef::Util::FileEdit)
-          .not_to receive(:insert_line_if_no_match)
-      end
-
-      it 'does not call search_file_delete_line' do
-        expect_any_instance_of(Chef::Util::FileEdit)
-          .not_to receive(:search_file_delete_line)
-      end
-
-      it 'will do nothing to the file' do
-        @fakebashrc.write('some stuff')
-        @fakebashrc.seek(0)
-        res
-        @fakebashrc.seek(0)
-        expect(@fakebashrc.read).to eq('some stuff')
-      end
-    end
-
-    context 'no action (default)' do
-      context 'global shell init disabled (default)' do
-        it_behaves_like 'any instance'
-        it_behaves_like 'no action'
-      end
-
-      context 'global shell init enabled' do
-        let(:global_shell_init) { true }
-
-        it_behaves_like 'any instance'
-        it_behaves_like 'no action'
-      end
-    end
-
-    context 'a create action' do
+    context 'a :create action' do
       let(:action) { :create }
 
-      context 'global shell init disabled (default)' do
-        it_behaves_like 'any instance'
-        it_behaves_like 'no action'
-      end
-
-      context 'global shell init enabled' do
-        let(:global_shell_init) { true }
-
-        it_behaves_like 'any instance'
-
-        it 'calls insert_line_if_no_match' do
-          expect_any_instance_of(Chef::Util::FileEdit)
-            .to receive(:insert_line_if_no_match)
-          res
-        end
-
-        it 'will write to the file' do
-          res.write_file
-          @fakebashrc.seek(0)
-          expected = "eval \"$(chef shell-init bash)\"\n"
-          expect(@fakebashrc.read).to eq(expected)
-        end
+      it 'sets up a ruby_block to create the bashrc entry' do
+        p = provider
+        expect(p).to receive(:ruby_block).with('create Chef global shell-init')
+          .and_yield
+        expect(p).to receive(:block).and_yield
+        fe = double
+        expect(Chef::Util::FileEdit).to receive(:new).with('/tmp/bashrc')
+          .and_return(fe)
+        expect(fe).to receive(:insert_line_if_no_match).with(
+          /^eval "\$\(chef shell-init bash\)"$/,
+          'eval "$(chef shell-init bash)"'
+        )
+        expect(p).to receive(:only_if)
+        p.send(:global_shell_init, action)
       end
     end
 
-    context 'a delete action' do
+    context 'a :delete action' do
       let(:action) { :delete }
 
-      context 'global shell init disabled (default)' do
-        it_behaves_like 'any instance'
-        it_behaves_like 'no action'
+      it 'sets up a ruby_block to delete the bashrc entry' do
+        p = provider
+        expect(p).to receive(:ruby_block).with('delete Chef global shell-init')
+          .and_yield
+        expect(p).to receive(:block).and_yield
+        fe = double
+        expect(Chef::Util::FileEdit).to receive(:new).with('/tmp/bashrc')
+          .and_return(fe)
+        expect(fe).to receive(:search_file_delete_line).with(
+          /^eval "\$\(chef shell-init bash\)"$/
+        )
+        expect(p).to receive(:only_if)
+        p.send(:global_shell_init, action)
       end
+    end
+  end
 
-      context 'global shell init enabled' do
-        let(:global_shell_init) { true }
+  describe '#package_source' do
+    let(:package_url) { nil }
+    let(:new_resource) do
+      r = super()
+      r.package_url(package_url) unless package_url.nil?
+      r
+    end
+    let(:metadata) { double(url: 'http://example.com/chefdk.pkg') }
 
-        it 'calls search_file_delete_line' do
-          expect_any_instance_of(Chef::Util::FileEdit)
-            .to receive(:search_file_delete_line)
-          res
-        end
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:metadata)
+        .and_return(metadata)
+    end
 
-        it 'will delete from the file' do
-          @fakebashrc.write("eval \"$(chef shell-init bash)\"\n")
-          @fakebashrc.seek(0)
-          res.write_file
-          @fakebashrc.seek(0)
-          expect(@fakebashrc.read).to eq('')
-        end
+    context 'no package_url property' do
+      let(:package_url) { nil }
+
+      it 'returns the metadata URL' do
+        expect(provider.send(:package_source)).to eq(
+          'http://example.com/chefdk.pkg'
+        )
+      end
+    end
+
+    context 'a package_url property' do
+      let(:package_url) { 'http://example.com/other.pkg' }
+
+      it 'returns the package_url' do
+        expect(provider.send(:package_source)).to eq(
+          'http://example.com/other.pkg'
+        )
       end
     end
   end
@@ -274,9 +249,9 @@ describe Chef::Provider::ChefDk do
           platform: 'ubuntu',
           platform_version: '14.04',
           machine_arch: 'x86_64',
-          version: nil,
-          prerelease: nil,
-          nightlies: nil
+          version: 'latest',
+          prerelease: false,
+          nightlies: false
         }
         expect(provider.send(:metadata_params)).to eq(expected)
       end
@@ -290,9 +265,9 @@ describe Chef::Provider::ChefDk do
           platform: 'mac_os_x',
           platform_version: '10.9.2',
           machine_arch: 'x86_64',
-          version: nil,
-          prerelease: nil,
-          nightlies: nil
+          version: 'latest',
+          prerelease: false,
+          nightlies: false
         }
         expect(provider.send(:metadata_params)).to eq(expected)
       end
@@ -306,9 +281,9 @@ describe Chef::Provider::ChefDk do
           platform: 'windows',
           platform_version: '6.3.9600',
           machine_arch: 'x86_64',
-          version: nil,
-          prerelease: nil,
-          nightlies: nil
+          version: 'latest',
+          prerelease: false,
+          nightlies: false
         }
         expect(provider.send(:metadata_params)).to eq(expected)
       end

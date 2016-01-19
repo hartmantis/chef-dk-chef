@@ -38,9 +38,8 @@ class Chef
         # (see Chef::Provider::ChefDk#install!)
         #
         def install!
-          super
           windows_package 'Chef Development Kit' do
-            source new_resource.package_url || metadata.url
+            source package_source
             checksum metadata.sha256 unless new_resource.package_url
           end
         end
@@ -51,7 +50,6 @@ class Chef
         # (see Chef::Provider::ChefDk#remove!)
         #
         def remove!
-          super
           windows_package 'Chef Development Kit' do
             action :remove
           end

@@ -46,14 +46,14 @@ class Chef
           only_if { new_resource.package_url.nil? }
         end
         install!
-        node['platform'] == 'windows' || global_shell_init(:create).write_file
+        node['platform'] == 'windows' || global_shell_init(:create)
       end
 
       #
       # Remove the ChefDK.
       #
       action :remove do
-        node['platform'] == 'windows' || global_shell_init(:delete).write_file
+        node['platform'] == 'windows' || global_shell_init(:delete)
         remove!
       end
 
@@ -70,31 +70,47 @@ class Chef
       #
       # The resource for the global shell init file
       #
+      # @param action [Symbol] the action to perform, :create or :delete
+      #
       # @return [Chef::Util::FileEdit]
       #
-      def global_shell_init(action = nil)
-        matcher = /^eval "\$\(chef shell-init bash\)"$/
-        line = 'eval "$(chef shell-init bash)"'
-        @global_shell_init ||= Chef::Util::FileEdit.new(bashrc_file)
-        return @global_shell_init unless new_resource.global_shell_init
-        case action
-        when :create then @global_shell_init.insert_line_if_no_match(matcher,
-                                                                     line)
-        when :delete then @global_shell_init.search_file_delete_line(matcher)
+      def global_shell_init(action)
+        ruby_block "#{action} Chef global shell-init" do
+          block do
+            matcher = /^eval "\$\(chef shell-init bash\)"$/
+            line = 'eval "$(chef shell-init bash)"'
+            f = Chef::Util::FileEdit.new(bashrc_file)
+            case action
+            when :create
+              f.insert_line_if_no_match(matcher, line)
+            when :delete
+              f.search_file_delete_line(matcher)
+            end
+          end
+          only_if { action == :delete || new_resource.global_shell_init }
         end
-        @global_shell_init
+      end
+
+      #
+      # Return the package download source, either from Omnitruck metadata or
+      # a :package_url property.
+      #
+      # @return [String] a download URL/path
+      #
+      def package_source
+        new_resource.package_url || metadata.url
       end
 
       #
       # Get the package metadata.
       #
-      # @return [Hash]
+      # @return [Hash] package metadata from the omnitruck API
       #
       def metadata
         @metadata ||= begin
           require 'omnijack'
           m = Omnijack::Project::ChefDk.new(metadata_params).metadata
-          m.yolo && Chef::Log.warn('Using a ChefDk package not officially' \
+          m.yolo && Chef::Log.warn('Using a ChefDk package not officially ' \
                                    'supported on this platform')
           m
         end
@@ -103,7 +119,7 @@ class Chef
       #
       # Construct the hash of parameters for Omnijack to get the right metadata
       #
-      # @return [Hash]
+      # @return [Hash] properties required to fetch package metadata
       #
       def metadata_params
         { platform: node['platform'],

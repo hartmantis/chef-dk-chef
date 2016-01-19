@@ -39,12 +39,10 @@ class Chef
         # (see Chef::Provider::ChefDk#install!)
         #
         def install!
-          super
-          src = new_resource.package_url || metadata.url
           dst = ::File.join(Chef::Config[:file_cache_path],
-                            ::File.basename(src))
+                            ::File.basename(package_source))
           remote_file dst do
-            source src
+            source package_source
           end
           dpkg_package dst
         end
@@ -58,7 +56,6 @@ class Chef
           package 'chefdk' do
             action :remove
           end
-          super
         end
 
         #
