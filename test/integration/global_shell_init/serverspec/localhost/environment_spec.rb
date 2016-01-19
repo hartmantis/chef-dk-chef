@@ -2,7 +2,7 @@
 
 require_relative '../spec_helper'
 
-describe 'Chef-DK environment' do
+describe 'chef-dk::global_shell_init::environment' do
   shared_examples_for 'file with chef shell-init' do
     it 'contains the chef shell-init command' do
       expect(subject.content).to match(/^eval "\$\(chef shell-init bash\)"$/)
