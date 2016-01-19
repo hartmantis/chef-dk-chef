@@ -42,8 +42,10 @@ class Chef
           src = package_source
           dst = ::File.join(Chef::Config[:file_cache_path],
                             ::File.basename(src))
+          md = metadata
           remote_file dst do
             source src
+            checksum md.sha256 unless new_resource.package_url
           end
           dpkg_package dst
         end

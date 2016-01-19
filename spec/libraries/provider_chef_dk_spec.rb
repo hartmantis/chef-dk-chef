@@ -8,13 +8,7 @@ describe Chef::Provider::ChefDk do
   let(:name) { 'default' }
   let(:run_context) { ChefSpec::SoloRunner.new.converge.run_context }
   let(:new_resource) { Chef::Resource::ChefDk.new(name, run_context) }
-  let(:platform) { {} }
-  let(:node) { Fauxhai.mock(platform).data }
   let(:provider) { described_class.new(new_resource, run_context) }
-
-  before(:each) do
-    allow_any_instance_of(described_class).to receive(:node).and_return(node)
-  end
 
   describe '#whyrun_supported?' do
     it 'supports whyrun mode' do
@@ -23,10 +17,11 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#action_install' do
-    let(:node) { nil }
+    let(:platform_family) { nil }
+    let(:node) { { 'platform_family' => platform_family } }
 
     before(:each) do
-      %i(chef_gem global_shell_init install!).each do |m|
+      %i(chef_gem install! ruby_block).each do |m|
         allow_any_instance_of(described_class).to receive(m)
       end
       allow_any_instance_of(described_class).to receive(:node).and_return(node)
@@ -50,36 +45,55 @@ describe Chef::Provider::ChefDk do
       end
     end
 
-    context 'Ubuntu' do
-      let(:node) { { 'platform' => 'ubuntu' } }
+    context 'platform with a bashrc' do
+      let(:platform_family) { 'debian' }
+
+      before(:each) do
+        allow_any_instance_of(described_class).to receive(:bashrc_file)
+          .and_return('/tmp/bashrc')
+      end
 
       it_behaves_like 'any platform'
 
-      it 'sends a :create to global_shell_init' do
+      it 'sets up a ruby_block to conditionally create the bashrc entry' do
         p = provider
-        expect(p).to receive(:global_shell_init).with(:create)
+        expect(p).to receive(:ruby_block).with('Create Chef global shell-init')
+          .and_yield
+        expect(p).to receive(:block).and_yield
+        fe = double
+        expect(Chef::Util::FileEdit).to receive(:new).with('/tmp/bashrc')
+          .and_return(fe)
+        expect(fe).to receive(:insert_line_if_no_match).with(
+          /^eval "\$\(chef shell-init bash\)"$/,
+          'eval "$(chef shell-init bash)"'
+        )
+        expect(fe).to receive(:write_file)
+        expect(p).to receive(:only_if).and_yield
+        expect(new_resource).to receive(:global_shell_init).and_return(true)
+        expect(platform_family).to receive(:!=).with('windows')
         p.action_install
       end
     end
 
-    context 'Windows' do
-      let(:node) { { 'platform' => 'windows' } }
+    context 'platform without a bashrc' do
+      let(:platform_family) { 'windows' }
 
       it_behaves_like 'any platform'
 
-      it 'does not send a :create to global_shell_init' do
+      it 'never calls the bashrc_file method' do
         p = provider
-        expect(p).to_not receive(:global_shell_init)
+        expect(p).to_not receive(:bashrc_file)
         p.action_install
       end
     end
   end
 
   describe '#action_remove' do
-    let(:node) { nil }
+    let(:platform_family) { nil }
+    let(:node) { { 'platform_family' => platform_family } }
 
     before(:each) do
-      %i(global_shell_init remove!).each do |m|
+      %i(ruby_block remove!).each do |m|
         allow_any_instance_of(described_class).to receive(m)
       end
       allow_any_instance_of(described_class).to receive(:node).and_return(node)
@@ -93,26 +107,42 @@ describe Chef::Provider::ChefDk do
       end
     end
 
-    context 'Ubuntu' do
-      let(:node) { { 'platform' => 'ubuntu' } }
+    context 'platform with a bashrc' do
+      let(:platform_family) { 'debian' }
+
+      before(:each) do
+        allow_any_instance_of(described_class).to receive(:bashrc_file)
+          .and_return('/tmp/bashrc')
+      end
 
       it_behaves_like 'any platform'
 
-      it 'sends a :delete to global_shell_init' do
+      it 'sets up a ruby_block to conditionally delete the bashrc entry' do
         p = provider
-        expect(p).to receive(:global_shell_init).with(:delete)
+        expect(p).to receive(:ruby_block).with('Delete Chef global shell-init')
+          .and_yield
+        expect(p).to receive(:block).and_yield
+        fe = double
+        expect(Chef::Util::FileEdit).to receive(:new).with('/tmp/bashrc')
+          .and_return(fe)
+        expect(fe).to receive(:search_file_delete_line).with(
+          /^eval "\$\(chef shell-init bash\)"$/
+        )
+        expect(fe).to receive(:write_file)
+        expect(p).to receive(:only_if).and_yield
+        expect(platform_family).to receive(:!=).with('windows')
         p.action_remove
       end
     end
 
-    context 'Windows' do
-      let(:node) { { 'platform' => 'windows' } }
+    context 'platform without a bashrc' do
+      let(:platform_family) { 'windows' }
 
       it_behaves_like 'any platform'
 
-      it 'does not send a :delete to global_shell_init' do
+      it 'never calls the bashrc_file method' do
         p = provider
-        expect(p).to_not receive(:global_shell_init)
+        expect(p).to_not receive(:bashrc_file)
         p.action_remove
       end
     end
@@ -122,57 +152,6 @@ describe Chef::Provider::ChefDk do
     describe "##{m}" do
       it 'raises an error' do
         expect { provider.send(m) }.to raise_error(NotImplementedError)
-      end
-    end
-  end
-
-  describe '#global_shell_init' do
-    let(:bashrc_file) { '/tmp/bashrc' }
-    let(:action) { nil }
-
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:bashrc_file)
-        .and_return(bashrc_file)
-    end
-
-    context 'a :create action' do
-      let(:action) { :create }
-
-      it 'sets up a ruby_block to create the bashrc entry' do
-        p = provider
-        expect(p).to receive(:ruby_block).with('create Chef global shell-init')
-          .and_yield
-        expect(p).to receive(:block).and_yield
-        fe = double
-        expect(Chef::Util::FileEdit).to receive(:new).with('/tmp/bashrc')
-          .and_return(fe)
-        expect(fe).to receive(:insert_line_if_no_match).with(
-          /^eval "\$\(chef shell-init bash\)"$/,
-          'eval "$(chef shell-init bash)"'
-        )
-        expect(p).to receive(:write_file)
-        expect(p).to receive(:only_if)
-        p.send(:global_shell_init, action)
-      end
-    end
-
-    context 'a :delete action' do
-      let(:action) { :delete }
-
-      it 'sets up a ruby_block to delete the bashrc entry' do
-        p = provider
-        expect(p).to receive(:ruby_block).with('delete Chef global shell-init')
-          .and_yield
-        expect(p).to receive(:block).and_yield
-        fe = double
-        expect(Chef::Util::FileEdit).to receive(:new).with('/tmp/bashrc')
-          .and_return(fe)
-        expect(fe).to receive(:search_file_delete_line).with(
-          /^eval "\$\(chef shell-init bash\)"$/
-        )
-        expect(p).to receive(:write_file)
-        expect(p).to receive(:only_if)
-        p.send(:global_shell_init, action)
       end
     end
   end
@@ -243,6 +222,13 @@ describe Chef::Provider::ChefDk do
   end
 
   describe '#metadata_params' do
+    let(:platform) { nil }
+    let(:node) { Fauxhai.mock(platform).data }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:node).and_return(node)
+    end
+
     context 'Ubuntu' do
       let(:platform) { { platform: 'ubuntu', version: '14.04' } }
 

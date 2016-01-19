@@ -44,11 +44,11 @@ describe Chef::Provider::ChefDk::Windows do
     end
 
     before(:each) do
+      allow_any_instance_of(described_class).to receive(:metadata)
+        .and_return(metadata)
       %i(chef_gem windows_package).each do |r|
         allow_any_instance_of(described_class).to receive(r)
       end
-      allow_any_instance_of(described_class).to receive(:metadata)
-        .and_return(metadata)
       allow_any_instance_of(described_class).to receive(:node)
         .and_return('platform' => 'windows')
     end

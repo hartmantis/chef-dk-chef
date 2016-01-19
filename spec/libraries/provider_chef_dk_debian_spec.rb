@@ -47,8 +47,6 @@ describe Chef::Provider::ChefDk::Debian do
       %i(chef_gem remote_file dpkg_package).each do |r|
         allow_any_instance_of(described_class).to receive(r)
       end
-      allow_any_instance_of(described_class).to receive(:global_shell_init)
-        .and_return(double(write_file: true))
       allow_any_instance_of(described_class).to receive(:metadata)
         .and_return(metadata)
       allow_any_instance_of(described_class).to receive(:node)
@@ -64,6 +62,7 @@ describe Chef::Provider::ChefDk::Debian do
           "#{Chef::Config[:file_cache_path]}/cdk.deb"
         ).and_yield
         expect(p).to receive(:source).with('http://example.com/cdk.deb')
+        expect(p).to receive(:checksum).with('12345')
         p.send(:install!)
       end
 
@@ -85,6 +84,7 @@ describe Chef::Provider::ChefDk::Debian do
           "#{Chef::Config[:file_cache_path]}/other.deb"
         ).and_yield
         expect(p).to receive(:source).with('http://example.com/other.deb')
+        expect(p).to_not receive(:checksum)
         p.send(:install!)
       end
 
@@ -106,6 +106,7 @@ describe Chef::Provider::ChefDk::Debian do
           "#{Chef::Config[:file_cache_path]}/chefdk.deb"
         ).and_yield
         expect(p).to receive(:source).with('/tmp/chefdk.deb')
+        expect(p).to_not receive(:checksum)
         p.send(:install!)
       end
 
@@ -122,8 +123,6 @@ describe Chef::Provider::ChefDk::Debian do
   describe '#remove!' do
     before(:each) do
       allow_any_instance_of(described_class).to receive(:package)
-      allow_any_instance_of(described_class).to receive(:global_shell_init)
-        .and_return(double(write_file: true))
       allow_any_instance_of(described_class).to receive(:node)
         .and_return('platform' => 'ubuntu')
     end

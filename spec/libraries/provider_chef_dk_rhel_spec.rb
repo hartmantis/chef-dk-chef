@@ -55,8 +55,6 @@ describe Chef::Provider::ChefDk::Rhel do
       %i(chef_gem remote_file rpm_package).each do |r|
         allow_any_instance_of(described_class).to receive(r)
       end
-      allow_any_instance_of(described_class).to receive(:global_shell_init)
-        .and_return(double(write_file: true))
       allow_any_instance_of(described_class).to receive(:metadata)
         .and_return(metadata)
       allow_any_instance_of(described_class).to receive(:node)
@@ -72,6 +70,7 @@ describe Chef::Provider::ChefDk::Rhel do
           "#{Chef::Config[:file_cache_path]}/cdk.rpm"
         ).and_yield
         expect(p).to receive(:source).with('http://example.com/cdk.rpm')
+        expect(p).to receive(:checksum).with('12345')
         p.send(:install!)
       end
 
@@ -93,6 +92,7 @@ describe Chef::Provider::ChefDk::Rhel do
           "#{Chef::Config[:file_cache_path]}/other.rpm"
         ).and_yield
         expect(p).to receive(:source).with('http://example.com/other.rpm')
+        expect(p).to_not receive(:checksum)
         p.send(:install!)
       end
 
@@ -114,6 +114,7 @@ describe Chef::Provider::ChefDk::Rhel do
           "#{Chef::Config[:file_cache_path]}/chefdk.rpm"
         ).and_yield
         expect(p).to receive(:source).with('/tmp/chefdk.rpm')
+        expect(p).to_not receive(:checksum)
         p.send(:install!)
       end
 
@@ -130,8 +131,6 @@ describe Chef::Provider::ChefDk::Rhel do
   describe '#remove!' do
     before(:each) do
       allow_any_instance_of(described_class).to receive(:package)
-      allow_any_instance_of(described_class).to receive(:global_shell_init)
-        .and_return(double(write_file: true))
       allow_any_instance_of(described_class).to receive(:node)
         .and_return('platform' => 'redhat')
     end

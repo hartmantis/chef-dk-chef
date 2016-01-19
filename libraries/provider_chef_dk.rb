@@ -46,14 +46,36 @@ class Chef
           not_if { new_resource.package_url }
         end
         install!
-        global_shell_init(:create) unless node['platform'] == 'windows'
+        bf = bashrc_file unless node['platform_family'] == 'windows'
+        ruby_block 'Create Chef global shell-init' do
+          block do
+            matcher = /^eval "\$\(chef shell-init bash\)"$/
+            line = 'eval "$(chef shell-init bash)"'
+            f = Chef::Util::FileEdit.new(bf)
+            f.insert_line_if_no_match(matcher, line)
+            f.write_file
+          end
+          only_if do
+            new_resource.global_shell_init && \
+              node['platform_family'] != 'windows'
+          end
+        end
       end
 
       #
       # Remove the ChefDK.
       #
       action :remove do
-        global_shell_init(:delete) unless node['platform'] == 'windows'
+        bf = bashrc_file unless node['platform_family'] == 'windows'
+        ruby_block 'Delete Chef global shell-init' do
+          block do
+            matcher = /^eval "\$\(chef shell-init bash\)"$/
+            f = Chef::Util::FileEdit.new(bf)
+            f.search_file_delete_line(matcher)
+            f.write_file
+          end
+          only_if { node['platform_family'] != 'windows' }
+        end
         remove!
       end
 
@@ -64,28 +86,6 @@ class Chef
         define_method(method) do
           fail(NotImplementedError,
                "`#{method}` method must be implemented for `#{self.class}`")
-        end
-      end
-
-      #
-      # The resource for the global shell init file
-      #
-      # @param action [Symbol] the action to perform, :create or :delete
-      #
-      # @return [Chef::Util::FileEdit]
-      #
-      def global_shell_init(action)
-        bf = bashrc_file
-        ruby_block "#{action} Chef global shell-init" do
-          block do
-            matcher = /^eval "\$\(chef shell-init bash\)"$/
-            line = 'eval "$(chef shell-init bash)"'
-            f = Chef::Util::FileEdit.new(bf)
-            f.insert_line_if_no_match(matcher, line) if action == :create
-            f.search_file_delete_line(matcher) if action == :delete
-            f.write_file
-          end
-          only_if { action == :delete || new_resource.global_shell_init }
         end
       end
 

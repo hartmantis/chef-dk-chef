@@ -39,13 +39,14 @@ class Chef
         #
         def install!
           s = package_source
+          md = metadata
           dmg_package 'Chef Development Kit' do
             app ::File.basename(s, '.dmg')
             volumes_dir 'Chef Development Kit'
             source "#{'file://' if s.start_with?('/')}#{s}"
             type 'pkg'
             package_id 'com.getchef.pkg.chefdk'
-            checksum metadata.sha256 unless new_resource.package_url
+            checksum md.sha256 unless new_resource.package_url
           end
         end
 
