@@ -38,8 +38,9 @@ class Chef
         # (see Chef::Provider::ChefDk#install!)
         #
         def install!
+          src = package_source
           windows_package 'Chef Development Kit' do
-            source package_source
+            source src
             checksum metadata.sha256 unless new_resource.package_url
           end
         end

@@ -39,10 +39,11 @@ class Chef
         # (see Chef::Provider::ChefDk#install!)
         #
         def install!
+          src = package_source
           dst = ::File.join(Chef::Config[:file_cache_path],
-                            ::File.basename(package_source))
+                            ::File.basename(src))
           remote_file dst do
-            source package_source
+            source src
           end
           dpkg_package dst
         end

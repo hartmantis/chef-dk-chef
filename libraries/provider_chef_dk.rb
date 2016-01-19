@@ -42,7 +42,7 @@ class Chef
       action :install do
         chef_gem 'omnijack' do
           version '~> 1.0'
-          compile_time false
+          compile_time true
           not_if { new_resource.package_url }
         end
         install!
