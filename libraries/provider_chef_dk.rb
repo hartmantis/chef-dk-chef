@@ -20,6 +20,7 @@
 
 require 'chef/provider/lwrp_base'
 require 'chef/util/file_edit'
+require_relative 'chef_dk_helpers'
 
 class Chef
   class Provider
@@ -90,42 +91,33 @@ class Chef
       end
 
       #
+      # Return the package checksum if using the Omnitruck API or nil if not.
+      #
+      # @return [String,NilClass] the package sha256 checksum
+      #
+      def package_checksum
+        @package_checksum ||= package_metadata.sha256 if package_metadata
+      end
+
+      #
       # Return the package download source, either from Omnitruck metadata or
       # a :package_url property.
       #
       # @return [String] a download URL/path
       #
       def package_source
-        new_resource.package_url || metadata.url
+        @package_source ||= new_resource.package_url || package_metadata.url
       end
 
       #
-      # Get the package metadata.
+      # Return the package metadata for the current node and new_resource. Note
+      # that `nil` will be returned of an override `package_url` was set to
+      # use instead of the Omnitruck API.
       #
-      # @return [Hash] package metadata from the omnitruck API
+      # @return [Hash,NilClass] package metadata from the Omnitruck API
       #
-      def metadata
-        @metadata ||= begin
-          require 'omnijack'
-          m = Omnijack::Project::ChefDk.new(metadata_params).metadata
-          m.yolo && Chef::Log.warn('Using a ChefDk package not officially ' \
-                                   'supported on this platform')
-          m
-        end
-      end
-
-      #
-      # Construct the hash of parameters for Omnijack to get the right metadata
-      #
-      # @return [Hash] properties required to fetch package metadata
-      #
-      def metadata_params
-        { platform: node['platform'],
-          platform_version: node['platform_version'],
-          machine_arch: node['kernel']['machine'],
-          version: new_resource.version,
-          prerelease: new_resource.prerelease,
-          nightlies: new_resource.nightlies }
+      def package_metadata
+        @package_metadata ||= ::ChefDk::Helpers.metadata_for(node, new_resource)
       end
     end
   end

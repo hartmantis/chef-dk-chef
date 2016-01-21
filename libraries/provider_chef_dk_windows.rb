@@ -39,10 +39,10 @@ class Chef
         #
         def install!
           src = package_source
-          md = metadata
+          chk = package_checksum
           windows_package 'Chef Development Kit' do
             source src
-            checksum md.sha256 unless new_resource.package_url
+            checksum chk
           end
         end
 

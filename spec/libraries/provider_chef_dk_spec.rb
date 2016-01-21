@@ -156,125 +156,76 @@ describe Chef::Provider::ChefDk do
     end
   end
 
+  describe '#package_checksum' do
+    let(:package_metadata) { nil }
+
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:package_metadata)
+        .and_return(package_metadata)
+    end
+
+    context 'package metadata' do
+      let(:package_metadata) { double(sha256: '12345') }
+
+      it 'returns the metadata sha' do
+        expect(provider.send(:package_checksum)).to eq('12345')
+      end
+    end
+
+    context 'no package metadata' do
+      let(:package_metadata) { nil }
+
+      it 'returns nil' do
+        expect(provider.send(:package_checksum)).to eq(nil)
+      end
+    end
+  end
+
   describe '#package_source' do
     let(:package_url) { nil }
+    let(:package_metadata) { double(url: 'http://example.com/chefdk.pkg') }
     let(:new_resource) do
       r = super()
       r.package_url(package_url) unless package_url.nil?
       r
     end
-    let(:metadata) { double(url: 'http://example.com/chefdk.pkg') }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:metadata)
-        .and_return(metadata)
+      allow_any_instance_of(described_class).to receive(:package_metadata)
+        .and_return(package_metadata)
     end
 
     context 'no package_url property' do
       let(:package_url) { nil }
 
-      it 'returns the metadata URL' do
-        expect(provider.send(:package_source)).to eq(
-          'http://example.com/chefdk.pkg'
-        )
+      it 'returns the metadata source' do
+        expected = 'http://example.com/chefdk.pkg'
+        expect(provider.send(:package_source)).to eq(expected)
       end
     end
 
     context 'a package_url property' do
       let(:package_url) { 'http://example.com/other.pkg' }
 
-      it 'returns the package_url' do
-        expect(provider.send(:package_source)).to eq(
-          'http://example.com/other.pkg'
-        )
+      it 'returns the package_url property' do
+        expected = 'http://example.com/other.pkg'
+        expect(provider.send(:package_source)).to eq(expected)
       end
     end
   end
 
-  describe '#metadata' do
-    let(:yolo) { false }
-    let(:metadata) { double(yolo: yolo) }
-
+  describe '#package_metadata' do
     before(:each) do
-      require 'omnijack'
-      allow_any_instance_of(described_class).to receive(:metadata_params)
-        .and_return(some: 'things')
-      allow_any_instance_of(Omnijack::Project::ChefDk).to receive(:metadata)
-        .and_return(metadata)
-    end
-
-    it 'fetches and returns the metadata instance' do
-      expect(Omnijack::Project::ChefDk).to receive(:new).with(some: 'things')
-        .and_call_original
-      expect(provider.send(:metadata)).to eq(metadata)
-    end
-
-    context 'a "yolo" package' do
-      let(:yolo) { true }
-
-      it 'logs a warning to Chef' do
-        expect(Chef::Log).to receive(:warn).with('Using a ChefDk package ' \
-                                                 'not officially supported ' \
-                                                 'on this platform')
-        provider.send(:metadata)
+      %w(node new_resource).each do |m|
+        allow_any_instance_of(described_class).to receive(m.to_sym)
+          .and_return(m)
       end
-    end
-  end
-
-  describe '#metadata_params' do
-    let(:platform) { nil }
-    let(:node) { Fauxhai.mock(platform).data }
-
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:node).and_return(node)
+      allow(ChefDk::Helpers).to receive(:metadata_for)
+        .with('node', 'new_resource').and_return('metadata')
     end
 
-    context 'Ubuntu' do
-      let(:platform) { { platform: 'ubuntu', version: '14.04' } }
-
-      it 'returns the correct params hash' do
-        expected = {
-          platform: 'ubuntu',
-          platform_version: '14.04',
-          machine_arch: 'x86_64',
-          version: 'latest',
-          prerelease: false,
-          nightlies: false
-        }
-        expect(provider.send(:metadata_params)).to eq(expected)
-      end
-    end
-
-    context 'Mac OS X' do
-      let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
-
-      it 'returns the correct params hash' do
-        expected = {
-          platform: 'mac_os_x',
-          platform_version: '10.9.2',
-          machine_arch: 'x86_64',
-          version: 'latest',
-          prerelease: false,
-          nightlies: false
-        }
-        expect(provider.send(:metadata_params)).to eq(expected)
-      end
-    end
-
-    context 'Windows' do
-      let(:platform) { { platform: 'windows', version: '2012R2' } }
-
-      it 'returns the correct params hash' do
-        expected = {
-          platform: 'windows',
-          platform_version: '6.3.9600',
-          machine_arch: 'x86_64',
-          version: 'latest',
-          prerelease: false,
-          nightlies: false
-        }
-        expect(provider.send(:metadata_params)).to eq(expected)
-      end
+    it 'returns the package metadata' do
+      expect(provider.send(:package_metadata)).to eq('metadata')
     end
   end
 end

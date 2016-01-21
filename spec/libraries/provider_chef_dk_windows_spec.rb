@@ -33,63 +33,26 @@ describe Chef::Provider::ChefDk::Windows do
   end
 
   describe '#install!' do
-    let(:package_url) { nil }
-    let(:new_resource) do
-      r = super()
-      r.package_url(package_url) unless package_url.nil?
-      r
-    end
-    let(:metadata) do
-      double(url: 'http://example.com/cdk.msi', sha256: '12345')
-    end
+    let(:package_source) { 'http://example.com/cdk.msi' }
+    let(:package_checksum) { '12345' }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:metadata)
-        .and_return(metadata)
       %i(chef_gem windows_package).each do |r|
         allow_any_instance_of(described_class).to receive(r)
       end
-      allow_any_instance_of(described_class).to receive(:node)
-        .and_return('platform' => 'windows')
-    end
-
-    context 'no package source provided' do
-      let(:package_url) { nil }
-
-      it 'installs the package via metadata' do
-        p = provider
-        expect(p).to receive(:windows_package).with('Chef Development Kit')
-          .and_yield
-        expect(p).to receive(:source).with('http://example.com/cdk.msi')
-        expect(p).to receive(:checksum).with('12345')
-        p.send(:install!)
+      %i(package_source package_checksum).each do |m|
+        allow_any_instance_of(described_class).to receive(m)
+          .and_return(send(m))
       end
     end
 
-    context 'a remote package source provided' do
-      let(:package_url) { 'http://example.com/other.msi' }
-
-      it 'installs the package via the source' do
-        p = provider
-        expect(p).to receive(:windows_package).with('Chef Development Kit')
-          .and_yield
-        expect(p).to receive(:source).with('http://example.com/other.msi')
-        expect(p).to_not receive(:checksum)
-        p.send(:install!)
-      end
-    end
-
-    context 'a local package source provided' do
-      let(:package_url) { '/tmp/chefdk.msi' }
-
-      it 'installs the package via the source' do
-        p = provider
-        expect(p).to receive(:windows_package).with('Chef Development Kit')
-          .and_yield
-        expect(p).to receive(:source).with('/tmp/chefdk.msi')
-        expect(p).to_not receive(:checksum)
-        p.send(:install!)
-      end
+    it 'installs the package' do
+      p = provider
+      expect(p).to receive(:windows_package).with('Chef Development Kit')
+        .and_yield
+      expect(p).to receive(:source).with('http://example.com/cdk.msi')
+      expect(p).to receive(:checksum).with('12345')
+      p.send(:install!)
     end
   end
 
