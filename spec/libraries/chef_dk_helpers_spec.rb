@@ -97,4 +97,41 @@ describe ChefDk::Helpers do
       end
     end
   end
+
+  describe '#valid_version?' do
+    let(:version) { nil }
+    let(:res) { described_class.valid_version?(version) }
+
+    context 'a "latest" version' do
+      let(:version) { 'latest' }
+
+      it 'returns true' do
+        expect(res).to eq(true)
+      end
+    end
+
+    context 'a valid version' do
+      let(:version) { '1.2.3' }
+
+      it 'returns true' do
+        expect(res).to eq(true)
+      end
+    end
+
+    context 'a valid version + build' do
+      let(:version) { '1.2.3-12' }
+
+      it 'returns true' do
+        expect(res).to eq(true)
+      end
+    end
+
+    context 'an invalid version' do
+      let(:version) { 'x.y.z' }
+
+      it 'returns false' do
+        expect(res).to eq(false)
+      end
+    end
+  end
 end

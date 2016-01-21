@@ -155,38 +155,4 @@ describe Chef::Resource::ChefDk do
       it_behaves_like 'an invalid configuration'
     end
   end
-
-  describe '#valid_version?' do
-    context 'a "latest" version' do
-      let(:res) { resource.send(:valid_version?, 'latest') }
-
-      it 'returns true' do
-        expect(res).to eq(true)
-      end
-    end
-
-    context 'a valid version' do
-      let(:res) { resource.send(:valid_version?, '1.2.3') }
-
-      it 'returns true' do
-        expect(res).to eq(true)
-      end
-    end
-
-    context 'a valid version + build' do
-      let(:res) { resource.send(:valid_version?, '1.2.3-12') }
-
-      it 'returns true' do
-        expect(res).to eq(true)
-      end
-    end
-
-    context 'an invalid version' do
-      let(:res) { resource.send(:valid_version?, 'x.y.z') }
-
-      it 'returns false' do
-        expect(res).to eq(false)
-      end
-    end
-  end
 end

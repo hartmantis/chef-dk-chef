@@ -60,6 +60,17 @@ module ChefDk
           prerelease: new_resource.prerelease,
           nightlies: new_resource.nightlies }
       end
+
+      #
+      # Determine whether string is a valid package version
+      #
+      # @param [String] arg
+      # @return [TrueClass, FalseClass]
+      #
+      def valid_version?(arg)
+        return true if arg == 'latest'
+        arg =~ /^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$/ ? true : false
+      end
     end
   end
 end

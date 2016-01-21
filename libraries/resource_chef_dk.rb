@@ -18,7 +18,8 @@
 # limitations under the License.
 #
 
-require 'chef/resource'
+require 'chef/resource/lwrp_base'
+require_relative 'chef_dk_helpers'
 require_relative 'provider_chef_dk'
 require_relative 'provider_chef_dk_debian'
 require_relative 'provider_chef_dk_mac_os_x'
@@ -30,13 +31,10 @@ class Chef
     # A Chef resource for the Chef-DK packages
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class ChefDk < Resource
-      def initialize(name, run_context = nil)
-        super
-        @resource_name = :chef_dk
-        @action = :install
-        @allowed_actions = [:install, :remove]
-      end
+    class ChefDk < LWRPBase
+      self.resource_name = :chef_dk
+      actions :install, :remove
+      default_action :install
 
       #
       # The version of Chef-DK to install
@@ -52,7 +50,8 @@ class Chef
                       callbacks: {
                         'Can\'t set both a `version` and a `package_url`' =>
                           ->(_) { package_url.nil? },
-                        'Invalid version string' => ->(a) { valid_version?(a) }
+                        'Invalid version string' =>
+                          ->(a) { ::ChefDk::Helpers.valid_version?(a) }
                       })
       end
 
@@ -110,19 +109,6 @@ class Chef
                       arg,
                       kind_of: [TrueClass, FalseClass],
                       default: false)
-      end
-
-      private
-
-      #
-      # Determine whether string is a valid package version
-      #
-      # @param [String] arg
-      # @return [TrueClass, FalseClass]
-      #
-      def valid_version?(arg)
-        return true if arg == 'latest'
-        arg =~ /^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$/ ? true : false
       end
     end
   end
