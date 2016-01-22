@@ -2,7 +2,7 @@
 
 require_relative '../spec_helper'
 
-describe 'Chef-DK package' do
+describe 'chef-dk::default::package' do
   describe package('com.getchef.pkg.chefdk'), if: os[:family] == 'darwin' do
     it 'is installed' do
       expect(subject).to be_installed.by(:pkgutil)

@@ -32,12 +32,6 @@ describe Chef::Resource::ChefDk do
     end
   end
 
-  describe '#initialize' do
-    it 'defaults the state to uninstalled' do
-      expect(resource.installed?).to eq(false)
-    end
-  end
-
   describe '#version' do
     context 'no override provided' do
       it 'defaults to the latest version' do
@@ -159,40 +153,6 @@ describe Chef::Resource::ChefDk do
       let(:global_shell_init) { 'wiggles' }
 
       it_behaves_like 'an invalid configuration'
-    end
-  end
-
-  describe '#valid_version?' do
-    context 'a "latest" version' do
-      let(:res) { resource.send(:valid_version?, 'latest') }
-
-      it 'returns true' do
-        expect(res).to eq(true)
-      end
-    end
-
-    context 'a valid version' do
-      let(:res) { resource.send(:valid_version?, '1.2.3') }
-
-      it 'returns true' do
-        expect(res).to eq(true)
-      end
-    end
-
-    context 'a valid version + build' do
-      let(:res) { resource.send(:valid_version?, '1.2.3-12') }
-
-      it 'returns true' do
-        expect(res).to eq(true)
-      end
-    end
-
-    context 'an invalid version' do
-      let(:res) { resource.send(:valid_version?, 'x.y.z') }
-
-      it 'returns false' do
-        expect(res).to eq(false)
-      end
     end
   end
 end

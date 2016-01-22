@@ -1,6 +1,7 @@
 # Encoding: UTF-8
 
 require_relative '../spec_helper'
+require_relative '../../libraries/resource_chef_dk'
 require_relative '../../libraries/provider_chef_dk_windows'
 
 describe Chef::Provider::ChefDk::Windows do
@@ -31,29 +32,42 @@ describe Chef::Provider::ChefDk::Windows do
     end
   end
 
-  describe '#tailor_package_resource_to_platform' do
-    let(:package) { double(source: true) }
-    let(:provider) do
-      p = described_class.new(new_resource, nil)
-      p.instance_variable_set(:@package, package)
-      p
-    end
+  describe '#install!' do
+    let(:package_source) { 'http://example.com/cdk.msi' }
+    let(:package_checksum) { '12345' }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:download_path)
-        .and_return('/tmp/blah.msi')
+      %i(chef_gem windows_package).each do |r|
+        allow_any_instance_of(described_class).to receive(r)
+      end
+      %i(package_source package_checksum).each do |m|
+        allow_any_instance_of(described_class).to receive(m)
+          .and_return(send(m))
+      end
     end
 
-    it 'calls `source` with the local file path' do
-      expect(package).to receive(:source).with('/tmp/blah.msi')
-      provider.send(:tailor_package_resource_to_platform)
+    it 'installs the package' do
+      p = provider
+      expect(p).to receive(:windows_package).with('Chef Development Kit')
+        .and_yield
+      expect(p).to receive(:source).with('http://example.com/cdk.msi')
+      expect(p).to receive(:checksum).with('12345')
+      p.send(:install!)
     end
   end
 
-  describe '#package_resource_class' do
-    it 'returns Chef::Resource::WindowsPackage' do
-      expected = Chef::Resource::WindowsPackage
-      expect(provider.send(:package_resource_class)).to eq(expected)
+  describe '#remove!' do
+    before(:each) do
+      allow_any_instance_of(described_class).to receive(:node)
+        .and_return('platform' => 'windows')
+    end
+
+    it 'removes the ChefDK package' do
+      p = provider
+      expect(p).to receive(:windows_package).with('Chef Development Kit')
+        .and_yield
+      expect(p).to receive(:action).with(:remove)
+      p.send(:remove!)
     end
   end
 

@@ -18,29 +18,48 @@
 # limitations under the License.
 #
 
-require 'chef/provider'
-require 'chef/provider/package/rpm'
+require 'chef/provider/lwrp_base'
 require_relative 'provider_chef_dk'
-require_relative 'resource_chef_dk'
 
 class Chef
   class Provider
-    class ChefDk < Provider
-      # A Chef provider for the Chef-DK .rpm packages
+    class ChefDk < LWRPBase
+      # A Chef provider for the Chef-DK .rpm packages.
       #
       # @author Jonathan Hartman <j@p4nt5.com>
       class Rhel < ChefDk
         provides :chef_dk, platform_family: 'rhel'
+        provides :chef_dk, platform: 'fedora'
 
         private
 
         #
-        # Override the provider of the package resource
+        # Download and install the Chef-DK .rpm. The `rpm_package` resource
+        # doesn't accept a remote source, so this must be done in two steps.
         #
-        # @return [Class]
+        # (see Chef::Provider::ChefDk#install!)
         #
-        def package_provider_class
-          Chef::Provider::Package::Rpm
+        def install!
+          src = package_source
+          dst = ::File.join(Chef::Config[:file_cache_path],
+                            ::File.basename(src))
+          chk = package_checksum
+          remote_file dst do
+            source src
+            checksum chk
+          end
+          rpm_package dst
+        end
+
+        #
+        # Use the normal `package` resource to remove the Chef-DK.
+        #
+        # (see Chef::Provider::ChefDk#remove!)
+        #
+        def remove!
+          package 'chefdk' do
+            action :remove
+          end
         end
 
         #

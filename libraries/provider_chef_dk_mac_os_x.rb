@@ -18,14 +18,13 @@
 # limitations under the License.
 #
 
-require 'chef/provider'
+require 'chef/provider/lwrp_base'
 require_relative 'provider_chef_dk'
-require_relative 'resource_chef_dk'
 
 class Chef
   class Provider
-    class ChefDk < Provider
-      # A Chef provider for the Chef-DK Mac OS X packages
+    class ChefDk < LWRPBase
+      # A Chef provider for the Chef-DK Mac OS X packages.
       #
       # @author Jonathan Hartman <j@p4nt5.com>
       class MacOsX < ChefDk
@@ -34,25 +33,39 @@ class Chef
         private
 
         #
-        # Override the package resource platform-specific tailoring
-        # (An `app`, `source`, and `type` for .dmg packages)
+        # Use a dmg_package resource to download and install Chef-DK.
         #
-        def tailor_package_resource_to_platform
-          @package.app(filename.gsub(/\.dmg$/, ''))
-          @package.volumes_dir('Chef Development Kit')
-          @package.source("file://#{download_path}")
-          @package.type('pkg')
-          @package.package_id("com.getchef.pkg.#{PACKAGE_NAME}")
+        # (see Chef::Provider::ChefDk#install!)
+        #
+        def install!
+          src = package_source
+          chk = package_checksum
+          dmg_package 'Chef Development Kit' do
+            app ::File.basename(src, '.dmg')
+            volumes_dir 'Chef Development Kit'
+            source "#{'file://' if src.start_with?('/')}#{src}"
+            type 'pkg'
+            package_id 'com.getchef.pkg.chefdk'
+            checksum chk
+          end
         end
 
         #
-        # Override the class to be used for the package resource
-        # (Chef::Resource::DmgPackage for .dmg packages)
+        # Clean up the package directories and forget the Chef-DK entry in
+        # pkgutil.
         #
-        # @return [Chef::Resource::DmgPackage]
+        # (see Chef::Provider::ChefDk#remove!)
         #
-        def package_resource_class
-          Chef::Resource::DmgPackage
+        def remove!
+          ['/opt/chefdk', ::File.expand_path('~/.chefdk')].each do |d|
+            directory d do
+              recursive true
+              action :delete
+            end
+          end
+          execute 'pkgutil --forget com.getchef.pkg.chefdk' do
+            only_if 'pkgutil --pkg-info com.getchef.pkg.chefdk'
+          end
         end
 
         #

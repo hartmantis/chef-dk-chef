@@ -1,30 +1,14 @@
 # Encoding: UTF-8
 
 require_relative '../spec_helper'
+require_relative '../../libraries/resource_chef_dk'
 require_relative '../../libraries/provider_chef_dk'
 
 describe Chef::Provider::ChefDk do
-  let(:base_url) { 'https://opscode-omnibus-packages.s3.amazonaws.com' }
-  let(:platform) { {} }
-  [
-    :version, :prerelease, :nightlies, :package_url, :global_shell_init
-  ].each { |i| let(i) { nil } }
-  let(:node) { Fauxhai.mock(platform).data }
-  let(:new_resource) do
-    double(name: 'my_chef_dk',
-           cookbook_name: 'chef-dk',
-           version: version,
-           prerelease: prerelease,
-           nightlies: nightlies,
-           package_url: package_url,
-           global_shell_init: global_shell_init,
-           :installed= => true)
-  end
-  let(:provider) { described_class.new(new_resource, nil) }
-
-  before(:each) do
-    allow_any_instance_of(described_class).to receive(:node).and_return(node)
-  end
+  let(:name) { 'default' }
+  let(:run_context) { ChefSpec::SoloRunner.new.converge.run_context }
+  let(:new_resource) { Chef::Resource::ChefDk.new(name, run_context) }
+  let(:provider) { described_class.new(new_resource, run_context) }
 
   describe '#whyrun_supported?' do
     it 'supports whyrun mode' do
@@ -32,520 +16,216 @@ describe Chef::Provider::ChefDk do
     end
   end
 
-  describe '#load_current_resource' do
-    it 'returns a ChefDk resource' do
-      expected = Chef::Resource::ChefDk
-      expect(provider.load_current_resource).to be_an_instance_of(expected)
-    end
-  end
-
   describe '#action_install' do
-    [:omnijack_gem, :remote_file, :package].each do |i|
-      let(i) { double(run_action: true) }
-    end
-    let(:gsi) { double(write_file: true) }
+    let(:platform_family) { nil }
+    let(:node) { { 'platform_family' => platform_family } }
 
     before(:each) do
-      [:omnijack_gem, :remote_file, :package].each do |r|
-        allow_any_instance_of(described_class).to receive(r)
-          .and_return(send(r))
+      %i(chef_gem install! ruby_block).each do |m|
+        allow_any_instance_of(described_class).to receive(m)
       end
-      allow_any_instance_of(described_class).to receive(:global_shell_init)
-        .and_return(gsi)
+      allow_any_instance_of(described_class).to receive(:node).and_return(node)
     end
 
     shared_examples_for 'any platform' do
-      it 'downloads the package remote file' do
-        expect(remote_file).to receive(:run_action).with(:create)
-        provider.action_install
+      it 'conditionally installs the Omnijack gem' do
+        p = provider
+        expect(p).to receive(:chef_gem).with('omnijack').and_yield
+        expect(p).to receive(:version).with('~> 1.0')
+        expect(p).to receive(:compile_time).with(true)
+        expect(p).to receive(:not_if).and_yield
+        expect(new_resource).to receive(:package_url)
+        p.action_install
       end
 
-      it 'installs the package file' do
-        expect(package).to receive(:run_action).with(:install)
-        provider.action_install
-      end
-
-      it 'sets the installed state to true' do
-        expect(new_resource).to receive(:'installed=').with(true)
-        provider.action_install
-      end
-
-      it 'installs the omnijack gem' do
-        expect(omnijack_gem).to receive(:run_action).with(:install)
-        provider.action_install
+      it 'calls the child install! method' do
+        p = provider
+        expect(p).to receive(:install!)
+        p.action_install
       end
     end
 
-    shared_examples_for 'a platform with a bashrc' do
-      it 'calls the bashrc create logic' do
-        expect_any_instance_of(described_class).to receive(:global_shell_init)
-          .with(:create)
-        expect(gsi).to receive(:write_file)
-        provider.action_install
+    context 'platform with a bashrc' do
+      let(:platform_family) { 'debian' }
+
+      before(:each) do
+        allow_any_instance_of(described_class).to receive(:bashrc_file)
+          .and_return('/tmp/bashrc')
       end
-    end
-
-    context 'Ubuntu' do
-      let(:platform) { { platform: 'ubuntu', version: '14.04' } }
-
-      it_behaves_like 'any platform'
-      it_behaves_like 'a platform with a bashrc'
-    end
-
-    context 'Mac OS X' do
-      let(:platform) { { platform: 'mac_os_x', version: '10.10' } }
-
-      it_behaves_like 'any platform'
-      it_behaves_like 'a platform with a bashrc'
-    end
-
-    context 'Windows' do
-      let(:platform) { { platform: 'windows', version: '2012R2' } }
 
       it_behaves_like 'any platform'
 
-      it 'does not call the bashrc create logic' do
-        expect_any_instance_of(described_class)
-          .not_to receive(:global_shell_init)
-        provider.action_remove
+      it 'sets up a ruby_block to conditionally create the bashrc entry' do
+        p = provider
+        expect(p).to receive(:ruby_block).with('Create Chef global shell-init')
+          .and_yield
+        expect(p).to receive(:block).and_yield
+        fe = double
+        expect(Chef::Util::FileEdit).to receive(:new).with('/tmp/bashrc')
+          .and_return(fe)
+        expect(fe).to receive(:insert_line_if_no_match).with(
+          /^eval "\$\(chef shell-init bash\)"$/,
+          'eval "$(chef shell-init bash)"'
+        )
+        expect(fe).to receive(:write_file)
+        expect(p).to receive(:only_if).and_yield
+        expect(new_resource).to receive(:global_shell_init).and_return(true)
+        expect(platform_family).to receive(:!=).with('windows')
+        p.action_install
+      end
+    end
+
+    context 'platform without a bashrc' do
+      let(:platform_family) { 'windows' }
+
+      it_behaves_like 'any platform'
+
+      it 'never calls the bashrc_file method' do
+        p = provider
+        expect(p).to_not receive(:bashrc_file)
+        p.action_install
       end
     end
   end
 
   describe '#action_remove' do
-    let(:remote_file) { double(run_action: true) }
-    let(:package) { double(run_action: true) }
-    let(:gsi) { double(write_file: true) }
+    let(:platform_family) { nil }
+    let(:node) { { 'platform_family' => platform_family } }
 
     before(:each) do
-      [:remote_file, :package].each do |r|
-        allow_any_instance_of(described_class).to receive(r)
-          .and_return(send(r))
+      %i(ruby_block remove!).each do |m|
+        allow_any_instance_of(described_class).to receive(m)
       end
-      allow_any_instance_of(described_class).to receive(:global_shell_init)
-        .and_return(gsi)
+      allow_any_instance_of(described_class).to receive(:node).and_return(node)
     end
 
     shared_examples_for 'any platform' do
-      it 'deletes the package remote file' do
-        expect(remote_file).to receive(:run_action).with(:delete)
-        provider.action_remove
-      end
-
-      it 'installs the package file' do
-        expect(package).to receive(:run_action).with(:remove)
-        provider.action_remove
-      end
-
-      it 'sets the installed state to false' do
-        expect(new_resource).to receive(:'installed=').with(false)
-        provider.action_remove
+      it 'calls the child remove! method' do
+        p = provider
+        expect(p).to receive(:remove!)
+        p.action_remove
       end
     end
 
-    shared_examples_for 'a platform with a bashrc' do
-      it 'calls the bashrc delete logic' do
-        expect_any_instance_of(described_class).to receive(:global_shell_init)
-          .with(:delete)
-        expect(gsi).to receive(:write_file)
-        provider.action_remove
+    context 'platform with a bashrc' do
+      let(:platform_family) { 'debian' }
+
+      before(:each) do
+        allow_any_instance_of(described_class).to receive(:bashrc_file)
+          .and_return('/tmp/bashrc')
       end
-    end
-
-    context 'Ubuntu' do
-      let(:platform) { { platform: 'ubuntu', version: '14.04' } }
-
-      it_behaves_like 'any platform'
-      it_behaves_like 'a platform with a bashrc'
-    end
-
-    context 'Mac OS X' do
-      let(:platform) { { platform: 'mac_os_x', version: '10.10' } }
-
-      it_behaves_like 'any platform'
-      it_behaves_like 'a platform with a bashrc'
-    end
-
-    context 'Windows' do
-      let(:platform) { { platform: 'windows', version: '2012R2' } }
 
       it_behaves_like 'any platform'
 
-      it 'does not call the bashrc delete logic' do
-        expect_any_instance_of(described_class)
-          .not_to receive(:global_shell_init)
-        provider.action_remove
+      it 'sets up a ruby_block to conditionally delete the bashrc entry' do
+        p = provider
+        expect(p).to receive(:ruby_block).with('Delete Chef global shell-init')
+          .and_yield
+        expect(p).to receive(:block).and_yield
+        fe = double
+        expect(Chef::Util::FileEdit).to receive(:new).with('/tmp/bashrc')
+          .and_return(fe)
+        expect(fe).to receive(:search_file_delete_line).with(
+          /^eval "\$\(chef shell-init bash\)"$/
+        )
+        expect(fe).to receive(:write_file)
+        expect(p).to receive(:only_if).and_yield
+        expect(platform_family).to receive(:!=).with('windows')
+        p.action_remove
+      end
+    end
+
+    context 'platform without a bashrc' do
+      let(:platform_family) { 'windows' }
+
+      it_behaves_like 'any platform'
+
+      it 'never calls the bashrc_file method' do
+        p = provider
+        expect(p).to_not receive(:bashrc_file)
+        p.action_remove
       end
     end
   end
 
-  describe '#package' do
-    let(:package_resource_class) { Chef::Resource::Package }
-    let(:package_provider_class) { nil }
+  %i(install! remove! bashrc_file).each do |m|
+    describe "##{m}" do
+      it 'raises an error' do
+        expect { provider.send(m) }.to raise_error(NotImplementedError)
+      end
+    end
+  end
+
+  describe '#package_checksum' do
+    let(:package_metadata) { nil }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(
-        :package_resource_class).and_return(package_resource_class)
-      allow_any_instance_of(described_class).to receive(
-        :package_provider_class).and_return(package_provider_class)
-      allow_any_instance_of(described_class).to receive(:download_path)
-        .and_return('/tmp/blah.pkg')
-      allow_any_instance_of(described_class).to receive(
-        :tailor_package_resource_to_platform).and_return(true)
+      allow_any_instance_of(described_class).to receive(:package_metadata)
+        .and_return(package_metadata)
     end
 
-    shared_examples_for 'any node' do
-      it 'returns a package resource' do
-        expected = package_resource_class
-        expect(provider.send(:package)).to be_an_instance_of(expected)
+    context 'package metadata' do
+      let(:package_metadata) { double(sha256: '12345') }
+
+      it 'returns the metadata sha' do
+        expect(provider.send(:package_checksum)).to eq('12345')
       end
     end
 
-    context 'all default' do
-      it_behaves_like 'any node'
+    context 'no package metadata' do
+      let(:package_metadata) { nil }
 
-      it 'does not call a custom provider' do
-        expect_any_instance_of(package_resource_class).to_not receive(:provider)
-        provider.send(:package)
-      end
-    end
-
-    context 'with custom resource and provider classes given' do
-      let(:package_resource_class) { Chef::Resource::DmgPackage }
-      let(:package_provider_class) { Chef::Provider::DmgPackage }
-
-      it_behaves_like 'any node'
-
-      it 'calls the custom provider' do
-        expect_any_instance_of(package_resource_class).to receive(:provider)
-          .with(package_provider_class)
-        provider.send(:package)
+      it 'returns nil' do
+        expect(provider.send(:package_checksum)).to eq(nil)
       end
     end
   end
 
-  describe '#tailor_package_resource_to_platform' do
-    let(:package) { double(version: true) }
-    let(:provider) do
-      p = described_class.new(new_resource, nil)
-      p.instance_variable_set(:@package, package)
-      p
+  describe '#package_source' do
+    let(:package_url) { nil }
+    let(:package_metadata) { double(url: 'http://example.com/chefdk.pkg') }
+    let(:new_resource) do
+      r = super()
+      r.package_url(package_url) unless package_url.nil?
+      r
     end
-    let(:version) { '6.6.6' }
 
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:version)
-        .and_return(version)
+      allow_any_instance_of(described_class).to receive(:package_metadata)
+        .and_return(package_metadata)
     end
 
-    it 'does a version call on the package resource' do
-      expect(package).to receive(:version).with(version)
-      provider.send(:tailor_package_resource_to_platform)
+    context 'no package_url property' do
+      let(:package_url) { nil }
+
+      it 'returns the metadata source' do
+        expected = 'http://example.com/chefdk.pkg'
+        expect(provider.send(:package_source)).to eq(expected)
+      end
+    end
+
+    context 'a package_url property' do
+      let(:package_url) { 'http://example.com/other.pkg' }
+
+      it 'returns the package_url property' do
+        expected = 'http://example.com/other.pkg'
+        expect(provider.send(:package_source)).to eq(expected)
+      end
     end
   end
 
-  describe '#package_resource_class' do
-    it 'returns Chef::Resource::Package' do
-      expected = Chef::Resource::Package
-      expect(provider.send(:package_resource_class)).to eq(expected)
-    end
-  end
-
-  describe '#package_provider_class' do
-    it 'returns nil' do
-      expect(provider.send(:package_provider_class)).to eq(nil)
-    end
-  end
-
-  describe '#global_shell_init' do
-    let(:action) { nil }
-    let(:res) { provider.send(:global_shell_init, action) }
-
+  describe '#package_metadata' do
     before(:each) do
-      @fakebashrc = Tempfile.new('chefdkspec')
-      allow_any_instance_of(described_class).to receive(:bashrc_file)
-        .and_return(@fakebashrc.path)
-    end
-
-    after(:each) do
-      @fakebashrc.delete
-    end
-
-    shared_examples_for 'any instance' do
-      it 'returns a FileEdit object' do
-        expect(res).to be_an_instance_of(Chef::Util::FileEdit)
+      %w(node new_resource).each do |m|
+        allow_any_instance_of(described_class).to receive(m.to_sym)
+          .and_return(m)
       end
+      allow(ChefDk::Helpers).to receive(:metadata_for)
+        .with('node', 'new_resource').and_return('metadata')
     end
 
-    shared_examples_for 'no action' do
-      it 'does not call insert_line_if_no_match' do
-        expect_any_instance_of(Chef::Util::FileEdit)
-          .not_to receive(:insert_line_if_no_match)
-      end
-
-      it 'does not call search_file_delete_line' do
-        expect_any_instance_of(Chef::Util::FileEdit)
-          .not_to receive(:search_file_delete_line)
-      end
-
-      it 'will do nothing to the file' do
-        @fakebashrc.write('some stuff')
-        @fakebashrc.seek(0)
-        res
-        @fakebashrc.seek(0)
-        expect(@fakebashrc.read).to eq('some stuff')
-      end
-    end
-
-    context 'no action (default)' do
-      context 'global shell init disabled (default)' do
-        it_behaves_like 'any instance'
-        it_behaves_like 'no action'
-      end
-
-      context 'global shell init enabled' do
-        let(:global_shell_init) { true }
-
-        it_behaves_like 'any instance'
-        it_behaves_like 'no action'
-      end
-    end
-
-    context 'a create action' do
-      let(:action) { :create }
-
-      context 'global shell init disabled (default)' do
-        it_behaves_like 'any instance'
-        it_behaves_like 'no action'
-      end
-
-      context 'global shell init enabled' do
-        let(:global_shell_init) { true }
-
-        it_behaves_like 'any instance'
-
-        it 'calls insert_line_if_no_match' do
-          expect_any_instance_of(Chef::Util::FileEdit)
-            .to receive(:insert_line_if_no_match)
-          res
-        end
-
-        it 'will write to the file' do
-          res.write_file
-          @fakebashrc.seek(0)
-          expected = "eval \"$(chef shell-init bash)\"\n"
-          expect(@fakebashrc.read).to eq(expected)
-        end
-      end
-    end
-
-    context 'a delete action' do
-      let(:action) { :delete }
-
-      context 'global shell init disabled (default)' do
-        it_behaves_like 'any instance'
-        it_behaves_like 'no action'
-      end
-
-      context 'global shell init enabled' do
-        let(:global_shell_init) { true }
-
-        it 'calls search_file_delete_line' do
-          expect_any_instance_of(Chef::Util::FileEdit)
-            .to receive(:search_file_delete_line)
-          res
-        end
-
-        it 'will delete from the file' do
-          @fakebashrc.write("eval \"$(chef shell-init bash)\"\n")
-          @fakebashrc.seek(0)
-          res.write_file
-          @fakebashrc.seek(0)
-          expect(@fakebashrc.read).to eq('')
-        end
-      end
-    end
-  end
-
-  describe '#remote_file' do
-    let(:metadata) { double(url: 'http://x.com/pack.pkg', sha256: 'lolnope') }
-
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:metadata)
-        .and_return(metadata)
-      allow_any_instance_of(described_class).to receive(:download_path)
-        .and_return('/tmp/pack.pkg')
-    end
-
-    shared_examples_for 'any node' do
-      it 'returns an instance of Chef::Resource::RemoteFile' do
-        expected = Chef::Resource::RemoteFile
-        expect(provider.send(:remote_file)).to be_an_instance_of(expected)
-      end
-    end
-
-    context 'no package_url (default)' do
-      it_behaves_like 'any node'
-
-      it 'sets the file source' do
-        expect_any_instance_of(Chef::Resource::RemoteFile).to receive(:source)
-          .with('http://x.com/pack.pkg')
-        provider.send(:remote_file)
-      end
-
-      it 'sets the file checksum' do
-        expect_any_instance_of(Chef::Resource::RemoteFile).to receive(:checksum)
-          .with('lolnope')
-        provider.send(:remote_file)
-      end
-    end
-
-    context 'a package_url provided' do
-      let(:package_url) { 'file:///tmp/path/thing.deb' }
-
-      it_behaves_like 'any node'
-
-      it 'sets the file source' do
-        expect_any_instance_of(Chef::Resource::RemoteFile).to receive(:source)
-          .with('file:///tmp/path/thing.deb')
-        provider.send(:remote_file)
-      end
-
-      it 'sets no file checksum' do
-        expect_any_instance_of(Chef::Resource::RemoteFile)
-          .not_to receive(:checksum)
-        provider.send(:remote_file)
-      end
-    end
-  end
-
-  describe '#download_path' do
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:filename)
-        .and_return('test.deb')
-    end
-
-    it 'returns a path in the Chef file_cache_path' do
-      expected = File.join(Chef::Config[:file_cache_path], 'test.deb')
-      expect(provider.send(:download_path)).to eq(expected)
-    end
-  end
-
-  describe '#filename' do
-    let(:metadata) { double(filename: 'test.deb') }
-
-    before(:each) do
-      allow_any_instance_of(described_class).to receive(:metadata)
-        .and_return(metadata)
-    end
-
-    context 'no package_url (default)' do
-      it 'returns a filename from the metadata' do
-        expect(provider.send(:filename)).to eq('test.deb')
-      end
-    end
-
-    context 'a package_url provided' do
-      let(:package_url) { 'file:///tmp/somewhere/package.pkg' }
-
-      it 'returns the base name of the package_url file' do
-        expect(provider.send(:filename)).to eq('package.pkg')
-      end
-    end
-  end
-
-  describe '#metadata' do
-    let(:yolo) { false }
-    let(:metadata) { double(yolo: yolo) }
-
-    before(:each) do
-      require 'omnijack'
-      allow_any_instance_of(described_class).to receive(:metadata_params)
-        .and_return(some: 'things')
-      allow_any_instance_of(Omnijack::Project::ChefDk).to receive(:metadata)
-        .and_return(metadata)
-    end
-
-    it 'fetches and returns the metadata instance' do
-      expect(Omnijack::Project::ChefDk).to receive(:new).with(some: 'things')
-        .and_call_original
-      expect(provider.send(:metadata)).to eq(metadata)
-    end
-
-    context 'a "yolo" package' do
-      let(:yolo) { true }
-
-      it 'logs a warning to Chef' do
-        expect(Chef::Log).to receive(:warn).with('Using a ChefDk package ' \
-                                                 'not officially supported ' \
-                                                 'on this platform')
-        provider.send(:metadata)
-      end
-    end
-  end
-
-  describe '#metadata_params' do
-    context 'Ubuntu' do
-      let(:platform) { { platform: 'ubuntu', version: '14.04' } }
-
-      it 'returns the correct params hash' do
-        expected = {
-          platform: 'ubuntu',
-          platform_version: '14.04',
-          machine_arch: 'x86_64',
-          version: nil,
-          prerelease: nil,
-          nightlies: nil
-        }
-        expect(provider.send(:metadata_params)).to eq(expected)
-      end
-    end
-
-    context 'Mac OS X' do
-      let(:platform) { { platform: 'mac_os_x', version: '10.9.2' } }
-
-      it 'returns the correct params hash' do
-        expected = {
-          platform: 'mac_os_x',
-          platform_version: '10.9.2',
-          machine_arch: 'x86_64',
-          version: nil,
-          prerelease: nil,
-          nightlies: nil
-        }
-        expect(provider.send(:metadata_params)).to eq(expected)
-      end
-    end
-
-    context 'Windows' do
-      let(:platform) { { platform: 'windows', version: '2012R2' } }
-
-      it 'returns the correct params hash' do
-        expected = {
-          platform: 'windows',
-          platform_version: '6.3.9600',
-          machine_arch: 'x86_64',
-          version: nil,
-          prerelease: nil,
-          nightlies: nil
-        }
-        expect(provider.send(:metadata_params)).to eq(expected)
-      end
-    end
-  end
-
-  describe '#omnijack_gem' do
-    it 'returns a ChefGem instance' do
-      expected = Chef::Resource::ChefGem
-      expect(provider.send(:omnijack_gem)).to be_an_instance_of(expected)
-    end
-  end
-
-  describe '#bashrc_file' do
-    it 'raises an error' do
-      expect { provider.send(:bashrc_file) }.to raise_error(
-        Chef::Provider::ChefDk::NotImplemented
-      )
+    it 'returns the package metadata' do
+      expect(provider.send(:package_metadata)).to eq('metadata')
     end
   end
 end
