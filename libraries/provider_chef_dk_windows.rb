@@ -56,13 +56,6 @@ class Chef
             action :remove
           end
         end
-
-        #
-        # Windows does not support bashrc files
-        #
-        def bashrc_file
-          fail(Chef::Exceptions::UnsupportedPlatform, node['platform'])
-        end
       end
     end
   end

@@ -70,11 +70,4 @@ describe Chef::Provider::ChefDk::Windows do
       p.send(:remove!)
     end
   end
-
-  describe '#bashrc_file' do
-    it 'raises an exception' do
-      expected = Chef::Exceptions::UnsupportedPlatform
-      expect { provider.send(:bashrc_file) }.to raise_error(expected)
-    end
-  end
 end

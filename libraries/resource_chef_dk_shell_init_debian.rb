@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Library:: matchers
+# Library:: resource_chef_dk_shell_init_debian
 #
 # Copyright 2014-2016, Jonathan Hartman
 #
@@ -9,24 +9,31 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-if defined?(ChefSpec)
-  {
-    chef_dk: %i(install remove),
-    chef_dk_shell_init: %i(enable disable)
-  }.each do |matcher, actions|
-    ChefSpec.define_matcher(matcher)
+require_relative 'resource_chef_dk_shell_init'
 
-    actions.each do |action|
-      define_method("#{action}_#{matcher}") do |name|
-        ChefSpec::Matchers::ResourceMatcher.new(matcher, action, name)
+class Chef
+  class Resource
+    # A Debian/Ubuntu implementation of the chef_dk_shell_init custom resource.
+    #
+    # @author Jonathan Hartman <j@p4nt5.com>
+    class ChefDkShellInitDebian < ChefDkShellInit
+      provides :chef_dk_shell_init, platform_family: 'debian'
+
+      def bashrc_file
+        if user
+          ::File.join(node['etc']['passwd'][user]['dir'], '.bashrc')
+        else
+          '/etc/bash.bashrc'
+        end
       end
     end
   end
