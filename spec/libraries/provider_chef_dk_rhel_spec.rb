@@ -87,10 +87,4 @@ describe Chef::Provider::ChefDk::Rhel do
       p.send(:remove!)
     end
   end
-
-  describe '#bashrc_file' do
-    it 'returns "bash.bashrc"' do
-      expect(provider.send(:bashrc_file)).to eq('/etc/bashrc')
-    end
-  end
 end

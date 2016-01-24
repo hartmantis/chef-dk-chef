@@ -111,10 +111,4 @@ describe Chef::Provider::ChefDk::MacOsX do
       p.send(:remove!)
     end
   end
-
-  describe '#bashrc_file' do
-    it 'returns "bashrc"' do
-      expect(provider.send(:bashrc_file)).to eq('/etc/bashrc')
-    end
-  end
 end

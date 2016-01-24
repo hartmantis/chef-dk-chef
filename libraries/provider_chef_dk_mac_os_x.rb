@@ -67,15 +67,6 @@ class Chef
             only_if 'pkgutil --pkg-info com.getchef.pkg.chefdk'
           end
         end
-
-        #
-        # Return the global bashrc file path for this system
-        #
-        # @return [String]
-        #
-        def bashrc_file
-          '/etc/bashrc'
-        end
       end
     end
   end

@@ -60,15 +60,6 @@ class Chef
             action :remove
           end
         end
-
-        #
-        # Return the global bashrc file path for this system
-        #
-        # @return [String]
-        #
-        def bashrc_file
-          '/etc/bash.bashrc'
-        end
       end
     end
   end

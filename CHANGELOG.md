@@ -4,6 +4,7 @@ Chef-DK Cookbook CHANGELOG
 v?.?.? (????-??-??)
 -------------------
 * Update to modern provider resolution (breaking compatibility with Chef < 12)
+* Move shell-init logic to its own custom resource
 
 v3.1.0 (2015-06-03)
 -------------------

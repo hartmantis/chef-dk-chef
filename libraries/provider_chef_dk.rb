@@ -47,19 +47,9 @@ class Chef
           not_if { new_resource.package_url }
         end
         install!
-        bf = bashrc_file unless node['platform_family'] == 'windows'
-        ruby_block 'Create Chef global shell-init' do
-          block do
-            matcher = /^eval "\$\(chef shell-init bash\)"$/
-            line = 'eval "$(chef shell-init bash)"'
-            f = Chef::Util::FileEdit.new(bf)
-            f.insert_line_if_no_match(matcher, line)
-            f.write_file
-          end
-          only_if do
-            new_resource.global_shell_init && \
-              node['platform_family'] != 'windows'
-          end
+        chef_dk_shell_init new_resource.name do
+          action new_resource.global_shell_init ? :enable : :disable
+          only_if { node['platform_family'] != 'windows' }
         end
       end
 
@@ -67,14 +57,8 @@ class Chef
       # Remove the ChefDK.
       #
       action :remove do
-        bf = bashrc_file unless node['platform_family'] == 'windows'
-        ruby_block 'Delete Chef global shell-init' do
-          block do
-            matcher = /^eval "\$\(chef shell-init bash\)"$/
-            f = Chef::Util::FileEdit.new(bf)
-            f.search_file_delete_line(matcher)
-            f.write_file
-          end
+        chef_dk_shell_init new_resource.name do
+          action :disable
           only_if { node['platform_family'] != 'windows' }
         end
         remove!
@@ -83,7 +67,7 @@ class Chef
       private
 
       # Some methods have to be provided by the sub-classes
-      [:bashrc_file, :install!, :remove!].each do |method|
+      [:install!, :remove!].each do |method|
         define_method(method) do
           fail(NotImplementedError,
                "`#{method}` method must be implemented for `#{self.class}`")
