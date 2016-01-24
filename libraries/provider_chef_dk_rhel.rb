@@ -52,12 +52,12 @@ class Chef
         end
 
         #
-        # Use the normal `package` resource to remove the Chef-DK.
+        # Use the `rpm_package` resource to remove the Chef-DK.
         #
         # (see Chef::Provider::ChefDk#remove!)
         #
         def remove!
-          package 'chefdk' do
+          rpm_package 'chefdk' do
             action :remove
           end
         end
