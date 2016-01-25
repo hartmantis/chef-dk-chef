@@ -27,6 +27,16 @@ suites:
   - name: default
     run_list:
       - recipe[chef-dk]
+  - name: remove
+    run_list:
+      - recipe[chef-dk_test::remove]
+    attributes:
+      chef_dk:
+        global_shell_init: true
+    excludes:
+      - macosx
+      - windows-2012
+      - windows
   - name: global_shell_init
     run_list:
       - recipe[chef-dk]

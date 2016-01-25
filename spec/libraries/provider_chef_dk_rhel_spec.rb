@@ -75,14 +75,12 @@ describe Chef::Provider::ChefDk::Rhel do
 
   describe '#remove!' do
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:package)
-      allow_any_instance_of(described_class).to receive(:node)
-        .and_return('platform' => 'redhat')
+      allow_any_instance_of(described_class).to receive(:rpm_package)
     end
 
     it 'removes the Chef-DK package' do
       p = provider
-      expect(p).to receive(:package).with('chefdk').and_yield
+      expect(p).to receive(:rpm_package).with('chefdk').and_yield
       expect(p).to receive(:action).with(:remove)
       p.send(:remove!)
     end

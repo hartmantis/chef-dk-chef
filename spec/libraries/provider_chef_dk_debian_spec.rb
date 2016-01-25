@@ -67,14 +67,12 @@ describe Chef::Provider::ChefDk::Debian do
 
   describe '#remove!' do
     before(:each) do
-      allow_any_instance_of(described_class).to receive(:package)
-      allow_any_instance_of(described_class).to receive(:node)
-        .and_return('platform' => 'ubuntu')
+      allow_any_instance_of(described_class).to receive(:dpkg_package)
     end
 
     it 'removes the Chef-DK package' do
       p = provider
-      expect(p).to receive(:package).with('chefdk').and_yield
+      expect(p).to receive(:dpkg_package).with('chefdk').and_yield
       expect(p).to receive(:action).with(:remove)
       p.send(:remove!)
     end
