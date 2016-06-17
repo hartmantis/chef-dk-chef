@@ -4,7 +4,7 @@ driver:
   privileged: true
 
 platforms:
-  - name: ubuntu-15.10
+  - name: ubuntu-16.04
   - name: ubuntu-14.04
   - name: ubuntu-12.04
   - name: debian-8
@@ -12,4 +12,4 @@ platforms:
   - name: debian-6
   - name: centos-7
   - name: centos-6
-  - name: fedora-22
+  - name: fedora-23
