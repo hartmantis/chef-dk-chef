@@ -39,5 +39,4 @@ end
 group :production do
   gem 'chef', '>= 12.5'
   gem 'berkshelf'
-  gem 'omnijack', '~> 1.0'
 end
