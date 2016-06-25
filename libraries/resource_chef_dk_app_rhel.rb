@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Library:: resource_chef_dk
+# Library:: resource_chef_dk_app_rhel
 #
 # Copyright 2014-2016, Jonathan Hartman
 #
@@ -18,41 +18,40 @@
 # limitations under the License.
 #
 
-require 'chef/resource'
+require_relative 'resource_chef_dk_app'
 
 class Chef
   class Resource
-    # A parent Chef resource that wraps up our children.
+    # A Chef resource for the Chef-DK .rpm packages.
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class ChefDk < Resource
-      provides :chef_dk
-
-      default_action :create
-
-      #
-      # Optionally set ChefDK's Ruby env as the default for all users
-      #
-      property :global_shell_init, [TrueClass, FalseClass], default: false
+    class ChefDkAppRhel < ChefDkApp
+      provides :chef_dk_app, platform_family: 'rhel'
+      provides :chef_dk_app, platform: 'fedora'
 
       #
-      # Install the ChefDK and configure shell init as appropriate
+      # Download and install the Chef-DK .rpm. The `rpm_package` resource
+      # doesn't accept a remote source, so this must be done in two steps.
       #
-      action :create do
-        chef_dk_app new_resource.name
-        chef_dk_shell_init new_resource.name do
-          action new_resource.global_shell_init ? :enable : :disable
+      action :install do
+        src = package_source
+        dst = ::File.join(Chef::Config[:file_cache_path],
+                          ::File.basename(src))
+        chk = package_checksum
+        remote_file dst do
+          source src
+          checksum chk
         end
+        rpm_package dst
       end
 
       #
-      # Remove the ChefDK.
+      # Use the `rpm_package` resource to remove the Chef-DK.
       #
       action :remove do
-        chef_dk_shell_init new_resource.name do
-          action :disable
+        package 'chefdk' do
+          action :remove
         end
-        chef_dk_app(new_resource.name) { action :remove }
       end
     end
   end

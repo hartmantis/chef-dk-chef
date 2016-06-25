@@ -4,9 +4,9 @@ source 'https://supermarket.chef.io'
 
 metadata
 
-group :test do
-  cookbook 'chef_dk_shell_init_test',
-           path: 'spec/support/cookbooks/chef_dk_shell_init_test'
+group :unit do
+  cookbook 'chef_dk_resource_test',
+           path: 'spec/support/cookbooks/chef_dk_resource_test'
 end
 
 group :integration do

@@ -1,6 +1,7 @@
 require_relative '../../../spec_helper'
 
 describe 'resource_chef_dk_shell_init::debian::8_0' do
+  let(:name) { 'default' }
   let(:user) { nil }
   let(:action) { nil }
   let(:file_edit) { nil }

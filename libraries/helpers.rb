@@ -35,7 +35,7 @@ module ChefDk
       #   * version - a version string or 'latest'
       #   * platform - a platform name
       #   * platform_version - a platform version
-      #   * machine_arch - 'x86_64' or 'i386'
+      #   * machine - 'x86_64' or 'i386'
       #
       # @param options [Hash] a hash of package options
       #
@@ -47,7 +47,7 @@ module ChefDk
         params = [['v', options.fetch(:version)],
                   ['p', options.fetch(:platform)],
                   ['pv', options.fetch(:platform_version)],
-                  ['m', options.fetch(:machine_arch)]]
+                  ['m', options.fetch(:machine)]]
         uri = URI("#{base}?#{URI.encode_www_form(params)}")
         body = Net::HTTP.get(uri)
         return if body.empty?

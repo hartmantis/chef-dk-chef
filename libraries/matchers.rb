@@ -19,7 +19,8 @@
 
 if defined?(ChefSpec)
   {
-    chef_dk: %i(install remove),
+    chef_dk: %i(create remove),
+    chef_dk_app: %i(install remove),
     chef_dk_shell_init: %i(enable disable)
   }.each do |matcher, actions|
     ChefSpec.define_matcher(matcher)

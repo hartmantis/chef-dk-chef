@@ -1,7 +1,7 @@
 # Encoding: UTF-8
 #
 # Cookbook Name:: chef-dk
-# Library:: resource_chef_dk
+# Library:: resource_chef_dk_app_windows
 #
 # Copyright 2014-2016, Jonathan Hartman
 #
@@ -18,41 +18,35 @@
 # limitations under the License.
 #
 
-require 'chef/resource'
+require_relative 'resource_chef_dk_app'
 
 class Chef
   class Resource
-    # A parent Chef resource that wraps up our children.
+    # A Chef resource for the Chef-DK Windows packages.
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class ChefDk < Resource
-      provides :chef_dk
-
-      default_action :create
+    class ChefDkAppWindows < ChefDkApp
+      provides :chef_dk_app, platform_family: 'windows'
 
       #
-      # Optionally set ChefDK's Ruby env as the default for all users
+      # Use a windows_package resource to install the Chef-DK.
       #
-      property :global_shell_init, [TrueClass, FalseClass], default: false
-
-      #
-      # Install the ChefDK and configure shell init as appropriate
-      #
-      action :create do
-        chef_dk_app new_resource.name
-        chef_dk_shell_init new_resource.name do
-          action new_resource.global_shell_init ? :enable : :disable
+      action :install do
+        src = package_source
+        chk = package_checksum
+        windows_package 'Chef Development Kit' do
+          source src
+          checksum chk
         end
       end
 
       #
-      # Remove the ChefDK.
+      # Use a windows_package resource to remove the Chef-DK.
       #
       action :remove do
-        chef_dk_shell_init new_resource.name do
-          action :disable
+        windows_package 'Chef Development Kit' do
+          action :remove
         end
-        chef_dk_app(new_resource.name) { action :remove }
       end
     end
   end

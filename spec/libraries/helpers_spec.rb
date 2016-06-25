@@ -13,7 +13,7 @@ describe ChefDk::Helpers do
       uri = URI("https://omnitruck.chef.io/#{options[:channel]}/chefdk/" \
                 "metadata?v=#{options[:version]}&p=#{options[:platform]}&" \
                 "pv=#{options[:platform_version]}&" \
-                "m=#{options[:machine_arch]}")
+                "m=#{options[:machine]}")
       allow(Net::HTTP).to receive(:get).with(uri).and_return(body)
     end
 
@@ -24,7 +24,7 @@ describe ChefDk::Helpers do
           version: '1.2.3',
           platform: 'test',
           platform_version: '4.5.6',
-          machine_arch: 'x86_64'
+          machine: 'x86_64'
         }
       end
       let(:body) do
@@ -46,7 +46,7 @@ describe ChefDk::Helpers do
           version: '1.2.3',
           platform: 'test',
           platform_version: '4.5.6',
-          machine_arch: 'x86_64'
+          machine: 'x86_64'
         }
       end
       let(:body) { '' }
@@ -62,7 +62,7 @@ describe ChefDk::Helpers do
           version: '1.2.3',
           platform: 'test',
           platform_version: '4.5.6',
-          machine_arch: 'x86_64'
+          machine: 'x86_64'
         }
       end
 
@@ -77,7 +77,7 @@ describe ChefDk::Helpers do
           channel: 'stable',
           platform: 'test',
           platform_version: '4.5.6',
-          machine_arch: 'x86_64'
+          machine: 'x86_64'
         }
       end
 
@@ -92,7 +92,7 @@ describe ChefDk::Helpers do
           channel: 'stable',
           version: '1.2.3',
           platform_version: '4.5.6',
-          machine_arch: 'x86_64'
+          machine: 'x86_64'
         }
       end
 
@@ -107,7 +107,7 @@ describe ChefDk::Helpers do
           channel: 'stable',
           version: '1.2.3',
           platform: 'test',
-          machine_arch: 'x86_64'
+          machine: 'x86_64'
         }
       end
 
@@ -116,7 +116,7 @@ describe ChefDk::Helpers do
       end
     end
 
-    context 'a missing machine_arch option' do
+    context 'a missing machine option' do
       let(:options) do
         {
           channel: 'stable',
