@@ -36,24 +36,17 @@ class Chef
       action :install do
         case new_resource.source
         when :direct
-          metadata = ::ChefDk::Helpers.metadata_for(
-            channel: new_resource.channel,
-            version: new_resource.version,
-            platform: node['platform'],
-            platform_version: node['platform_version'],
-            machine: node['kernel']['machine']
-          )
           local_path = ::File.join(Chef::Config[:file_cache_path],
-                                   ::File.basename(metadata[:url]))
+                                   ::File.basename(package_metadata[:url]))
           remote_file local_path do
-            source metadata[:url]
-            checksum metadata[:sha256]
+            source package_metadata[:url]
+            checksum package_metadata[:sha256]
           end
           dpkg_package local_path
         when :repo
           include_recipe "apt-chef::#{new_resource.channel}"
           package 'chefdk' do
-            version new_resource.version if new_resource.version
+            version new_resource.version unless new_resource.version.nil?
           end
         else
           local_path = ::File.join(Chef::Config[:file_cache_path],
