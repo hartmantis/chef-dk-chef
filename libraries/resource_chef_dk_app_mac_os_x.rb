@@ -29,40 +29,35 @@ class Chef
       provides :chef_dk_app, platform_family: 'mac_os_x'
 
       #
-      # Use a dmg_package resource to download and install Chef-DK.
+      # Depending on the specified source, download and install Chef-DK based
+      # on the Omnitruck API, configure and install it from Homebrew, or
+      # install it from a custom source.
       #
       action :install do
         case new_resource.source
         when :direct
-          src = package_source
-          chk = package_checksum
           dmg_package 'Chef Development Kit' do
-            app ::File.basename(src, '.dmg')
+            app ::File.basename(package_metadata[:url], '.dmg')
             volumes_dir 'Chef Development Kit'
-            source "#{'file://' if src.start_with?('/')}#{src}"
+            source package_metadata[:url]
             type 'pkg'
             package_id 'com.getchef.pkg.chefdk'
-            checksum chk
+            checksum package_metadata[:sha256]
           end
         when :repo
-          raise unless new_resource.channel == :stable
           include_recipe 'homebrew'
-          homebrew_cask '???'
-          homebrew_package 'chefdk'
+          homebrew_cask 'chefdk'
         else
-          local_path = ::File.join(Chef::Config[:file_cache_path],
-                                   ::File.basename(new_resource.source.to_s))
-          remote_file local_path do
-            source new_resource.source.to_s
-            checksum new_resource.checksum unless new_resource.checksum.nil?
-          end
           dmg_package 'Chef Development Kit' do
-            app ::File.basename(src, '.dmg')
+            app ::File.basename(new_resource.source.to_s, '.dmg')
             volumes_dir 'Chef Development Kit'
-            source "#{'file://' if src.start_with?('/')}#{src}"
+            source(
+              (new_resource.source.to_s.start_with?('/') ? 'file://' : '') + \
+              new_resource.source.to_s
+            )
             type 'pkg'
             package_id 'com.getchef.pkg.chefdk'
-            checksum chk
+            checksum new_resource.checksum unless new_resource.checksum.nil?
           end
         end
       end
@@ -74,7 +69,7 @@ class Chef
       action :remove do
         case new_resource.source
         when :repo
-          homebrew_package('chefdk') { action :remove }
+          homebrew_cask('chefdk') { action :uninstall }
         else
           ['/opt/chefdk', ::File.expand_path('~/.chefdk')].each do |d|
             directory d do

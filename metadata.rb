@@ -13,6 +13,7 @@ issues_url 'https://github.com/roboticcheese/chef-dk-chef/issues'
 
 depends 'apt-chef', '~> 1.0'
 depends 'yum-chef', '~> 1.0'
+depends 'homebrew', '~> 2.1'
 depends 'dmg', '~> 2.2'
 
 supports 'ubuntu', '>= 12.04'
