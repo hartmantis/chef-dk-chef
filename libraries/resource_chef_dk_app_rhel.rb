@@ -30,28 +30,42 @@ class Chef
       provides :chef_dk_app, platform: 'fedora'
 
       #
-      # Download and install the Chef-DK .rpm. The `rpm_package` resource
-      # doesn't accept a remote source, so this must be done in two steps.
+      # Depending on the specified source, download and install Chef-DK based
+      # on the Omnitruck API, configure and install it from YUM, or install it
+      # from a custom source.
       #
       action :install do
-        src = package_source
-        dst = ::File.join(Chef::Config[:file_cache_path],
-                          ::File.basename(src))
-        chk = package_checksum
-        remote_file dst do
-          source src
-          checksum chk
+        case new_resource.source
+        when :direct
+          local_path = ::File.join(Chef::Config[:file_cache_path],
+                                   ::File.basename(package_metadata[:url]))
+          remote_file local_path do
+            source package_metadata[:url]
+            checksum package_metadata[:sha256]
+          end
+          rpm_package local_path
+        when :repo
+          include_recipe "yum-chef::#{new_resource.channel}"
+          package 'chefdk' do
+            version new_resource.version unless new_resource.version.nil?
+          end
+        else
+          local_path = ::File.join(Chef::Config[:file_cache_path],
+                                   ::File.basename(new_resource.source.to_s))
+          remote_file local_path do
+            source new_resource.source.to_s
+            checksum new_resource.checksum unless new_resource.checksum.nil?
+          end
+          rpm_package local_path
         end
-        rpm_package dst
       end
 
       #
-      # Use the `rpm_package` resource to remove the Chef-DK.
+      # The YUM repository is shared between Chef, Chef-DK, etc. so all we can
+      # confidently do for removal is to remove the package.
       #
       action :remove do
-        package 'chefdk' do
-          action :remove
-        end
+        package('chefdk') { action :remove }
       end
     end
   end
