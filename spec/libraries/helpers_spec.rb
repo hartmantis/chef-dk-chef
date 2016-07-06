@@ -4,7 +4,7 @@ require_relative '../spec_helper'
 require_relative '../../libraries/helpers'
 
 describe ChefDk::Helpers do
-  describe '#metadata_for' do
+  describe '.metadata_for' do
     let(:options) { nil }
     let(:body) { nil }
     let(:res) { described_class.metadata_for(options) }
@@ -132,7 +132,21 @@ describe ChefDk::Helpers do
     end
   end
 
-  describe '#valid_version?' do
+  describe '.parse_metadata_body' do
+    let(:body) do
+      "sha1\tabcdef\nsha256\t123456\nurl\thttps://example.com/chefdk.pkg"
+    end
+    let(:res) { described_class.parse_metadata_body(body) }
+
+    it 'returns the expected hash' do
+      expected = { sha1: 'abcdef',
+                   sha256: '123456',
+                   url: 'https://example.com/chefdk.pkg' }
+      expect(res).to eq(expected)
+    end
+  end
+
+  describe '.valid_version?' do
     let(:version) { nil }
     let(:res) { described_class.valid_version?(version) }
 

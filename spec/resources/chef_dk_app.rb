@@ -20,7 +20,7 @@ shared_context 'resources::chef_dk_app' do
         channel: channel || :stable,
         version: version || 'latest',
         platform: platform,
-        platform_version: %r{#{platform_version}.*},
+        platform_version: /#{platform_version}.*/,
         machine: 'x86_64'
       ).and_return(
         sha1: 'abcd',

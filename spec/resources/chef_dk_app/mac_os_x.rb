@@ -13,12 +13,12 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
         shared_examples_for 'any property set' do
           it 'installs the correct Chef-DK package' do
             expect(chef_run).to install_dmg_package('Chef Development Kit')
-            .with(app: 'chefdk',
-                  volumes_dir: 'Chef Development Kit',
-                  source: "http://example.com/#{channel || 'stable'}/chefdk",
-                  type: 'pkg',
-                  package_id: 'com.getchef.pkg.chefdk',
-                  checksum: '1234')
+              .with(app: 'chefdk',
+                    volumes_dir: 'Chef Development Kit',
+                    source: "http://example.com/#{channel || 'stable'}/chefdk",
+                    type: 'pkg',
+                    package_id: 'com.getchef.pkg.chefdk',
+                    checksum: '1234')
           end
         end
 
@@ -81,12 +81,12 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
 
           it 'installs the correct Chef-DK package' do
             expect(chef_run).to install_dmg_package('Chef Development Kit')
-            .with(app: 'cdk',
-                  volumes_dir: 'Chef Development Kit',
-                  source: 'https://example.biz/cdk',
-                  type: 'pkg',
-                  package_id: 'com.getchef.pkg.chefdk',
-                  checksum: '12345')
+              .with(app: 'cdk',
+                    volumes_dir: 'Chef Development Kit',
+                    source: 'https://example.biz/cdk',
+                    type: 'pkg',
+                    package_id: 'com.getchef.pkg.chefdk',
+                    checksum: '12345')
           end
         end
 

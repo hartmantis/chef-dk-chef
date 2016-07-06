@@ -61,8 +61,8 @@ class Chef
       end
 
       def bashrc_file
-        fail(NotImplementedError,
-             "`bashrc_file` must be implemented for `#{self.class}`")
+        raise(NotImplementedError,
+              "`bashrc_file` must be implemented for `#{self.class}`")
       end
     end
   end

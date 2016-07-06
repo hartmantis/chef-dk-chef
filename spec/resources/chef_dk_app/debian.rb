@@ -17,7 +17,7 @@ shared_context 'resources::chef_dk_app::debian' do
             ).with(source: "http://example.com/#{channel || 'stable'}/chefdk",
                    checksum: '1234')
           end
- 
+
           it 'installs the downloaded package' do
             expect(chef_run).to install_dpkg_package(
               "#{Chef::Config[:file_cache_path]}/chefdk"
@@ -47,7 +47,7 @@ shared_context 'resources::chef_dk_app::debian' do
               "apt-chef::#{channel || 'stable'}"
             )
           end
- 
+
           it 'installs the chefdk package' do
             expect(chef_run).to install_package('chefdk').with(version: version)
           end

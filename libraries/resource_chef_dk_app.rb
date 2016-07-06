@@ -35,8 +35,6 @@ class Chef
       property :version,
                String,
                callbacks: {
-                 # 'Can\'t set both a `version` and a `source`' =>
-                 #   ->(_) { !%i(direct repo).include?(source) },
                  'Invalid version string' =>
                    ->(a) { ::ChefDk::Helpers.valid_version?(a) }
                }
@@ -64,11 +62,7 @@ class Chef
                  %r{^https://},
                  %r{^file://}
                ],
-               default: :direct # ,
-               # callbacks: {
-               #   'Can\'t set both a `source` and a `version`' =>
-               #     ->(a) { !a.is_a?(String) || version == 'latest' }
-               # }
+               default: :direct
 
       #
       # Accept an optional property for the checksum of a package file

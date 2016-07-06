@@ -48,9 +48,19 @@ module ChefDk
                   ['p', options.fetch(:platform)],
                   ['pv', options.fetch(:platform_version)],
                   ['m', options.fetch(:machine)]]
-        uri = URI("#{base}?#{URI.encode_www_form(params)}")
-        body = Net::HTTP.get(uri)
-        return if body.empty?
+        body = Net::HTTP.get(URI("#{base}?#{URI.encode_www_form(params)}"))
+        body.empty? ? nil : parse_metadata_body(body)
+      end
+
+      #
+      # Take the string body returned from the Omnitruck API and convert it
+      # into a hash.
+      #
+      # @param body [String] the body
+      #
+      # @return [Hash] the body parsed into a hash
+      #
+      def parse_metadata_body(body)
         body.lines.each_with_object({}) do |line, hsh|
           k, v = line.strip.split
           hsh[k.to_sym] = v
