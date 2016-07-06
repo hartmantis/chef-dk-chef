@@ -15,6 +15,7 @@ depends 'apt-chef', '~> 1.0'
 depends 'yum-chef', '~> 1.0'
 depends 'homebrew', '~> 2.1'
 depends 'dmg', '~> 2.2'
+depends 'chocolatey', '~> 1.0'
 
 supports 'ubuntu', '>= 12.04'
 supports 'debian', '>= 6.0'

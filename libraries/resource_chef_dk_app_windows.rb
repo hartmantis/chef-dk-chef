@@ -32,11 +32,22 @@ class Chef
       # Use a windows_package resource to install the Chef-DK.
       #
       action :install do
-        src = package_source
-        chk = package_checksum
-        windows_package 'Chef Development Kit' do
-          source src
-          checksum chk
+        case new_resource.source
+        when :direct
+          windows_package 'Chef Development Kit' do
+            source package_metadata[:url]
+            checksum package_metadata[:sha256]
+          end
+        when :repo
+          include_recipe 'chocolatey'
+          chocolatey_package 'chefdk' do
+            version new_resource.version unless new_resource.version.nil?
+          end
+        else
+          windows_package 'Chef Development Kit' do
+            source new_resource.source.to_s
+            checksum new_resource.checksum unless new_resource.checksum.nil?
+          end
         end
       end
 
@@ -44,8 +55,11 @@ class Chef
       # Use a windows_package resource to remove the Chef-DK.
       #
       action :remove do
-        windows_package 'Chef Development Kit' do
-          action :remove
+        case new_resource.source
+        when :repo
+          chocolatey_package('chefdk') { action :purge }
+        else
+          windows_package('Chef Development Kit') { action :remove }
         end
       end
     end
