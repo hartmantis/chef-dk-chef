@@ -61,10 +61,10 @@ class Chef
 
       #
       # The APT repository is shared between Chef, Chef-DK, etc. so all we can
-      # confidently due for removal is to remove the package.
+      # confidently do for removal is to remove the package.
       #
       action :remove do
-        package('chefdk') { action :remove }
+        package('chefdk') { action :purge }
       end
     end
   end

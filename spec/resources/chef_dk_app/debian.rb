@@ -25,22 +25,16 @@ shared_context 'resources::chef_dk_app::debian' do
           end
         end
 
-        context 'all default properties' do
-          include_context description
+        [
+          'all default properties',
+          'an overridden channel property',
+          'an overridden version property'
+        ].each do |c|
+          context c do
+            include_context description
 
-          it_behaves_like 'any property set'
-        end
-
-        context 'an overridden channel property' do
-          include_context description
-
-          it_behaves_like 'any property set'
-        end
-
-        context 'an overridden version property' do
-          include_context description
-
-          it_behaves_like 'any property set'
+            it_behaves_like 'any property set'
+          end
         end
       end
 
@@ -59,22 +53,16 @@ shared_context 'resources::chef_dk_app::debian' do
           end
         end
 
-        context 'all default properties' do
-          include_context description
+        [
+          'all default properties',
+          'an overridden channel property',
+          'an overridden version property'
+        ].each do |c|
+          context c do
+            include_context description
 
-          it_behaves_like 'any property set'
-        end
-
-        context 'an overridden channel property' do
-          include_context description
-
-          it_behaves_like 'any property set'
-        end
-
-        context 'an overridden version property' do
-          include_context description
-
-          it_behaves_like 'any property set'
+            it_behaves_like 'any property set'
+          end
         end
       end
 
@@ -121,27 +109,21 @@ shared_context 'resources::chef_dk_app::debian' do
       include_context description
 
       shared_examples_for 'any property set' do
-        it 'removes the package' do
-          expect(chef_run).to remove_package('chefdk')
+        it 'purges the package' do
+          expect(chef_run).to purge_package('chefdk')
         end
       end
 
-      context 'the default source (:direct)' do
-        include_context description
+      [
+        'the default source (:direct)',
+        'the :repo source',
+        'a custom source'
+      ].each do |c|
+        context c do
+          include_context description
 
-        it_behaves_like 'any property set'
-      end
-
-      context 'the :repo source' do
-        include_context description
-
-        it_behaves_like 'any property set'
-      end
-
-      context 'a custom source' do
-        include_context description
-
-        it_behaves_like 'any property set'
+          it_behaves_like 'any property set'
+        end
       end
     end
   end
