@@ -15,8 +15,6 @@ shared_context 'resources::chef_dk' do
         let(:source) { nil }
 
         context 'all default properties' do
-          cached(:chef_run) { converge }
-
           it 'installs the chef_dk_app' do
             expect(chef_run).to install_chef_dk_app(name)
           end
@@ -28,7 +26,6 @@ shared_context 'resources::chef_dk' do
 
         context 'an overridden global_shell_init property' do
           let(:global_shell_init) { true }
-          cached(:chef_run) { converge }
 
           it 'installs the chef_dk_app' do
             expect(chef_run).to install_chef_dk_app(name)
@@ -43,7 +40,6 @@ shared_context 'resources::chef_dk' do
 
     context 'the :remove action' do
       let(:action) { :remove }
-      cached(:chef_run) { converge }
 
       it 'disables the chef_dk_shell_init' do
         expect(chef_run).to disable_chef_dk_shell_init(name)

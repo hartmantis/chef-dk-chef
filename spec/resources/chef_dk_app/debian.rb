@@ -12,16 +12,13 @@ shared_context 'resources::chef_dk_app::debian' do
 
         shared_examples_for 'any property set' do
           it 'downloads the correct Chef-DK' do
-            expect(chef_run).to create_remote_file(
-              "#{Chef::Config[:file_cache_path]}/chefdk"
-            ).with(source: "http://example.com/#{channel || 'stable'}/chefdk",
-                   checksum: '1234')
+            expect(chef_run).to create_remote_file('/tmp/cache/chefdk')
+              .with(source: "http://example.com/#{channel || 'stable'}/chefdk",
+                    checksum: '1234')
           end
 
           it 'installs the downloaded package' do
-            expect(chef_run).to install_dpkg_package(
-              "#{Chef::Config[:file_cache_path]}/chefdk"
-            )
+            expect(chef_run).to install_dpkg_package('/tmp/cache/chefdk')
           end
         end
 
@@ -73,15 +70,12 @@ shared_context 'resources::chef_dk_app::debian' do
           include_context description
 
           it 'downloads the correct Chef-DK' do
-            expect(chef_run).to create_remote_file(
-              "#{Chef::Config[:file_cache_path]}/cdk"
-            ).with(source: 'https://example.biz/cdk', checksum: '12345')
+            expect(chef_run).to create_remote_file('/tmp/cache/cdk')
+              .with(source: 'https://example.biz/cdk', checksum: '12345')
           end
 
           it 'installs the downloaded package' do
-            expect(chef_run).to install_dpkg_package(
-              "#{Chef::Config[:file_cache_path]}/cdk"
-            )
+            expect(chef_run).to install_dpkg_package('/tmp/cache/cdk')
           end
         end
 

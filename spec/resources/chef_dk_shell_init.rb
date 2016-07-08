@@ -27,8 +27,6 @@ shared_context 'resources::chef_dk_shell_init' do
     context 'the default action (:enable)' do
       context 'the default user property (nil)' do
         context 'disabled' do
-          let(:chef_run) { converge }
-
           it 'writes the expected content to the bashrc' do
             expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
@@ -41,7 +39,6 @@ shared_context 'resources::chef_dk_shell_init' do
 
         context 'already enabled' do
           let(:enabled?) { true }
-          let(:chef_run) { converge }
 
           it 'writes the expected content to the bashrc' do
             expected = <<-EOH.gsub(/^ +/, '').strip
@@ -58,8 +55,6 @@ shared_context 'resources::chef_dk_shell_init' do
         let(:user) { 'fauxhai' }
 
         context 'disabled' do
-          let(:chef_run) { converge }
-
           it 'writes the expected content to the bashrc' do
             expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
@@ -72,7 +67,6 @@ shared_context 'resources::chef_dk_shell_init' do
 
         context 'already enabled' do
           let(:enabled?) { true }
-          let(:chef_run) { converge }
 
           it 'writes the expected content to the bashrc' do
             expected = <<-EOH.gsub(/^ +/, '').strip
@@ -92,7 +86,6 @@ shared_context 'resources::chef_dk_shell_init' do
       context 'the default user property (nil)' do
         context 'enabled' do
           let(:enabled?) { true }
-          let(:chef_run) { converge }
 
           it 'writes the expected content to the bashrc' do
             expected = <<-EOH.gsub(/^ +/, '').strip
@@ -104,8 +97,6 @@ shared_context 'resources::chef_dk_shell_init' do
         end
 
         context 'already disabled' do
-          let(:chef_run) { converge }
-
           it 'writes the expected content to the bashrc' do
             expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
@@ -121,7 +112,6 @@ shared_context 'resources::chef_dk_shell_init' do
 
         context 'enabled' do
           let(:enabled?) { true }
-          let(:chef_run) { converge }
 
           it 'writes the expected content to the bashrc' do
             expected = <<-EOH.gsub(/^ +/, '').strip
@@ -133,8 +123,6 @@ shared_context 'resources::chef_dk_shell_init' do
         end
 
         context 'already disabled' do
-          let(:chef_run) { converge }
-
           it 'writes the expected content to the bashrc' do
             expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a

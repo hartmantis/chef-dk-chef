@@ -33,41 +33,30 @@ shared_context 'resources::chef_dk_app' do
 
   shared_context 'the :remove action' do
     let(:action) { :remove }
-    cached(:chef_run) { converge }
   end
 
   shared_context 'the default source (:direct)' do
     let(:source) { nil }
-    cached(:chef_run) { converge }
   end
 
   shared_context 'the :repo source' do
     let(:source) { :repo }
-    cached(:chef_run) { converge }
   end
 
   shared_context 'a custom source' do
     let(:source) { 'https://example.biz/cdk' }
     let(:checksum) { '12345' }
-    cached(:chef_run) { converge }
   end
 
   shared_context 'all default properties' do
-    cached(:chef_run) { converge }
-  end
-
-  shared_context 'all other default properties' do
-    cached(:chef_run) { converge }
   end
 
   shared_context 'an overridden channel property' do
     let(:channel) { :current }
-    cached(:chef_run) { converge }
   end
 
   shared_context 'an overridden version property' do
     let(:version) { '4.5.6' }
-    cached(:chef_run) { converge }
   end
 
   shared_examples_for 'any platform' do

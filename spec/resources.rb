@@ -17,4 +17,5 @@ shared_context 'resources' do
     end
   end
   let(:converge) { runner.converge('chef_dk_resource_test') }
+  let(:chef_run) { converge }
 end
