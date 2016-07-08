@@ -8,7 +8,7 @@ describe 'chef-dk::default' do
   let(:runner) do
     ChefSpec::SoloRunner.new(platform) do |node|
       overrides.each do |k, v|
-        node.set['chef_dk'][k] = v
+        node.default['chef_dk'][k] = v
       end
     end
   end
