@@ -1,6 +1,6 @@
 require_relative '../resources'
 
-describe 'resources::chef_dk_shell_init' do
+shared_context 'resources::chef_dk_shell_init' do
   include_context 'resources'
 
   let(:resource) { 'chef_dk_shell_init' }
@@ -13,11 +13,12 @@ describe 'resources::chef_dk_shell_init' do
   let(:enabled?) { false }
 
   before(:each) do
-    content = <<-EOH.gsub(/^ +/, '')
+    content = <<-EOH.gsub(/^ +/, '').strip
       # Here is a
       # bashrc
     EOH
-    content << 'eval "$(chef shell-init bash)"' if enabled?
+    content << "\neval \"$(chef shell-init bash)\"" if enabled?
+    allow(File).to receive(:read).and_call_original
     allow(File).to receive(:read).with(root_bashrc).and_return(content)
     allow(File).to receive(:read).with(user_bashrc).and_return(content)
   end
@@ -26,8 +27,10 @@ describe 'resources::chef_dk_shell_init' do
     context 'the default action (:enable)' do
       context 'the default user property (nil)' do
         context 'disabled' do
+          let(:chef_run) { converge }
+
           it 'writes the expected content to the bashrc' do
-            expected = <<-EOH.gsub(/^ +/, '')
+            expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
               # bashrc
               eval "$(chef shell-init bash)"
@@ -38,9 +41,10 @@ describe 'resources::chef_dk_shell_init' do
 
         context 'already enabled' do
           let(:enabled?) { true }
+          let(:chef_run) { converge }
 
           it 'writes the expected content to the bashrc' do
-            expected = <<-EOH.gsub(/^ +/, '')
+            expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
               # bashrc
               eval "$(chef shell-init bash)"
@@ -54,8 +58,10 @@ describe 'resources::chef_dk_shell_init' do
         let(:user) { 'fauxhai' }
 
         context 'disabled' do
+          let(:chef_run) { converge }
+
           it 'writes the expected content to the bashrc' do
-            expected = <<-EOH.gsub(/^ +/, '')
+            expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
               # bashrc
               eval "$(chef shell-init bash)"
@@ -66,9 +72,10 @@ describe 'resources::chef_dk_shell_init' do
 
         context 'already enabled' do
           let(:enabled?) { true }
+          let(:chef_run) { converge }
 
           it 'writes the expected content to the bashrc' do
-            expected = <<-EOH.gsub(/^ +/, '')
+            expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
               # bashrc
               eval "$(chef shell-init bash)"
@@ -85,9 +92,10 @@ describe 'resources::chef_dk_shell_init' do
       context 'the default user property (nil)' do
         context 'enabled' do
           let(:enabled?) { true }
+          let(:chef_run) { converge }
 
           it 'writes the expected content to the bashrc' do
-            expected = <<-EOH.gsub(/^ +/, '')
+            expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
               # bashrc
             EOH
@@ -96,8 +104,10 @@ describe 'resources::chef_dk_shell_init' do
         end
 
         context 'already disabled' do
+          let(:chef_run) { converge }
+
           it 'writes the expected content to the bashrc' do
-            expected = <<-EOH.gsub(/^ +/, '')
+            expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
               # bashrc
             EOH
@@ -111,9 +121,10 @@ describe 'resources::chef_dk_shell_init' do
 
         context 'enabled' do
           let(:enabled?) { true }
+          let(:chef_run) { converge }
 
           it 'writes the expected content to the bashrc' do
-            expected = <<-EOH.gsub(/^ +/, '')
+            expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
               # bashrc
             EOH
@@ -122,8 +133,10 @@ describe 'resources::chef_dk_shell_init' do
         end
 
         context 'already disabled' do
+          let(:chef_run) { converge }
+
           it 'writes the expected content to the bashrc' do
-            expected = <<-EOH.gsub(/^ +/, '')
+            expected = <<-EOH.gsub(/^ +/, '').strip
               # Here is a
               # bashrc
             EOH

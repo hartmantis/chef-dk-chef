@@ -4,8 +4,10 @@ shared_context 'resources::chef_dk_shell_init::windows' do
   include_context 'resources::chef_dk_shell_init'
 
   shared_examples_for 'any Windows platform' do
+    let(:chef_run) { converge }
+
     it 'raises an error' do
-      expect { chef_run }.to raise_error
+      expect { chef_run }.to raise_error(NotImplementedError)
     end
   end
 end
