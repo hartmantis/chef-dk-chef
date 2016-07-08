@@ -11,7 +11,6 @@ shared_context 'resources::chef_dk' do
 
   shared_examples_for 'any platform' do
     context 'the default action (:create)' do
-
       context 'the default source (:direct)' do
         let(:source) { nil }
 

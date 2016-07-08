@@ -3,8 +3,6 @@ require_relative '../resources'
 describe 'resources::chef_dk_shell_init' do
   include_context 'resources'
 
-
-
   let(:resource) { 'chef_dk_shell_init' }
   %i(user).each { |p| let(p) { nil } }
   let(:properties) { { user: user } }
