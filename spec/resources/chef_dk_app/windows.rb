@@ -35,10 +35,8 @@ shared_context 'resources::chef_dk_app::windows' do
         include_context description
 
         before(:each) do
-          allow(Kernel).to receive(:load)
-            .with(%r{chocolatey/libraries/helpers\.rb}).and_return(true)
-          allow(Chocolatey::Helpers).to receive(:chocolatey_install)
-            .and_return('/tmp/chocolatey')
+          allow_any_instance_of(Chef::Resource)
+            .to receive(:chocolatey_installed?).and_return(false)
         end
 
         [
@@ -54,7 +52,7 @@ shared_context 'resources::chef_dk_app::windows' do
 
             it 'installs the chefdk Chocolatey package' do
               expect(chef_run).to install_chocolatey_package('chefdk')
-                .with(version: version)
+                .with(version: version && [version])
             end
           end
         end
@@ -124,7 +122,7 @@ shared_context 'resources::chef_dk_app::windows' do
         include_context description
 
         it 'purges the chefdk Chocolatey package' do
-          expect(chef_run).to purge_chocolatey_package('chefdk')
+          expect(chef_run).to remove_chocolatey_package('chefdk')
         end
       end
     end

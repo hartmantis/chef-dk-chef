@@ -57,7 +57,7 @@ class Chef
       action :remove do
         case new_resource.source
         when :repo
-          chocolatey_package('chefdk') { action :purge }
+          chocolatey_package('chefdk') { action :remove }
         else
           windows_package('Chef Development Kit') { action :remove }
         end
