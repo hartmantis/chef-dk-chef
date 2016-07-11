@@ -19,117 +19,134 @@ A cookbook for installing the Chef Development Kit.
 Requirements
 ============
 
-As of version 0.10.0, Chef-DK packages are available for RHEL/CentOS/etc. 7/6,
-Ubuntu 14.04/13.04/12.04, Debian 7/6, OS X 10.11//10.10/10.9/10.8, and Windows
-10/8.1/8/7/2012/2008. Each of these platforms is supported by this cookbook.
+This cookbook attempts to support all platforms the Chef-DK is available for.
+A complete list can be found on the
+[Chef-DK download site](https://downloads.chef.io/chef-dk/).
 
-In some cases, platforms that aren't officially supported by Chef-DK may still
-function. For example, this cookbook could be used to install the Ubuntu package
-onto a 15.10 system. YMMV.
-
-Prior to Chef 11.12.0, the core did not offer the `windows_package` resource
-that is used for installation under Windows. _This cookbook will not run on
-Windows under earlier versions of Chef._
-
-This cookbook consumes the
-[dmg cookbook](https://supermarket.chef.io/cookbooks/dmg) in order to
-support OS X installs. That cookbook's limitations, such as the inability
-to upgrade or uninstall packages, are thus present in the OS X implementation
-here.
-
-Package download information is obtained from Chef's
-[Omnitruck API](https://github.com/opscode/opscode-omnitruck) using the
-[Omnijack Gem](https://github.com/RoboticCheese/omnijack-ruby) that is
-installed at runtime.
+As of v4.0, this cookbook requires Chef 12.5+, or Chef 12.x combined with the
+[compat_resource](https://supermarket.chef.io/cookbooks/compat_resource)
+cookbook.
 
 Usage
 =====
 
-This cookbook can be implemented either by calling its resource directly, or
-adding the recipe that wraps it to your run\_list.
+Either set the desired attributes and add the default recipe to your run list
+or create a recipe of your own that uses the included custom resources.
 
 Recipes
 =======
 
 ***default***
 
-Calls the `chef_dk` resource to do a package install.
+Performs an attribute-based installation of the Chef-DK.
 
 Attributes
 ==========
 
 ***default***
 
-Attributes are provided to allow overriding of the package version or URL the
-default recipe installs:
+    default['chef_dk']['version'] = nil
 
-    default['chef_dk']['version'] = 'latest'
-    default['chef_dk']['package_url'] = nil
+If desired, a specific version of the Chef-DK can be installed rather than the
+most recent.
+
+    default['chef_dk']['source'] = nil
+
+A default install will query Chef's Omnitruck API and download the package file
+directly from wherever it points. Optional install methods are via a package
+`:repo` (APT, YUM, Homebrew, or Chocolatey) or a specific download URL.
+
     default['chef_dk']['global_shell_init'] = false
+
+Optionally make Chef-DK's built-in Ruby environment the default for all users
+on the system (note that this does not work on Windows).
 
 Resources
 =========
 
 ***chef_dk***
 
-Wraps the fetching of the package file from S3 and the package installation
-into a single resource:
+Wraps the other resources into a single parent.
 
 Syntax:
 
-    chef_dk 'my_chef_dk' do
-        version '1.2.3-4'
-        global_shell_init true
-        action :install
+    chef_dk 'default' do
+      version '1.2.3'
+      source :repo
+      global_shell_init true
+      action :create
     end
+
+Properties:
+
+| Property          | Default   | Description                             |
+|-------------------|-----------|-----------------------------------------|
+| version           | `nil`     | Install a specific version              |
+| source            | `nil`     | Install via a specific method or URL    |
+| global_shell_init | `false`   | Set ChefDK as the global default Ruby\* |
+| action            | `:create` | The action to perform                   |
+
+_\* The global Ruby env is set by a bashrc, so not compatible with Windows_
 
 Actions:
 
-| Action     | Description                   |
-|------------|-------------------------------|
-| `:install` | Default; installs the Chef-DK |
-| `:remove`  | Uninstalls the Chef-DK        |
+| Action     | Description                                  |
+|------------|----------------------------------------------|
+| `:create ` | Default; installs and configures the Chef-DK |
+| `:remove`  | Uninstalls the Chef-DK                       |
 
-Attributes:
+***chef_dk_app***
 
-| Attribute           | Default    | Description                               |
-|---------------------|------------|-------------------------------------------|
-| `version`           | `'latest'` | Install a specific version\*              |
-| `prerelease`        | `false`    | Enable installation of prerelease builds  |
-| `nightlies`         | `false`    | Enable installation of nightly builds     |
-| `package_url`       | `nil`      | DL from a specific URL\*                  |
-| `global_shell_init` | `false`    | Set ChefDK as the global default Ruby\*\* |
+Manages installation of Chef-DK.
 
-_\* A `version` and `package_url` cannot be used together_
+Syntax:
 
-_\*\* The global Ruby env is set by a bashrc, so not compatible with Windows_
+    chef_dk_app 'default' do
+      version '1.2.3'
+      channel :current
+      source :repo
+      action :install
+    end
 
-Providers
-=========
+Properties:
 
-This cookbook includes a provider for each of its supported platform families.
-By default, the `chef_dk` resource will determine a provider to used based on
-the platform on which Chef is running.
+| Property | Default    | Description                                         |
+|----------|------------|-----------------------------------------------------|
+| version  | `nil`      | Optionally install a specific version               |
+| channel  | `:stable`  | Use the `:stable` or `:current` channel             |
+| source   | `:direct`  | Install vi Omnitruck (`:direct`), a `:repo`, or URL |
+| action   | `:install` | The action to perform                               |
 
-***Chef::Provider::ChefDk***
+Actions:
 
-A generic provider of all non-platform-specific functionality.
+| Action      | Description                   
+|-------------|-------------------------------|
+| `:install ` | Default; installs the Chef-DK |
+| `:remove`   | Uninstalls the Chef-DK        |
 
-***Chef::Provider::ChefDk::Debian***
+***chef_dk_shell_init***
 
-Provides the Ubuntu platform support.
+Set Chef-DK's integrated Ruby environment as the default for a user.
 
-***Chef::Provider::ChefDk::MacOsX***
+Syntax:
 
-Provides the Mac OS X platform support.
+    chef_dk_shell_init 'myself' do
+      action :enable
+    end
 
-***Chef::Provider::ChefDk::Rhel***
+Properties:
 
-Provides the RHEL and RHELalike platform support.
+| Property | Default       | Description           |
+|----------|---------------|-----------------------|
+| user     | Resource name | The user to configure |
+| action   | `:enable`     | The action to perform |
 
-***Chef::Provider::ChefDk::Windows***
+Actions:
 
-Provides the Windows platform support.
+| Action     | Description                     |
+|------------|---------------------------------|
+| `:enable`  | Add a bashrc entry for the user |
+| `:disable` | Remove the bashrc entry         |
 
 Contributing
 ============
