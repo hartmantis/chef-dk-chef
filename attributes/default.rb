@@ -18,6 +18,6 @@
 # limitations under the License.
 #
 
-default['chef_dk']['version'] = 'latest'
-default['chef_dk']['package_url'] = nil
+default['chef_dk']['version'] = nil
+default['chef_dk']['source'] = nil
 default['chef_dk']['global_shell_init'] = false

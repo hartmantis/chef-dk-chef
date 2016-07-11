@@ -18,8 +18,10 @@
 # limitations under the  License.
 #
 
-chef_dk 'chef_dk' do
-  version node['chef_dk']['version']
-  package_url node['chef_dk']['package_url']
-  global_shell_init node['chef_dk']['global_shell_init']
+attrs = node['chef_dk']
+
+chef_dk 'default' do
+  version attrs['version'] unless attrs['version'].nil?
+  source attrs['source'] unless attrs['source'].nil?
+  global_shell_init attrs['global_shell_init']
 end

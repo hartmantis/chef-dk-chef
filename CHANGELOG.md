@@ -10,6 +10,7 @@ Unreleased
 * Add support for OS X installs via Homebrew
 * Replace `:prerelease` and `:nightlies` with a `:channel` property
 * Remove dependency on the Omnijack gem
+* Rename the `package_url` attribute to `source`
 
 v3.1.0 (2015-06-03)
 -------------------
