@@ -115,6 +115,7 @@ Properties:
 | version  | `nil`      | Optionally install a specific version               |
 | channel  | `:stable`  | Use the `:stable` or `:current` channel             |
 | source   | `:direct`  | Install vi Omnitruck (`:direct`), a `:repo`, or URL |
+| checksum | `nil`      | Optional checksum of a custom source package        |
 | action   | `:install` | The action to perform                               |
 
 Actions:
@@ -123,6 +124,32 @@ Actions:
 |-------------|-------------------------------|
 | `:install ` | Default; installs the Chef-DK |
 | `:remove`   | Uninstalls the Chef-DK        |
+
+***chef_dk_gem***
+
+Manages gems inside Chef-DK's embedded Ruby environment.
+
+Syntax:
+
+    chef_dk_gem 'rest-client' do
+      action :install
+    end
+
+Properties:
+
+| Property | Default       | Description           |
+|----------|---------------|-----------------------|
+| \*       | See note      | See note              |
+
+Actions:
+
+| Action | Description |
+|--------|-------------|
+| \*     | See note    |
+
+\* Properties and actions for the chef_dk_gem resource are the same as for
+Chef's built-in [gem_package](https://docs.chef.io/resource_gem_package.html)
+resource.
 
 ***chef_dk_shell_init***
 
