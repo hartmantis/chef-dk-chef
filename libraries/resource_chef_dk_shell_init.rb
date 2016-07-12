@@ -29,16 +29,12 @@ class Chef
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDkShellInit < Resource
       #
-      # Property to allow specifying a single user whose bashrc should be
-      # modified instead of the global one.
+      # Property for the user whose bashrc should be modified. If set to 'root',
+      # it will be set globally.
       #
-      property :user, [String, nil], default: nil
+      property :user, String, name_property: true
 
       default_action :enable
-
-      load_current_value do
-        current_value_does_not_exist!
-      end
 
       action :enable do
         file bashrc_file do

@@ -30,10 +30,11 @@ class Chef
       provides :chef_dk_shell_init, platform_family: 'fedora'
 
       def bashrc_file
-        if user
-          ::File.join(node['etc']['passwd'][user]['dir'], '.bashrc')
-        else
+        case user
+        when 'root'
           '/etc/bashrc'
+        else
+          ::File.join(node['etc']['passwd'][user]['dir'], '.bashrc')
         end
       end
     end

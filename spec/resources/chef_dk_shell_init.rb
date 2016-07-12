@@ -4,9 +4,8 @@ shared_context 'resources::chef_dk_shell_init' do
   include_context 'resources'
 
   let(:resource) { 'chef_dk_shell_init' }
-  %i(user).each { |p| let(p) { nil } }
-  let(:properties) { { user: user } }
-  let(:name) { 'default' }
+  let(:properties) { {} }
+  let(:name) { nil }
 
   let(:root_bashrc) { nil }
   let(:user_bashrc) { nil }
@@ -19,13 +18,16 @@ shared_context 'resources::chef_dk_shell_init' do
     EOH
     content << "\neval \"$(chef shell-init bash)\"" if enabled?
     allow(File).to receive(:read).and_call_original
-    allow(File).to receive(:read).with(root_bashrc).and_return(content)
-    allow(File).to receive(:read).with(user_bashrc).and_return(content)
+    allow(File).to receive(:read).with(
+      name == 'root' ? root_bashrc : user_bashrc
+    ).and_return(content)
   end
 
   shared_examples_for 'any supported platform' do
     context 'the default action (:enable)' do
-      context 'the default user property (nil)' do
+      context 'the root user' do
+        let(:name) { 'root' }
+
         context 'disabled' do
           it 'writes the expected content to the bashrc' do
             expected = <<-EOH.gsub(/^ +/, '').strip
@@ -51,8 +53,8 @@ shared_context 'resources::chef_dk_shell_init' do
         end
       end
 
-      context 'an overridden user property' do
-        let(:user) { 'fauxhai' }
+      context 'a non-root user' do
+        let(:name) { 'fauxhai' }
 
         context 'disabled' do
           it 'writes the expected content to the bashrc' do
@@ -83,7 +85,9 @@ shared_context 'resources::chef_dk_shell_init' do
     context 'the :disable action' do
       let(:action) { :disable }
 
-      context 'the default user property (nil)' do
+      context 'the root user' do
+        let(:name) { 'root' }
+
         context 'enabled' do
           let(:enabled?) { true }
 
@@ -107,8 +111,8 @@ shared_context 'resources::chef_dk_shell_init' do
         end
       end
 
-      context 'an overridden user property' do
-        let(:user) { 'fauxhai' }
+      context 'a non-root user' do
+        let(:name) { 'fauxhai' }
 
         context 'enabled' do
           let(:enabled?) { true }
