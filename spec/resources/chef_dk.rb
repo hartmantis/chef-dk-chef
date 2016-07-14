@@ -5,8 +5,8 @@ shared_context 'resources::chef_dk' do
   include_context 'resources'
 
   let(:resource) { 'chef_dk' }
-  %i(global_shell_init).each { |p| let(p) { nil } }
-  let(:properties) { { global_shell_init: global_shell_init } }
+  %i(gems shell_users).each { |p| let(p) { nil } }
+  let(:properties) { { gems: gems, shell_users: shell_users } }
   let(:name) { 'default' }
 
   shared_examples_for 'any platform' do
@@ -24,15 +24,22 @@ shared_context 'resources::chef_dk' do
           end
         end
 
-        context 'an overridden global_shell_init property' do
-          let(:global_shell_init) { true }
+        context 'an overridden gems property' do
+          let(:gems) { %w(gem1 test2) }
 
-          it 'installs the chef_dk_app' do
-            expect(chef_run).to install_chef_dk_app(name)
+          it 'installs the desired gems' do
+            %w(gem1 test2).each do |g|
+              expect(chef_run).to install_chef_dk_gem(g)
           end
+        end
 
-          it 'enables the chef_dk_shell_init' do
-            expect(chef_run).to enable_chef_dk_shell_init(name)
+        context 'an overridden shell_users property' do
+          let(:shell_users) { %w(me them) }
+
+          it 'enables shell_init for the desired users' do
+            %w(me them).each do |u|
+              expect(chef_run).to enable_chef_dk_shell_init(u)
+            end
           end
         end
       end

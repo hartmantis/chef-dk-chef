@@ -31,18 +31,23 @@ class Chef
       default_action :create
 
       #
-      # Optionally set ChefDK's Ruby env as the default for all users
+      # Property for a list of gems to install inside Chef-DK's included Ruby.
       #
-      property :global_shell_init, [TrueClass, FalseClass], default: false
+      property :gems, Array, default: []
+
+      #
+      # Property for a list of users for whom to set Chef-DK's included Ruby
+      # environment as the default.
+      #
+      property :shell_users, Array, default: []
 
       #
       # Install the ChefDK and configure shell init as appropriate
       #
       action :create do
         chef_dk_app new_resource.name
-        chef_dk_shell_init new_resource.name do
-          action new_resource.global_shell_init ? :enable : :disable
-        end
+        new_resource.gems.each { |g| chef_dk_gem(g) }
+        new_resource.shell_users.each { |u| chef_dk_shell_init(u) }
       end
 
       #

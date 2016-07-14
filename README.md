@@ -79,14 +79,16 @@ Syntax:
 
 Properties:
 
-| Property          | Default   | Description                             |
-|-------------------|-----------|-----------------------------------------|
-| version           | `nil`     | Install a specific version              |
-| source            | `nil`     | Install via a specific method or URL    |
-| global_shell_init | `false`   | Set ChefDK as the global default Ruby\* |
-| action            | `:create` | The action to perform                   |
+| Property    | Default   | Description                                      |
+|-------------|-----------|--------------------------------------------------|
+| version     | `nil`     | Install a specific version                       |
+| source      | `nil`     | Install via a specific method or URL             |
+| gems        | `[]`      | Gems to install in Chef-DK's Ruby                |
+| shell_users | `[]`      | Users for whom to make Chef-DK's Ruby default \* |
+| action      | `:create` | The action to perform                            |
 
-_\* The global Ruby env is set by a bashrc, so not compatible with Windows_
+_\* This setting uses bashrc and profile files, so is not compatible with
+Windows_
 
 Actions:
 
