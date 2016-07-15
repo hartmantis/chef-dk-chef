@@ -12,9 +12,10 @@ shared_context 'resources::chef_dk_app::windows' do
 
         shared_examples_for 'any property set' do
           it 'installs the correct Chef-DK package' do
-            expect(chef_run).to install_windows_package('Chef Development Kit')
-              .with(source: "http://example.com/#{channel || 'stable'}/chefdk",
-                    checksum: '1234')
+            expect(chef_run).to install_package('Chef Development Kit').with(
+              source: "http://example.com/#{channel || 'stable'}/chefdk",
+              checksum: '1234'
+            )
           end
         end
 
@@ -74,9 +75,10 @@ shared_context 'resources::chef_dk_app::windows' do
           include_context description
 
           it 'installs the correct Chef-DK package' do
-            expect(chef_run).to install_windows_package('Chef Development Kit')
-              .with(source: 'https://example.biz/cdk',
-                    checksum: '12345')
+            expect(chef_run).to install_package('Chef Development Kit').with(
+              source: 'https://example.biz/cdk',
+              checksum: '12345'
+            )
           end
         end
 
@@ -111,9 +113,7 @@ shared_context 'resources::chef_dk_app::windows' do
           include_context description
 
           it 'removes the Chef-DK Windows package' do
-            expect(chef_run).to remove_windows_package(
-              'Chef Development Kit'
-            )
+            expect(chef_run).to remove_package('Chef Development Kit')
           end
         end
       end

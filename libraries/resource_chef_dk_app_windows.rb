@@ -29,12 +29,12 @@ class Chef
       provides :chef_dk_app, platform_family: 'windows'
 
       #
-      # Use a windows_package resource to install the Chef-DK.
+      # Install the Chef-DK Windows package from the appropriate source.
       #
       action :install do
         case new_resource.source
         when :direct
-          windows_package 'Chef Development Kit' do
+          package 'Chef Development Kit' do
             source package_metadata[:url]
             checksum package_metadata[:sha256]
           end
@@ -44,7 +44,7 @@ class Chef
             version new_resource.version unless new_resource.version.nil?
           end
         else
-          windows_package 'Chef Development Kit' do
+          package 'Chef Development Kit' do
             source new_resource.source.to_s
             checksum new_resource.checksum unless new_resource.checksum.nil?
           end
@@ -52,14 +52,14 @@ class Chef
       end
 
       #
-      # Use a windows_package resource to remove the Chef-DK.
+      # Remove the Chef-DK Windows package.
       #
       action :remove do
         case new_resource.source
         when :repo
           chocolatey_package('chefdk') { action :remove }
         else
-          windows_package('Chef Development Kit') { action :remove }
+          package('Chef Development Kit') { action :remove }
         end
       end
     end
