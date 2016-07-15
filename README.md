@@ -56,10 +56,15 @@ A default install will query Chef's Omnitruck API and download the package file
 directly from wherever it points. Optional install methods are via a package
 `:repo` (APT, YUM, Homebrew, or Chocolatey) or a specific download URL.
 
-    default['chef_dk']['global_shell_init'] = false
+    default['chef_dk']['gems'] = nil
 
-Optionally make Chef-DK's built-in Ruby environment the default for all users
-on the system (note that this does not work on Windows).
+This can be overridden to install a desired list of gems in Chef-DK's embedded
+Ruby environment.
+
+    default['chef_dk']['shell_users'] = nil
+
+A list of users can provided for whom to make Chef's Ruby environment the
+default.
 
 Resources
 =========

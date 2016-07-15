@@ -18,6 +18,9 @@
 # limitations under the License.
 #
 
-default['chef_dk']['version'] = nil
-default['chef_dk']['source'] = nil
-default['chef_dk']['global_shell_init'] = false
+default['chef_dk'].tap do |c|
+  c['version'] = nil
+  c['source'] = nil
+  c['shell_users'] = nil
+  c['gems'] = nil
+end
