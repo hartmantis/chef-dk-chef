@@ -54,6 +54,7 @@ class Chef
             lines.delete('eval "$(chef shell-init bash)"')
             lines.join("\n")
           }
+          only_if { ::File.exist?(bashrc_file) }
         end
       end
 
