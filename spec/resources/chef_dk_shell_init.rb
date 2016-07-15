@@ -9,6 +9,7 @@ shared_context 'resources::chef_dk_shell_init' do
 
   let(:root_bashrc) { nil }
   let(:user_bashrc) { nil }
+  let(:exist?) { true }
   let(:enabled?) { false }
 
   before(:each) do
@@ -17,6 +18,9 @@ shared_context 'resources::chef_dk_shell_init' do
       # bashrc
     EOH
     content << "\neval \"$(chef shell-init bash)\"" if enabled?
+    allow(File).to receive(:exist?).with(
+      name == 'root' ? root_bashrc : user_bashrc
+    ).and_return(exist?)
     allow(File).to receive(:read).and_call_original
     allow(File).to receive(:read).with(
       name == 'root' ? root_bashrc : user_bashrc
@@ -134,6 +138,15 @@ shared_context 'resources::chef_dk_shell_init' do
             EOH
             expect(chef_run).to create_file(user_bashrc).with(content: expected)
           end
+        end
+      end
+
+      context 'a user who has no bashrc' do
+        let(:name) { 'fauxhai' }
+        let(:exist?) { false }
+
+        it 'does not write the bashrc file' do
+          expect(chef_run).to_not create_file(user_bashrc)
         end
       end
     end

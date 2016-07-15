@@ -54,8 +54,10 @@ class Chef
       # Remove the ChefDK.
       #
       action :remove do
-        chef_dk_shell_init new_resource.name do
-          action :disable
+        unless node['platform_family'] == 'windows'
+          node['etc']['passwd'].keys.each do |u|
+            chef_dk_shell_init(u) { action :disable }
+          end
         end
         chef_dk_app(new_resource.name) { action :remove }
       end

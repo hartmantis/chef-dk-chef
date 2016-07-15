@@ -18,10 +18,6 @@ shared_context 'resources::chef_dk' do
           it 'installs the chef_dk_app' do
             expect(chef_run).to install_chef_dk_app(name)
           end
-
-          it 'disables the chef_dk_shell_init' do
-            expect(chef_run).to disable_chef_dk_shell_init(name)
-          end
         end
 
         context 'an overridden gems property' do
@@ -30,6 +26,7 @@ shared_context 'resources::chef_dk' do
           it 'installs the desired gems' do
             %w(gem1 test2).each do |g|
               expect(chef_run).to install_chef_dk_gem(g)
+            end
           end
         end
 
@@ -48,8 +45,13 @@ shared_context 'resources::chef_dk' do
     context 'the :remove action' do
       let(:action) { :remove }
 
-      it 'disables the chef_dk_shell_init' do
-        expect(chef_run).to disable_chef_dk_shell_init(name)
+      it 'disables the shell_init for every system user' do
+        unless platform == 'windows'
+          cr = chef_run
+          cr.node['etc']['passwd'].keys.each do |user|
+            expect(cr).to disable_chef_dk_shell_init(user)
+          end
+        end
       end
 
       it 'removes the chef_dk_app' do
