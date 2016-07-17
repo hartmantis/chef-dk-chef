@@ -50,11 +50,19 @@ Attributes
 If desired, a specific version of the Chef-DK can be installed rather than the
 most recent.
 
+    default['chef_dk']['channel'] = nil
+
+The package channel to install Chef-DK from (`:stable` or `:current`).
+
     default['chef_dk']['source'] = nil
 
 A default install will query Chef's Omnitruck API and download the package file
 directly from wherever it points. Optional install methods are via a package
 `:repo` (APT, YUM, Homebrew, or Chocolatey) or a specific download URL.
+
+    default['chef_dk']['checksum'] = nil
+
+The optional checksum of the package if a custom source is provided.
 
     default['chef_dk']['gems'] = nil
 
@@ -87,7 +95,9 @@ Properties:
 | Property    | Default   | Description                                      |
 |-------------|-----------|--------------------------------------------------|
 | version     | `nil`     | Install a specific version                       |
+| channel     | `nil`     | Install from a specific channel                  |
 | source      | `nil`     | Install via a specific method or URL             |
+| checksum    | `nil`     | Checksum of a custom source package file         |
 | gems        | `[]`      | Gems to install in Chef-DK's Ruby                |
 | shell_users | `[]`      | Users for whom to make Chef-DK's Ruby default \* |
 | action      | `:create` | The action to perform                            |

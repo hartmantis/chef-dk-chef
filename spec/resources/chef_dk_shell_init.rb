@@ -18,6 +18,7 @@ shared_context 'resources::chef_dk_shell_init' do
       # bashrc
     EOH
     content << "\neval \"$(chef shell-init bash)\"" if enabled?
+    allow(File).to receive(:exist?).and_call_original
     allow(File).to receive(:exist?).with(
       name == 'root' ? root_bashrc : user_bashrc
     ).and_return(exist?)

@@ -31,6 +31,15 @@ class Chef
       default_action :create
 
       #
+      # Accept certain properties to pass on to the embedded chef_dk_app
+      # resource.
+      #
+      property :version, String
+      property :channel, Symbol, coerce: proc { |v| v.to_sym }
+      property :source, Symbol, coerce: proc { |v| v.to_sym }
+      property :checksum, String
+
+      #
       # Property for a list of gems to install inside Chef-DK's included Ruby.
       #
       property :gems, Array, default: []
@@ -45,7 +54,12 @@ class Chef
       # Install the ChefDK and configure shell init as appropriate
       #
       action :create do
-        chef_dk_app new_resource.name
+        chef_dk_app new_resource.name do
+          version new_resource.version unless new_resource.version.nil?
+          channel new_resource.channel unless new_resource.channel.nil?
+          source new_resource.source unless new_resource.source.nil?
+          checksum new_resource.checksum unless new_resource.checksum.nil?
+        end
         new_resource.gems.each { |g| chef_dk_gem(g) }
         new_resource.shell_users.each { |u| chef_dk_shell_init(u) }
       end

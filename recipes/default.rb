@@ -21,8 +21,10 @@
 attrs = node['chef_dk']
 
 chef_dk 'default' do
-  # TODO: version attrs['version'] unless attrs['version'].nil?
-  # TODO: source attrs['source'] unless attrs['source'].nil?
+  version attrs['version'] unless attrs['version'].nil?
+  channel attrs['channel'] unless attrs['channel'].nil?
+  source attrs['source'] unless attrs['source'].nil?
+  checksum attrs['checksum'] unless attrs['checksum'].nil?
   gems attrs['gems'] unless attrs['gems'].nil?
   shell_users attrs['shell_users'] unless attrs['shell_users'].nil?
 end

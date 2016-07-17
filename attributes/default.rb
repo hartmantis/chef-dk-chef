@@ -20,7 +20,9 @@
 
 default['chef_dk'].tap do |c|
   c['version'] = nil
+  c['channel'] = nil
   c['source'] = nil
+  c['checksum'] = nil
   c['shell_users'] = nil
   c['gems'] = nil
 end
