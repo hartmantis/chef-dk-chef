@@ -19,6 +19,7 @@
 #
 
 require 'chef/resource'
+require_relative 'resource_chef_dk_app'
 
 class Chef
   class Resource
@@ -31,13 +32,12 @@ class Chef
       default_action :create
 
       #
-      # Accept certain properties to pass on to the embedded chef_dk_app
-      # resource.
+      # Accept all the chef_dk_app resource's properties so they can be passed
+      # on to the embedded chef_dk_app resource.
       #
-      property :version, String
-      property :channel, Symbol, coerce: proc { |v| v.to_sym }
-      property :source, Symbol, coerce: proc { |v| v.to_sym }
-      property :checksum, String
+      Chef::Resource::ChefDkApp.state_properties.each do |prop|
+        property prop.name, prop.options
+      end
 
       #
       # Property for a list of gems to install inside Chef-DK's included Ruby.
@@ -55,9 +55,11 @@ class Chef
       #
       action :create do
         chef_dk_app new_resource.name do
-          version new_resource.version unless new_resource.version.nil?
-          channel new_resource.channel unless new_resource.channel.nil?
-          source new_resource.source unless new_resource.source.nil?
+          Chef::Resource::ChefDkApp.state_properties.each do |prop|
+            unless new_resource.send(prop.name).nil?
+              send(prop.name, new_resource.send(prop.name))
+            end
+          end
           checksum new_resource.checksum unless new_resource.checksum.nil?
         end
         new_resource.gems.each { |g| chef_dk_gem(g) }
