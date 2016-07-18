@@ -19,10 +19,9 @@
 #
 
 default['chef_dk'].tap do |c|
-  c['version'] = nil
-  c['channel'] = nil
-  c['source'] = nil
-  c['checksum'] = nil
+  Chef::Resource::ChefDkApp.state_properties.each do |prop|
+    c[prop.name] = nil
+  end
   c['shell_users'] = nil
   c['gems'] = nil
 end

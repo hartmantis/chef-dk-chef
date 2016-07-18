@@ -21,10 +21,9 @@
 attrs = node['chef_dk']
 
 chef_dk 'default' do
-  version attrs['version'] unless attrs['version'].nil?
-  channel attrs['channel'] unless attrs['channel'].nil?
-  source attrs['source'] unless attrs['source'].nil?
-  checksum attrs['checksum'] unless attrs['checksum'].nil?
+  Chef::Resource::ChefDkApp.state_properties.each do |prop|
+    send(prop.name, attrs[prop.name]) unless attrs[prop.name].nil?
+  end
   gems attrs['gems'] unless attrs['gems'].nil?
   shell_users attrs['shell_users'] unless attrs['shell_users'].nil?
 end
