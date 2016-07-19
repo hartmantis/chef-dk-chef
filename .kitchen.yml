@@ -26,29 +26,16 @@ platforms:
 suites:
   - name: default
     run_list:
-      - recipe[chef-dk]
+      - recipe[chef-dk_test]
   - name: remove
     run_list:
       - recipe[chef-dk_test::remove]
-    attributes:
-      chef_dk:
-        global_shell_init: true
-    excludes:
-      - macosx
-      - windows-2012
-      - windows
-  - name: global_shell_init
-    run_list:
-      - recipe[chef-dk]
-    attributes:
-      chef_dk:
-        global_shell_init: true
   - name: install_from_specific_url
     run_list:
-      - recipe[chef-dk]
+      - recipe[chef-dk_test]
     attributes:
       chef_dk:
-        package_url: https://packages.chef.io/stable/ubuntu/12.04/chefdk_0.14.25-1_amd64.deb
+        source: https://packages.chef.io/stable/ubuntu/12.04/chefdk_0.14.25-1_amd64.deb
     excludes:
       - ubuntu-16.04
       - ubuntu-12.04
