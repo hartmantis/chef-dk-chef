@@ -5,6 +5,7 @@ describe 'resources::chef_dk_shell_init::windows::10' do
 
   let(:platform) { 'windows' }
   let(:platform_version) { '10' }
+  let(:name) { 'admin' }
 
   it_behaves_like 'any Windows platform'
 end
