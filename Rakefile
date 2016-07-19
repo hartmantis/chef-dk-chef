@@ -11,7 +11,7 @@ require 'stove/rake_task'
 RuboCop::RakeTask.new
 
 FoodCritic::Rake::LintTask.new do |f|
-  f.options = { fail_tags: %w(any) }
+  f.options = { fail_tags: %w(any), tags: %w(~FC009) }
 end
 
 RSpec::Core::RakeTask.new(:spec)
