@@ -33,7 +33,14 @@ class Chef
       property :gem_binary,
                String,
                desired_state: false,
-               default: ::File.expand_path('/opt/chefdk/embedded/bin/gem')
+               default: lazy {
+                 case node['platform_family']
+                 when 'windows'
+                   ::File.expand_path('/opscode/chefdk/embedded/bin/gem')
+                 else
+                   ::File.expand_path('/opt/chefdk/embedded/bin/gem')
+                 end
+               }
 
       #
       # Overload the GemPackage constructor so we use Chef's built-in RubyGems

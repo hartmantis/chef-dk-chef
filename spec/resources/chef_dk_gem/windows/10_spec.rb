@@ -1,10 +1,10 @@
-require_relative '../../chef_dk_gem'
+require_relative '../windows'
 
 describe 'resources::chef_dk_gem::windows::10' do
-  include_context 'resources::chef_dk_gem'
+  include_context 'resources::chef_dk_gem::windows'
 
   let(:platform) { 'windows' }
   let(:platform_version) { '10' }
 
-  it_behaves_like 'any platform'
+  it_behaves_like 'any Windows platform'
 end

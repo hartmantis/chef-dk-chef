@@ -58,14 +58,4 @@ shared_context 'resources::chef_dk_app' do
   shared_context 'an overridden version property' do
     let(:version) { '4.5.6' }
   end
-
-  shared_examples_for 'any platform' do
-    include_context 'the :remove action'
-    include_context 'an overridden version property'
-
-    it 'raises an error' do
-      e = Chef::Exceptions::ValidationFailed
-      expect { chef_run }.to raise_error(e)
-    end
-  end
 end

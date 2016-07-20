@@ -9,10 +9,11 @@ shared_context 'resources' do
     ) do |node|
       %i(resource name action).each do |p|
         next if send(p).nil?
-        node.default['chef_dk_resource_test'][p] = send(p) unless send(p).nil?
+        node.default['chef_dk_resource_test'][p] = send(p)
       end
       properties.each do |k, v|
-        node.default['chef_dk_resource_test']['properties'][k] = v unless v.nil?
+        next if v.nil?
+        node.default['chef_dk_resource_test']['properties'][k] = v
       end
     end
   end

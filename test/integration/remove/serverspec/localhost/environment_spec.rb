@@ -19,4 +19,19 @@ describe 'chef-dk::remove::environment' do
            if: %w(ubuntu debian).include?(os[:family]) do
     it_behaves_like 'file without chef shell-init'
   end
+
+  describe file('/opt/chefdk/embedded/bin/rubygems-cabin-test'),
+           if: os[:family] != 'windows' do
+    it 'does not exist' do
+      expect(subject).to_not exist
+    end
+  end
+
+  describe file(
+    '~/AppData/Local/chefdk/gem/ruby/2.1.0/bin/rubygems-cabin-test'
+  ), if: os[:family] == 'windows'  do
+    it 'does not exist' do
+      expect(subject).to_not exist
+    end
+  end
 end

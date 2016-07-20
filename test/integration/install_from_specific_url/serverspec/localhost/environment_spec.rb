@@ -6,7 +6,7 @@ describe 'chef-dk::install_from_specific_url::environment' do
   shared_examples_for 'file with chef shell-init' do
     it 'contains the chef shell-init command' do
       matcher = /^eval "\$\(chef shell-init bash\)"$/
-      expect(subject.content).to_not match(matcher)
+      expect(subject.content).to match(matcher)
     end
   end
 
@@ -20,9 +20,18 @@ describe 'chef-dk::install_from_specific_url::environment' do
     it_behaves_like 'file with chef shell-init'
   end
 
-  describe command('/opt/chefdk/embedded/bin/gem list omnijack') do
-    it 'show the requested gem is installed' do
-      expect(subject.stdout).to match(/^omnijack \(/)
+  describe command('/opt/chefdk/embedded/bin/gem list cabin'),
+           if: os[:family] != 'windows' do
+    it 'shows the requested gem is installed' do
+      expect(subject.stdout).to match(/^cabin \(/)
+    end
+  end
+
+  describe file(
+    '~/AppData/Local/chefdk/gem/ruby/2.1.0/bin/rubygems-cabin-test'
+  ), if: os[:family] == 'windows'  do
+    it 'shows the requested gem is installed' do
+      expect(subject).to exist
     end
   end
 end
