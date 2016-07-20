@@ -3,15 +3,15 @@ branches:
     - master
 
 cache:
-  - '%TEMP%\verifier\gems'
+  - vendor/bundle
+  - '%TEMP%/verifier/gems'
 
 install:
-  - cinst chefdk
-  - SET PATH=C:\opscode\chefdk\bin;%PATH%
+  - set PATH=C:\Ruby23\bin;%PATH%
+  - bundle install --path vendor/bundle --without development integration
 
 build_script:
-  - chef exec bundle install --without=development integration
   - copy .kitchen.appveyor.yml .kitchen.local.yml
 
 test_script:
-  - chef exec kitchen test
+  - bundle exec kitchen test
