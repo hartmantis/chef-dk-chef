@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../linux'
 
 describe 'resources::chef_dk_gem::centos::6_8' do

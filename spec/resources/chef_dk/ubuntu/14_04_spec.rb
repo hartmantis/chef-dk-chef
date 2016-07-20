@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../../chef_dk'
 
 describe 'resources::chef_dk::ubuntu::14_04' do

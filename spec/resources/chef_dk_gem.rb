@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../resources'
 
 shared_context 'resources::chef_dk_gem' do

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../../chef_dk'
 
 describe 'resources::chef_dk::centos::7_2_1511' do

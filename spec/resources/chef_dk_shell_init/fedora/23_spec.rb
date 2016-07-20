@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../rhel'
 
 describe 'resources::chef_dk_shell_init::fedora::23' do

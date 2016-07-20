@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../linux'
 
 describe 'resources::chef_dk_gem::fedora::23' do

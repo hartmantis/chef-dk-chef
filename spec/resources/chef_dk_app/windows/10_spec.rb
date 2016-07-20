@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../windows'
 
 describe 'resources::chef_dk_app::windows::10' do
