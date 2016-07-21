@@ -7,6 +7,8 @@ cache:
   - '%TEMP%/verifier/gems'
 
 install:
+  - ps: Start-FileDownload 'https://curl.haxx.se/ca/cacert.pem'
+  - set SSL_CERT_FILE=cacert.pem
   - set PATH=C:\Ruby23\bin;%PATH%
   - bundle install --path vendor/bundle --without development integration
 
