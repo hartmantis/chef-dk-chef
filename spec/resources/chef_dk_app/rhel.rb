@@ -105,7 +105,7 @@ shared_context 'resources::chef_dk_app::rhel' do
 
       shared_examples_for 'any property set' do
         it 'removes the package' do
-          expect(chef_run).to remove_package('chefdk')
+          expect(chef_run).to remove_rpm_package('chefdk')
         end
       end
 

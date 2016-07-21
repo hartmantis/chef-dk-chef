@@ -66,7 +66,7 @@ class Chef
       # confidently do for removal is to remove the package.
       #
       action :remove do
-        package('chefdk') { action :remove }
+        rpm_package('chefdk') { action :remove }
       end
     end
   end
