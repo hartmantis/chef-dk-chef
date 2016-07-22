@@ -35,7 +35,8 @@ class Chef
       action :install do
         case new_resource.source
         when :direct
-          package 'Chef Development Kit' do
+          ver = new_resource.version || package_metadata[:version]
+          package "Chef Development Kit v#{ver}" do
             source package_metadata[:url]
             checksum package_metadata[:sha256]
           end
@@ -45,7 +46,8 @@ class Chef
             version new_resource.version unless new_resource.version.nil?
           end
         else
-          package 'Chef Development Kit' do
+          ver = new_resource.version || package_metadata[:version]
+          package "Chef Development Kit v#{ver}" do
             source new_resource.source.to_s
             checksum new_resource.checksum unless new_resource.checksum.nil?
           end
