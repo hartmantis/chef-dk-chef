@@ -19,6 +19,7 @@
 # limitations under the License.
 #
 
+require 'chef/mixin/powershell_out'
 require_relative 'resource_chef_dk_app'
 
 class Chef
@@ -27,6 +28,8 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDkAppWindows < ChefDkApp
+      include Chef::Mixin::PowershellOut
+
       provides :chef_dk_app, platform_family: 'windows'
 
       #
@@ -62,7 +65,12 @@ class Chef
         when :repo
           chocolatey_package('chefdk') { action :remove }
         else
-          package('Chef Development Kit') { action :remove }
+          pkgs = powershell_out!('Get-WmiObject -Class win32_product').stdout
+          name = pkgs.lines.find do |l|
+            l.match(/^Name\W+:\W+Chef Development Kit/)
+          end
+          name = name.nil? ? 'Chef Development Kit' : name.split(':')[1].strip
+          package(name) { action :remove }
         end
       end
     end

@@ -108,6 +108,32 @@ shared_context 'resources::chef_dk_app::windows' do
     context 'the :remove action' do
       include_context description
 
+      let(:listed?) { true }
+      let(:pkg_list) do
+        pl = <<-EOH.gsub(/^ +/, '')
+          Identifying Number  : {abc123}
+          Name                : Test App 3.1.4
+          Vendor              : Thumb Monkey Industries
+          Version             : 3.1.41.1
+          Caption             : Test App 3.1.4
+        EOH
+        listed? && pl << <<-EOH.gsub(/^ +/, '')
+          Identifying Number  : {456789}
+          Name                : Chef Development Kit v0.16.28
+          Vendor              : Chef Software, Inc.
+          Version             : 0.16.28.1
+          Caption             : Chef Development Kit v0.16.28
+        EOH
+        pl
+      end
+
+      before(:each) do
+        allow_any_instance_of(Chef::Mixin::PowershellOut)
+          .to receive(:powershell_out!)
+          .with('Get-WmiObject -Class win32_product')
+          .and_return(double(stdout: pkg_list))
+      end
+
       [
         'the default source (:direct)',
         'a custom source'
@@ -115,8 +141,22 @@ shared_context 'resources::chef_dk_app::windows' do
         context c do
           include_context description
 
-          it 'removes the Chef-DK Windows package' do
-            expect(chef_run).to remove_package('Chef Development Kit')
+          context 'app in the installed list' do
+            let(:listed?) { true }
+
+            it 'removes the Chef-DK Windows package' do
+              expect(chef_run).to remove_package(
+                'Chef Development Kit v0.16.28'
+              )
+            end
+          end
+
+          context 'app not in the installed list' do
+            let(:listed?) { false }
+
+            it 'falls back to a default package name' do
+              expect(chef_run).to remove_package('Chef Development Kit')
+            end
           end
         end
       end
