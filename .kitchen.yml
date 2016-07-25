@@ -30,7 +30,19 @@ suites:
   - name: remove
     run_list:
       - recipe[chef-dk_test::remove]
-  - name: install_from_specific_url
+  - name: repo
+    run_list:
+      - recipe[chef-dk_test]
+    attributes:
+      chef_dk:
+        source: repo
+  - name: repo_remove
+    run_list:
+      - recipe[chef-dk_test::remove]
+    attributes:
+      chef_dk:
+        source: repo
+  - name: custom
     run_list:
       - recipe[chef-dk_test]
     attributes:

@@ -3,7 +3,7 @@
 
 require_relative '../spec_helper'
 
-describe 'chef-dk::install_from_specific_url::environment' do
+describe 'chef-dk::repo::environment' do
   shared_examples_for 'file with chef shell-init' do
     it 'contains the chef shell-init command' do
       matcher = /^eval "\$\(chef shell-init bash\)"$/
