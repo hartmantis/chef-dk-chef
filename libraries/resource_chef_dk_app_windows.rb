@@ -65,12 +65,21 @@ class Chef
         when :repo
           chocolatey_package('chefdk') { action :remove }
         else
-          pkgs = powershell_out!('Get-WmiObject -Class win32_product').stdout
-          name = pkgs.lines.find do |l|
-            l.match(/^Name\W+:\W+Chef Development Kit/)
+          shout = powershell_out!('Get-WmiObject -Class win32_product').stdout
+          pkgs = shout.strip.split(/^\W*$/).map do |pkg|
+            pkg.strip.lines.each_with_object({}) do |line, hsh|
+              k, v = line.split(':').map(&:strip)
+              hsh[k] = v
+            end
           end
-          name = name.nil? ? 'Chef Development Kit' : name.split(':')[1].strip
-          package(name) { action :remove }
+          pkg = pkgs.find { |p| p['Name'].match(/^Chef Development Kit/) }
+          if pkg
+            execute "Uninstall #{pkg['Name']}" do
+              command "msiexec /qn /x \"#{pkg['IdentifyingNumber']}\""
+            end
+          else
+            package('Chef Development Kit') { action :remove }
+          end
         end
       end
     end

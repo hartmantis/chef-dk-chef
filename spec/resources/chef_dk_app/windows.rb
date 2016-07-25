@@ -111,14 +111,15 @@ shared_context 'resources::chef_dk_app::windows' do
       let(:listed?) { true }
       let(:pkg_list) do
         pl = <<-EOH.gsub(/^ +/, '')
-          Identifying Number  : {abc123}
+          IdentifyingNumber   : {abc123}
           Name                : Test App 3.1.4
           Vendor              : Thumb Monkey Industries
           Version             : 3.1.41.1
           Caption             : Test App 3.1.4
         EOH
         listed? && pl << <<-EOH.gsub(/^ +/, '')
-          Identifying Number  : {456789}
+
+          IdentifyingNumber   : {456789}
           Name                : Chef Development Kit v0.16.28
           Vendor              : Chef Software, Inc.
           Version             : 0.16.28.1
@@ -145,9 +146,9 @@ shared_context 'resources::chef_dk_app::windows' do
             let(:listed?) { true }
 
             it 'removes the Chef-DK Windows package' do
-              expect(chef_run).to remove_package(
-                'Chef Development Kit v0.16.28'
-              )
+              expect(chef_run).to run_execute(
+                'Uninstall Chef Development Kit v0.16.28'
+              ).with(command: 'msiexec /qn /x "{456789}"')
             end
           end
 
