@@ -45,6 +45,7 @@ class Chef
           end
           dpkg_package local_path
         when :repo
+          package 'apt-transport-https'
           include_recipe "apt-chef::#{new_resource.channel}"
           package 'chefdk' do
             version new_resource.version unless new_resource.version.nil?
