@@ -1,4 +1,5 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 #
 # Cookbook Name:: chef-dk
 # Recipe:: default
@@ -18,8 +19,12 @@
 # limitations under the  License.
 #
 
-chef_dk 'chef_dk' do
-  version node['chef_dk']['version']
-  package_url node['chef_dk']['package_url']
-  global_shell_init node['chef_dk']['global_shell_init']
+attrs = node['chef_dk']
+
+chef_dk 'default' do
+  Chef::Resource::ChefDkApp.state_properties.each do |prop|
+    send(prop.name, attrs[prop.name]) unless attrs[prop.name].nil?
+  end
+  gems attrs['gems'] unless attrs['gems'].nil?
+  shell_users attrs['shell_users'] unless attrs['shell_users'].nil?
 end

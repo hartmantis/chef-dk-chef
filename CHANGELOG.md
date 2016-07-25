@@ -1,10 +1,16 @@
 Chef-DK Cookbook CHANGELOG
 ==========================
 
-v?.?.? (????-??-??)
--------------------
-* Update to modern provider resolution (breaking compatibility with Chef < 12)
+Unreleased
+----------
+* Convert to Chef custom resources, breaking compatibility with Chef < 12.5
+* Rename the `package_url` property to `source`
 * Move shell-init logic to its own custom resource
+* Add support for Chef's new APT and YUM repositories
+* Add support for OS X installs via Homebrew
+* Replace `:prerelease` and `:nightlies` with a `:channel` property
+* Remove dependency on the Omnijack gem
+* Rename the `package_url` attribute to `source`
 
 v3.1.0 (2015-06-03)
 -------------------

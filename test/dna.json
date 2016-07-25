@@ -1,1 +1,0 @@
-{"chef_dk":{"global_shell_init":true},"run_list":["recipe[chef-dk]"]}

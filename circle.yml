@@ -1,17 +1,13 @@
 machine:
   ruby:
-    version: 2.2.3
+    version: 2.3.1
   services:
     - docker
 
 dependencies:
-  pre:
-    - rvm install 2.0.0-p645
   override:
     - gem install -V berkshelf
-    - rvm-exec 2.0.0-p645 gem install -V berkshelf
     - bundle install --without=development integration
-    - rvm-exec 2.0.0-p645 bundle install --without=development integration
   cache_directories:
     - /home/ubuntu/.rvm/gems
 
@@ -20,5 +16,4 @@ test:
     - cp .kitchen.circle.yml .kitchen.local.yml
   override:
     - bundle exec rake
-    - rvm-exec 2.0.0-p645 bundle exec rake
     - bundle exec kitchen test

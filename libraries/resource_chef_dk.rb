@@ -1,4 +1,5 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 #
 # Cookbook Name:: chef-dk
 # Library:: resource_chef_dk
@@ -18,97 +19,64 @@
 # limitations under the License.
 #
 
-require 'chef/resource/lwrp_base'
-require_relative 'chef_dk_helpers'
-require_relative 'provider_chef_dk'
-require_relative 'provider_chef_dk_debian'
-require_relative 'provider_chef_dk_mac_os_x'
-require_relative 'provider_chef_dk_rhel'
-require_relative 'provider_chef_dk_windows'
+require 'chef/resource'
+require_relative 'resource_chef_dk_app'
 
 class Chef
   class Resource
-    # A Chef resource for the Chef-DK packages
+    # A parent Chef resource that wraps up our children.
     #
     # @author Jonathan Hartman <j@p4nt5.com>
-    class ChefDk < LWRPBase
-      self.resource_name = :chef_dk
-      actions :install, :remove
-      default_action :install
+    class ChefDk < Resource
+      provides :chef_dk
+
+      default_action :create
 
       #
-      # The version of Chef-DK to install
+      # Accept all the chef_dk_app resource's properties so they can be passed
+      # on to the embedded chef_dk_app resource.
       #
-      # @param [String] arg
-      # @return [String]
-      #
-      def version(arg = nil)
-        set_or_return(:version,
-                      arg,
-                      kind_of: String,
-                      default: 'latest',
-                      callbacks: {
-                        'Can\'t set both a `version` and a `package_url`' =>
-                          ->(_) { package_url.nil? },
-                        'Invalid version string' =>
-                          ->(a) { ::ChefDk::Helpers.valid_version?(a) }
-                      })
+      Chef::Resource::ChefDkApp.state_properties.each do |prop|
+        property prop.name, prop.options
       end
 
       #
-      # Optionally enable prerelease builds
+      # Property for a list of gems to install inside Chef-DK's included Ruby.
       #
-      # @param [TrueClass, FalseClass] arg
-      # @return [TrueClass, FalseClass]
+      property :gems, Array, default: []
+
       #
-      def prerelease(arg = nil)
-        set_or_return(:prerelease,
-                      arg,
-                      kind_of: [TrueClass, FalseClass],
-                      default: false)
+      # Property for a list of users for whom to set Chef-DK's included Ruby
+      # environment as the default.
+      #
+      property :shell_users, Array, default: []
+
+      #
+      # Install the ChefDK and configure shell init as appropriate
+      #
+      action :create do
+        chef_dk_app new_resource.name do
+          Chef::Resource::ChefDkApp.state_properties.each do |prop|
+            unless new_resource.send(prop.name).nil?
+              send(prop.name, new_resource.send(prop.name))
+            end
+          end
+          checksum new_resource.checksum unless new_resource.checksum.nil?
+        end
+        new_resource.gems.each { |g| chef_dk_gem(g) }
+        new_resource.shell_users.each { |u| chef_dk_shell_init(u) }
       end
 
       #
-      # Optionally enable nightly builds
+      # Remove the ChefDK.
       #
-      # @param [TrueClass, FalseClass] arg
-      # @return [TrueClass, FalseClass]
-      #
-      def nightlies(arg = nil)
-        set_or_return(:nightlies,
-                      arg,
-                      kind_of: [TrueClass, FalseClass],
-                      default: false)
-      end
-
-      #
-      # Optionally override the calculated package URL
-      #
-      # @param [String] arg
-      # @return [String]
-      #
-      def package_url(arg = nil)
-        set_or_return(:package_url,
-                      arg,
-                      kind_of: [String, NilClass],
-                      default: nil,
-                      callbacks: {
-                        'Can\'t set both a `package_url` and a `version`' =>
-                          ->(_) { version == 'latest' }
-                      })
-      end
-
-      #
-      # Optionally set ChefDK's Ruby env as the default for all users
-      #
-      # @param [TrueClass, FalseClass, NilClass] arg
-      # @return [TrueClass, FalseClass]
-      #
-      def global_shell_init(arg = nil)
-        set_or_return(:global_shell_init,
-                      arg,
-                      kind_of: [TrueClass, FalseClass],
-                      default: false)
+      action :remove do
+        unless node['platform_family'] == 'windows'
+          node['etc']['passwd'].keys.each do |u|
+            chef_dk_shell_init(u) { action :disable }
+          end
+        end
+        chef_dk_app(new_resource.name) { action :remove }
       end
     end
   end

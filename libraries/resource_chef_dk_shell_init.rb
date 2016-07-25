@@ -1,4 +1,5 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 #
 # Cookbook Name:: chef-dk
 # Library:: resource_chef_dk_shell_init
@@ -29,40 +30,38 @@ class Chef
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDkShellInit < Resource
       #
-      # Property to allow specifying a single user whose bashrc should be
-      # modified instead of the global one.
+      # Property for the user whose bashrc should be modified. If set to 'root',
+      # it will be set globally.
       #
-      property :user, [String, nil], default: nil
+      property :user, String, name_property: true
 
       default_action :enable
 
       action :enable do
-        matcher = /^eval "\$\(chef shell-init bash\)"$/
-        line = 'eval "$(chef shell-init bash)"'
-        f = Chef::Util::FileEdit.new(bashrc_file)
-        puts "F: #{f}"
-        puts "F: #{f.insert_line_if_no_match(matcher, line)}"
-        if f.insert_line_if_no_match(matcher, line)
-          Chef::Log.debug("Writing '#{line}' to file '#{bashrc_file}'")
-          f.write_file
-          updated_by_last_action(true)
+        file bashrc_file do
+          content lazy {
+            txt = 'eval "$(chef shell-init bash)"'
+            lines = ::File.read(bashrc_file).split("\n")
+            lines << txt unless lines.include?(txt)
+            lines.join("\n")
+          }
         end
       end
 
       action :disable do
-        matcher = /^eval "\$\(chef shell-init bash\)"$/
-        f = Chef::Util::FileEdit.new(bashrc_file)
-        if f.search_file_delete_line(matcher)
-          line = 'eval "$(chef shell-init bash)"'
-          Chef::Log.debug("Deleting '#{line}' from file '#{bashrc_file}'")
-          f.write_file
-          updated_by_last_action(true)
+        file bashrc_file do
+          content lazy {
+            lines = ::File.read(bashrc_file).split("\n")
+            lines.delete('eval "$(chef shell-init bash)"')
+            lines.join("\n")
+          }
+          only_if { ::File.exist?(bashrc_file) }
         end
       end
 
       def bashrc_file
-        fail(NotImplementedError,
-             "`bashrc_file` must be implemented for `#{self.class}`")
+        raise(NotImplementedError,
+              "`bashrc_file` must be implemented for `#{self.class}`")
       end
     end
   end

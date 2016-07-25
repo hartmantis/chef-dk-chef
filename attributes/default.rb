@@ -1,4 +1,5 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 #
 # Cookbook Name:: chef-dk
 # Attributes:: default
@@ -18,6 +19,10 @@
 # limitations under the License.
 #
 
-default['chef_dk']['version'] = 'latest'
-default['chef_dk']['package_url'] = nil
-default['chef_dk']['global_shell_init'] = false
+default['chef_dk'].tap do |c|
+  Chef::Resource::ChefDkApp.state_properties.each do |prop|
+    c[prop.name] = nil
+  end
+  c['shell_users'] = nil
+  c['gems'] = nil
+end

@@ -1,4 +1,5 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 
 require_relative '../spec_helper'
 
@@ -18,5 +19,20 @@ describe 'chef-dk::remove::environment' do
   describe file('/etc/bash.bashrc'),
            if: %w(ubuntu debian).include?(os[:family]) do
     it_behaves_like 'file without chef shell-init'
+  end
+
+  describe file('~/.chefdk/gem/ruby/2.1.0/bin/rubygems-cabin-test'),
+           if: os[:family] != 'windows' do
+    it 'does not exist' do
+      expect(subject).to_not exist
+    end
+  end
+
+  describe file(
+    '~/AppData/Local/chefdk/gem/ruby/2.1.0/bin/rubygems-cabin-test'
+  ), if: os[:family] == 'windows' do
+    it 'does not exist' do
+      expect(subject).to_not exist
+    end
   end
 end

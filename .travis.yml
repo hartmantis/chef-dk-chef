@@ -1,24 +1,17 @@
 language: objective-c
+osx_image: xcode7.3
+rvm: 2.3.1
+cache: vendor/bundle
 
 branches:
   only:
     - master
 
 install:
-  # Need Berkshelf to resolve dependencies for the local Chef run
-  - curl -L https://www.opscode.com/chef/install.sh | sudo bash -s -- -P chefdk
-  - chef exec berks vendor /tmp/kitchen/cookbooks
-  # Need to delete ChefDK so the local run actually tests something
-  - sudo pkgutil --forget com.getchef.pkg.chefdk
-  - sudo rm -rf /opt/chefdk
-  # Use regular Chef to reinstall ChefDK locally
-  - curl -L https://www.opscode.com/chef/install.sh | sudo bash
-  - sudo chef-client -z -c test/client.rb -j test/dna.json
-  # Then the build can continue on with ChefDK
-  - chef exec bundle install --without=development integration
+  - bundle install --path vendor/bundle --without=development integration
 
 before_script:
   - cp .kitchen.travis.yml .kitchen.local.yml
 
 script:
-  - chef exec kitchen test
+  - bundle exec kitchen test

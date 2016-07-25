@@ -1,4 +1,5 @@
-# Encoding: UTF-8
+# encoding: utf-8
+# frozen_string_literal: true
 #
 # Cookbook Name:: chef-dk
 # Library:: resource_chef_dk_shell_init_debian
@@ -29,10 +30,11 @@ class Chef
       provides :chef_dk_shell_init, platform_family: 'debian'
 
       def bashrc_file
-        if user
-          ::File.join(node['etc']['passwd'][user]['dir'], '.bashrc')
-        else
+        case user
+        when 'root'
           '/etc/bash.bashrc'
+        else
+          ::File.join(node['etc']['passwd'][user]['dir'], '.bashrc')
         end
       end
     end
