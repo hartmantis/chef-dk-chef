@@ -142,6 +142,11 @@ shared_context 'resources::chef_dk_app::windows' do
         context c do
           include_context description
 
+          it 'deletes the Chef-DK AppData directory' do
+            d = File.expand_path('~/AppData/Local/chefdk')
+            expect(chef_run).to delete_directory(d).with(recursive: true)
+          end
+
           context 'app in the installed list' do
             let(:listed?) { true }
 
