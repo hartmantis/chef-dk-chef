@@ -30,7 +30,35 @@ suites:
   - name: remove
     run_list:
       - recipe[chef-dk_test::remove]
-  - name: install_from_specific_url
+  - name: repo
+    run_list:
+      - recipe[chef-dk_test]
+    attributes:
+      chef_dk:
+        source: repo
+    excludes:
+      - ubuntu-16.04
+      - ubuntu-12.04
+      - debian-8.4
+      - debian-8
+      - debian-7.10
+      - debian-7
+      - fedora-23
+  - name: repo_remove
+    run_list:
+      - recipe[chef-dk_test::remove]
+    attributes:
+      chef_dk:
+        source: repo
+    excludes:
+      - ubuntu-16.04
+      - ubuntu-12.04
+      - debian-8.4
+      - debian-8
+      - debian-7.10
+      - debian-7
+      - fedora-23
+  - name: custom
     run_list:
       - recipe[chef-dk_test]
     attributes:

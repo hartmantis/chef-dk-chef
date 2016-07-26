@@ -40,6 +40,10 @@ shared_context 'resources::chef_dk_app::debian' do
         include_context description
 
         shared_examples_for 'any property set' do
+          it 'ensures apt-transport-https is installed' do
+            expect(chef_run).to install_package('apt-transport-https')
+          end
+
           it 'configures the Chef APT repo' do
             expect(chef_run).to include_recipe(
               "apt-chef::#{channel || 'stable'}"
