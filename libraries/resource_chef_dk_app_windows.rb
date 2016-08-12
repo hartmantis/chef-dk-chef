@@ -58,6 +58,27 @@ class Chef
       end
 
       #
+      # Upgrade or install the Chef-DK. This action currently only supports the
+      # :repo installation source.
+      #
+      action :upgrade do
+        case new_resource.source
+        when :direct
+          raise(Chef::Exceptions::UnsupportedAction,
+                'Direct installs do not support the :upgrade action')
+        when :repo
+          include_recipe 'chocolatey'
+          chocolatey_package 'chefdk' do
+            version new_resource.version unless new_resource.version.nil?
+            action :upgrade
+          end
+        else
+          raise(Chef::Exceptions::UnsupportedAction,
+                'Custom installs do not support the :upgrade action')
+        end
+      end
+
+      #
       # Remove the Chef-DK Windows package.
       #
       action :remove do

@@ -32,6 +32,28 @@ shared_context 'resources::chef_dk_app' do
     end
   end
 
+  shared_context 'the :upgrade action' do
+    let(:action) { :upgrade }
+
+    before(:each) do
+      allow(Kernel).to receive(:load).and_call_original
+      allow(Kernel).to receive(:load)
+        .with(%r{chef-dk/libraries/helpers\.rb}).and_return(true)
+      allow(ChefDk::Helpers).to receive(:metadata_for).with(
+        channel: channel || :stable,
+        version: version || 'latest',
+        platform: platform,
+        platform_version: /#{platform_version}.*/,
+        machine: 'x86_64'
+      ).and_return(
+        sha1: 'abcd',
+        sha256: '1234',
+        url: "http://example.com/#{channel || 'stable'}/chefdk",
+        version: version || '1.2.3'
+      )
+    end
+  end
+
   shared_context 'the :remove action' do
     let(:action) { :remove }
   end
