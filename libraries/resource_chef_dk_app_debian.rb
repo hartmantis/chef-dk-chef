@@ -62,6 +62,28 @@ class Chef
       end
 
       #
+      # Upgrade or install the Chef-DK. This action currently only supports the
+      # :repo installation source.
+      #
+      action :upgrade do
+        case new_resource.source
+        when :direct
+          raise(Chef::Exceptions::UnsupportedAction,
+                'Direct installs do not support the :upgrade action')
+        when :repo
+          package 'apt-transport-https'
+          include_recipe "apt-chef::#{new_resource.channel}"
+          package 'chefdk' do
+            version new_resource.version unless new_resource.version.nil?
+            action :upgrade
+          end
+        else
+          raise(Chef::Exceptions::UnsupportedAction,
+                'Custom installs do not support the :upgrade action')
+        end
+      end
+
+      #
       # The APT repository is shared between Chef, Chef-DK, etc. so all we can
       # confidently do for removal is to remove the package.
       #
