@@ -35,6 +35,7 @@ class Chef
       #
       property :version,
                String,
+               default: 'latest',
                callbacks: {
                  'Invalid version string' =>
                    ->(a) { ::ChefDk::Helpers.valid_version?(a) }
@@ -82,7 +83,7 @@ class Chef
         def package_metadata
           @package_metadata ||= ::ChefDk::Helpers.metadata_for(
             channel: new_resource.channel,
-            version: new_resource.version || 'latest',
+            version: new_resource.version,
             platform: node['platform'],
             platform_version: node['platform_version'],
             machine: node['kernel']['machine']

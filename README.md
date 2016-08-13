@@ -129,7 +129,7 @@ Properties:
 
 | Property | Default    | Description                                         |
 |----------|------------|-----------------------------------------------------|
-| version  | `nil`      | Optionally install a specific version               |
+| version  | `'latest'` | Optionally install a specific version               |
 | channel  | `:stable`  | Use the `:stable` or `:current` channel             |
 | source   | `:direct`  | Install vi Omnitruck (`:direct`), a `:repo`, or URL |
 | checksum | `nil`      | Optional checksum of a custom source package        |

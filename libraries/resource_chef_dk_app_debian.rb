@@ -48,7 +48,7 @@ class Chef
           package 'apt-transport-https'
           include_recipe "apt-chef::#{new_resource.channel}"
           package 'chefdk' do
-            version new_resource.version unless new_resource.version.nil?
+            version new_resource.version unless new_resource.version == 'latest'
           end
         else
           local_path = ::File.join(Chef::Config[:file_cache_path],
@@ -74,7 +74,7 @@ class Chef
           package 'apt-transport-https'
           include_recipe "apt-chef::#{new_resource.channel}"
           package 'chefdk' do
-            version new_resource.version unless new_resource.version.nil?
+            version new_resource.version unless new_resource.version == 'latest'
             action :upgrade
           end
         else
