@@ -71,11 +71,11 @@ module ChefDk
       #
       # Determine whether string is a valid package version
       #
-      # @param [String] arg
+      # @param [String, NilClass] arg
       # @return [TrueClass, FalseClass]
       #
       def valid_version?(arg)
-        return true if arg == 'latest'
+        return true if arg == false || arg == 'latest'
         arg =~ /^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$/ ? true : false
       end
     end

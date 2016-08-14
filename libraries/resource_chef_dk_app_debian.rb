@@ -19,6 +19,7 @@
 # limitations under the License.
 #
 
+require 'chef/provider/package/dpkg'
 require_relative 'resource_chef_dk_app'
 
 class Chef
@@ -30,6 +31,14 @@ class Chef
       provides :chef_dk_app, platform_family: 'debian'
 
       #
+      # Determine whether the package is currently installed.
+      #
+      load_current_value do
+        version(installed_version)
+        installed(version == false ? false : true)
+      end
+
+      #
       # Depending on the specified source, download and install Chef-DK based
       # on the Omnitruck API, configure and install it from APT, or install it
       # from a custom source.
@@ -37,13 +46,17 @@ class Chef
       action :install do
         case new_resource.source
         when :direct
-          local_path = ::File.join(Chef::Config[:file_cache_path],
-                                   ::File.basename(package_metadata[:url]))
-          remote_file local_path do
-            source package_metadata[:url]
-            checksum package_metadata[:sha256]
+          new_resource.installed(true)
+
+          converge_if_changed :installed do
+            local_path = ::File.join(Chef::Config[:file_cache_path],
+                                     ::File.basename(package_metadata[:url]))
+            remote_file local_path do
+              source package_metadata[:url]
+              checksum package_metadata[:sha256]
+            end
+            dpkg_package local_path
           end
-          dpkg_package local_path
         when :repo
           package 'apt-transport-https'
           include_recipe "apt-chef::#{new_resource.channel}"
@@ -51,13 +64,17 @@ class Chef
             version new_resource.version unless new_resource.version == 'latest'
           end
         else
-          local_path = ::File.join(Chef::Config[:file_cache_path],
-                                   ::File.basename(new_resource.source.to_s))
-          remote_file local_path do
-            source new_resource.source.to_s
-            checksum new_resource.checksum unless new_resource.checksum.nil?
+          new_resource.installed(true)
+
+          converge_if_changed :installed do
+            local_path = ::File.join(Chef::Config[:file_cache_path],
+                                     ::File.basename(new_resource.source.to_s))
+            remote_file local_path do
+              source new_resource.source.to_s
+              checksum new_resource.checksum unless new_resource.checksum.nil?
+            end
+            dpkg_package local_path
           end
-          dpkg_package local_path
         end
       end
 
@@ -89,6 +106,22 @@ class Chef
       #
       action :remove do
         package('chefdk') { action :purge }
+      end
+
+      #
+      # Find and return the version of the package currently installed. The
+      # Omnitruck API does not return a build number as a part of its version
+      # string, so strip that off here as well.
+      #
+      # @return [String, FalseClass] "major.minor.patch", "latest", or false
+      #
+      def installed_version
+        res = Chef::Resource::Package.new('chefdk', run_context)
+        prov = Chef::Provider::Package::Dpkg.new(res, run_context)
+        ver = prov.load_current_resource.version.first
+        return false if ver.nil?
+        ver = ver.split('-').first
+        ver == package_metadata[:version] ? 'latest' : ver
       end
     end
   end

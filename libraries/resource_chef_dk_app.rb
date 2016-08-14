@@ -34,7 +34,7 @@ class Chef
       # The version of Chef-DK to install.
       #
       property :version,
-               String,
+               [String, FalseClass],
                default: 'latest',
                callbacks: {
                  'Invalid version string' =>
@@ -72,23 +72,26 @@ class Chef
       #
       property :checksum, String
 
-      declare_action_class.class_eval do
-        #
-        # Return the package metadata for the current node and new_resource.
-        # Note that `nil` will be returned of an override `source` was set to
-        # use instead of the Omnitruck API.
-        #
-        # @return [Hash,NilClass] package metadata from the Omnitruck API
-        #
-        def package_metadata
-          @package_metadata ||= ::ChefDk::Helpers.metadata_for(
-            channel: new_resource.channel,
-            version: new_resource.version,
-            platform: node['platform'],
-            platform_version: node['platform_version'],
-            machine: node['kernel']['machine']
-          )
-        end
+      #
+      # Keep a property to track the installed state of the Chef-DK.
+      #
+      property :installed, [TrueClass, FalseClass]
+
+      #
+      # Return the package metadata for the current node and new_resource.
+      # Note that `nil` will be returned of an override `source` was set to
+      # use instead of the Omnitruck API.
+      #
+      # @return [Hash,NilClass] package metadata from the Omnitruck API
+      #
+      def package_metadata
+        @package_metadata ||= ::ChefDk::Helpers.metadata_for(
+          channel: channel,
+          version: version,
+          platform: node['platform'],
+          platform_version: node['platform_version'],
+          machine: node['kernel']['machine']
+        )
       end
     end
   end
