@@ -31,7 +31,7 @@ shared_context 'resources::chef_dk_app::debian' do
           end
         end
 
-        shared_examples_for 'does not install chef-dk' do
+        shared_examples_for 'does not install Chef-DK' do
           it 'does not download the correct Chef-DK' do
             expect(chef_run).to_not create_remote_file('/tmp/cache/chefdk')
           end
@@ -56,13 +56,13 @@ shared_context 'resources::chef_dk_app::debian' do
         context 'the latest version already installed' do
           let(:installed_version) { '1.2.3' }
 
-          it_behaves_like 'does not install chef-dk'
+          it_behaves_like 'does not install Chef-DK'
         end
 
         context 'an older version already installed' do
           let(:installed_version) { '0.1.2' }
 
-          it_behaves_like 'does not install chef-dk'
+          it_behaves_like 'does not install Chef-DK'
         end
       end
 
