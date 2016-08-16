@@ -78,6 +78,16 @@ class Chef
       property :installed, [TrueClass, FalseClass]
 
       #
+      # The current value is determined by calling the `installed_version`
+      # method, which must be defined in each sub-provider, depending on the
+      # platform.
+      #
+      load_current_value do
+        version(installed_version)
+        installed(version == false ? false : true)
+      end
+
+      #
       # Return the package metadata for the current node and new_resource.
       # Note that `nil` will be returned of an override `source` was set to
       # use instead of the Omnitruck API.
@@ -92,6 +102,19 @@ class Chef
           platform_version: node['platform_version'],
           machine: node['kernel']['machine']
         )
+      end
+
+      #
+      # The `installed_version` method much be defined by each sub-provider.
+      #
+      # @return [String, FalseClass] "major.minor.patch", "latest", or false
+      #
+      # @raise [NotImplementedError] if not defined for this provider
+      #
+      def installed_version
+        raise(NotImplementedError,
+              'The `installed_version` method must be implemented for the ' \
+              "`#{self.class}` provider")
       end
     end
   end

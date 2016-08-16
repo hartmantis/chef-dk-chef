@@ -31,14 +31,6 @@ class Chef
       provides :chef_dk_app, platform_family: 'debian'
 
       #
-      # Determine whether the package is currently installed.
-      #
-      load_current_value do
-        version(installed_version)
-        installed(version == false ? false : true)
-      end
-
-      #
       # Depending on the specified source, download and install Chef-DK based
       # on the Omnitruck API, configure and install it from APT, or install it
       # from a custom source.
@@ -109,11 +101,10 @@ class Chef
       end
 
       #
-      # Find and return the version of the package currently installed. The
-      # Omnitruck API does not return a build number as a part of its version
-      # string, so strip that off here as well.
+      # Use Chef's Package resource and Dpkg provider to find the currently
+      # installed version.
       #
-      # @return [String, FalseClass] "major.minor.patch", "latest", or false
+      # (see Chef::Resource::ChefDkApp#installed_version)
       #
       def installed_version
         res = Chef::Resource::Package.new('chefdk', run_context)

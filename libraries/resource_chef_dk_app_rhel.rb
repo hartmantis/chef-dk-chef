@@ -107,11 +107,12 @@ class Chef
       end
 
       #
-      # Find and return the version of the package currently installed. The
-      # Omnitruck API does not return a build number as part of its version
-      # string, so strip that off here as well.
+      # Use Chef's Package resource and Yum provider to find the currently
+      # installed version. We need to use Yum instead of Rpm here because the
+      # Rpm provider won't check for a version if no source property is
+      # offered.
       #
-      # @return [String, FalseClass] "major.minor.patch", "latest", or false
+      # (see Chef::Resource::ChefDkApp#installed_version)
       #
       def installed_version
         res = Chef::Resource::Package.new('chefdk', run_context)
