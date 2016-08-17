@@ -4,6 +4,28 @@ require_relative '../chef_dk_app'
 shared_context 'resources::chef_dk_app::windows' do
   include_context 'resources::chef_dk_app'
 
+  before(:each) do
+    stdout = <<-EOH.gsub(/^ +/, '')
+      IdentifyingNumber   : {abc123}
+      Name                : Test App 3.1.4
+      Vendor              : Thumb Monkey Industries
+      Version             : 3.1.41.1
+      Caption             : Test App 3.1.4
+    EOH
+    installed_version && stdout << <<-EOH.gsub(/^ +/, '')
+
+      IdentifyingNumber   : {456789}
+      Name                : Chef Development Kit #{installed_version}
+      Vendor              : Chef Software, Inc.
+      Version             : #{installed_version}.1
+      Caption             : Chef Development Kit v#{installed_version}
+    EOH
+    allow_any_instance_of(Chef::Mixin::PowershellOut)
+      .to receive(:powershell_out!)
+      .with('Get-WmiObject -Class win32_product')
+      .and_return(double(stdout: stdout))
+  end
+
   shared_examples_for 'any Windows platform' do
     context 'the default action (:install)' do
       include_context description
@@ -11,13 +33,20 @@ shared_context 'resources::chef_dk_app::windows' do
       context 'the default source (:direct)' do
         include_context description
 
-        shared_examples_for 'any property set' do
+        shared_examples_for 'installs Chef-DK' do
           it 'installs the correct Chef-DK package' do
             pkg = "Chef Development Kit v#{version || '1.2.3'}"
             expect(chef_run).to install_package(pkg).with(
               source: "http://example.com/#{channel || 'stable'}/chefdk",
               checksum: '1234'
             )
+          end
+        end
+
+        shared_examples_for 'does not install Chef-DK' do
+          it 'does not install the correct Chef-DK package' do
+            pkg = "Chef Development Kit v#{version || '1.2.3'}"
+            expect(chef_run).to_not install_package(pkg)
           end
         end
 
@@ -29,8 +58,20 @@ shared_context 'resources::chef_dk_app::windows' do
           context c do
             include_context description
 
-            it_behaves_like 'any property set'
+            it_behaves_like 'installs Chef-DK'
           end
+        end
+
+        context 'the latest version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
+        end
+
+        context 'an older version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
         end
       end
 
@@ -73,6 +114,13 @@ shared_context 'resources::chef_dk_app::windows' do
       context 'a custom source' do
         include_context description
 
+        shared_examples_for 'does not install Chef-DK' do
+          it 'does not install the correct Chef-DK package' do
+            pkg = "Chef Development Kit v#{version || '1.2.3'}"
+            expect(chef_run).to_not install_package(pkg)
+          end
+        end
+
         context 'all default properties' do
           include_context description
 
@@ -101,6 +149,18 @@ shared_context 'resources::chef_dk_app::windows' do
             pending
             expect(true).to eq(false)
           end
+        end
+
+        context 'the latest version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
+        end
+
+        context 'an older version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
         end
       end
     end

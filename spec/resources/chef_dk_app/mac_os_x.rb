@@ -11,6 +11,8 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
       .and_return(double(find_homebrew_uid: 501))
     allow(Etc).to receive(:getpwuid).with(501).and_return(double: 'homebrew')
     allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out)
+      .and_call_original
+    allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out)
       .with('pkgutil --pkg-info com.getchef.pkg.chefdk')
       .and_return(double(exitstatus: installed_version.nil? ? 1 : 0,
                          stdout: "test\nversion: #{installed_version}\nthings"))

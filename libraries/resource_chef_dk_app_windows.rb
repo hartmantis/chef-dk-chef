@@ -38,14 +38,18 @@ class Chef
       action :install do
         case new_resource.source
         when :direct
-          ver = if new_resource.version == 'latest'
-                  package_metadata[:version]
-                else
-                  new_resource.version
-                end
-          package "Chef Development Kit v#{ver}" do
-            source package_metadata[:url]
-            checksum package_metadata[:sha256]
+          new_resource.installed(true)
+
+          converge_if_changed :installed do
+            ver = if new_resource.version == 'latest'
+                    package_metadata[:version]
+                  else
+                    new_resource.version
+                  end
+            package "Chef Development Kit v#{ver}" do
+              source package_metadata[:url]
+              checksum package_metadata[:sha256]
+            end
           end
         when :repo
           include_recipe 'chocolatey'
@@ -53,14 +57,18 @@ class Chef
             version new_resource.version unless new_resource.version == 'latest'
           end
         else
-          ver = if new_resource.version == 'latest'
-                  package_metadata[:version]
-                else
-                  new_resource.version
-                end
-          package "Chef Development Kit v#{ver}" do
-            source new_resource.source.to_s
-            checksum new_resource.checksum unless new_resource.checksum.nil?
+          new_resource.installed(true)
+
+          converge_if_changed :installed do
+            ver = if new_resource.version == 'latest'
+                    package_metadata[:version]
+                  else
+                    new_resource.version
+                  end
+            package "Chef Development Kit v#{ver}" do
+              source new_resource.source.to_s
+              checksum new_resource.checksum unless new_resource.checksum.nil?
+            end
           end
         end
       end
@@ -114,6 +122,22 @@ class Chef
             action :delete
           end
         end
+      end
+
+      #
+      # Powershell out and pull the version of the Chef-DK out of
+      # Get-WmiObject.
+      #
+      # (see Chef::Provider::ChefDkApp#installed_version)
+      #
+      def installed_version
+        lines = powershell_out!('Get-WmiObject -Class win32_product')
+                .stdout.lines
+        idx = lines.index do |l|
+          l.match(/^\W*Name\W+:\W+Chef Development Kit/)
+        end
+        return false if idx.nil?
+        lines[idx + 2].split(':')[1].strip.split('.')[0..2].join('.')
       end
     end
   end
