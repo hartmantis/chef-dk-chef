@@ -4,8 +4,6 @@ require_relative '../chef_dk_app'
 shared_context 'resources::chef_dk_app::rhel' do
   include_context 'resources::chef_dk_app'
 
-  let(:installed_version) { nil }
-
   before(:each) do
     allow_any_instance_of(Chef::Provider::Package::Yum)
       .to receive(:load_current_resource)
@@ -54,13 +52,13 @@ shared_context 'resources::chef_dk_app::rhel' do
         end
 
         context 'the latest version already installed' do
-          let(:installed_version) { '1.2.3' }
+          include_context description
 
           it_behaves_like 'does not install Chef-DK'
         end
 
         context 'an older version already installed' do
-          let(:installed_version) { '0.1.2' }
+          include_context description
 
           it_behaves_like 'does not install Chef-DK'
         end

@@ -4,6 +4,18 @@ require_relative '../chef_dk_app'
 shared_context 'resources::chef_dk_app::mac_os_x' do
   include_context 'resources::chef_dk_app'
 
+  let(:installed_version) { nil }
+
+  before(:each) do
+    allow_any_instance_of(Chef::Mixin::HomebrewUser).to receive(:new)
+      .and_return(double(find_homebrew_uid: 501))
+    allow(Etc).to receive(:getpwuid).with(501).and_return(double: 'homebrew')
+    allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out)
+      .with('pkgutil --pkg-info com.getchef.pkg.chefdk')
+      .and_return(double(exitstatus: installed_version.nil? ? 1 : 0,
+                         stdout: "test\nversion: #{installed_version}\nthings"))
+  end
+
   shared_examples_for 'any Mac OS X platform' do
     context 'the default action (:install)' do
       include_context description
@@ -11,7 +23,7 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
       context 'the default source (:direct)' do
         include_context description
 
-        shared_examples_for 'any property set' do
+        shared_examples_for 'installs Chef-DK' do
           it 'installs the correct Chef-DK package' do
             expect(chef_run).to install_dmg_package('Chef Development Kit')
               .with(app: 'chefdk',
@@ -23,6 +35,12 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
           end
         end
 
+        shared_examples_for 'does not install Chef-DK' do
+          it 'does not install the correct Chef-DK package' do
+            expect(chef_run).to_not install_dmg_package('Chef Development Kit')
+          end
+        end
+
         [
           'all default properties',
           'an overridden channel property',
@@ -31,8 +49,20 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
           context c do
             include_context description
 
-            it_behaves_like 'any property set'
+            it_behaves_like 'installs Chef-DK'
           end
+        end
+
+        context 'the latest version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
+        end
+
+        context 'an older version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
         end
       end
 
@@ -77,6 +107,12 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
       context 'a custom source' do
         include_context description
 
+        shared_examples_for 'does not install Chef-DK' do
+          it 'does not install the correct Chef-DK package' do
+            expect(chef_run).to_not install_dmg_package('Chef Development Kit')
+          end
+        end
+
         context 'all default properties' do
           include_context description
 
@@ -107,6 +143,18 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
             pending
             expect(true).to eq(false)
           end
+        end
+
+        context 'the latest version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
+        end
+
+        context 'an older version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
         end
       end
     end
