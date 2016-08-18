@@ -19,6 +19,7 @@
 # limitations under the License.
 #
 
+require 'chef/mixin/shell_out'
 require_relative 'resource_chef_dk_app'
 
 class Chef
@@ -27,6 +28,8 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDkAppRhel < ChefDkApp
+      include Chef::Mixin::ShellOut
+
       provides :chef_dk_app, platform_family: 'rhel'
       provides :chef_dk_app, platform: 'fedora'
 
@@ -107,19 +110,17 @@ class Chef
       end
 
       #
-      # Use Chef's Package resource and Yum provider to find the currently
-      # installed version. We need to use Yum instead of Rpm here because the
-      # Rpm provider won't check for a version if no source property is
-      # offered.
+      # Shell out to the RPM command to get the currently installed version.
+      # We can't use a Chef provider here because the Rpm provider requires a
+      # source property that we don't have and the Yum provider has issues on
+      # Fedora.
       #
       # (see Chef::Resource::ChefDkApp#installed_version)
       #
       def installed_version
-        res = Chef::Resource::Package.new('chefdk', run_context)
-        prov = Chef::Provider::Package::Yum.new(res, run_context)
-        ver = prov.load_current_resource.version
-        return false if ver.nil?
-        ver = ver.split('-').first
+        sh = shell_out('rpm -q --info chefdk')
+        return false if sh.exitstatus.nonzero?
+        ver = sh.stdout.match(/^Version\W+:\W+([0-9]+\.[0-9]+\.[0-9]+)/)[1]
         ver == package_metadata[:version] ? 'latest' : ver
       end
     end

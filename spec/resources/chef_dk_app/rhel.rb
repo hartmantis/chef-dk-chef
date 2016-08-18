@@ -5,9 +5,12 @@ shared_context 'resources::chef_dk_app::rhel' do
   include_context 'resources::chef_dk_app'
 
   before(:each) do
-    allow_any_instance_of(Chef::Provider::Package::Yum)
-      .to receive(:load_current_resource)
-      .and_return(double(version: installed_version))
+    allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out)
+      .with('rpm -q --info chefdk').and_return(
+        double(exitstatus: installed_version.nil? ? 1 : 0,
+               stdout: "Name        : chefdk\nVersion     : 0.17.17\n" \
+                       "Release     : 1.el7\n")
+      )
   end
 
   shared_examples_for 'any RHEL platform' do
