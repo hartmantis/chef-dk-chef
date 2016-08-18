@@ -19,6 +19,7 @@
 # limitations under the License.
 #
 
+require 'chef/provider/package/dpkg'
 require_relative 'resource_chef_dk_app'
 
 class Chef
@@ -37,27 +38,35 @@ class Chef
       action :install do
         case new_resource.source
         when :direct
-          local_path = ::File.join(Chef::Config[:file_cache_path],
-                                   ::File.basename(package_metadata[:url]))
-          remote_file local_path do
-            source package_metadata[:url]
-            checksum package_metadata[:sha256]
+          new_resource.installed(true)
+
+          converge_if_changed :installed do
+            local_path = ::File.join(Chef::Config[:file_cache_path],
+                                     ::File.basename(package_metadata[:url]))
+            remote_file local_path do
+              source package_metadata[:url]
+              checksum package_metadata[:sha256]
+            end
+            dpkg_package local_path
           end
-          dpkg_package local_path
         when :repo
           package 'apt-transport-https'
           include_recipe "apt-chef::#{new_resource.channel}"
           package 'chefdk' do
-            version new_resource.version unless new_resource.version.nil?
+            version new_resource.version unless new_resource.version == 'latest'
           end
         else
-          local_path = ::File.join(Chef::Config[:file_cache_path],
-                                   ::File.basename(new_resource.source.to_s))
-          remote_file local_path do
-            source new_resource.source.to_s
-            checksum new_resource.checksum unless new_resource.checksum.nil?
+          new_resource.installed(true)
+
+          converge_if_changed :installed do
+            local_path = ::File.join(Chef::Config[:file_cache_path],
+                                     ::File.basename(new_resource.source.to_s))
+            remote_file local_path do
+              source new_resource.source.to_s
+              checksum new_resource.checksum unless new_resource.checksum.nil?
+            end
+            dpkg_package local_path
           end
-          dpkg_package local_path
         end
       end
 
@@ -74,7 +83,7 @@ class Chef
           package 'apt-transport-https'
           include_recipe "apt-chef::#{new_resource.channel}"
           package 'chefdk' do
-            version new_resource.version unless new_resource.version.nil?
+            version new_resource.version unless new_resource.version == 'latest'
             action :upgrade
           end
         else
@@ -89,6 +98,21 @@ class Chef
       #
       action :remove do
         package('chefdk') { action :purge }
+      end
+
+      #
+      # Use Chef's Package resource and Dpkg provider to find the currently
+      # installed version.
+      #
+      # (see Chef::Resource::ChefDkApp#installed_version)
+      #
+      def installed_version
+        res = Chef::Resource::Package.new('chefdk', run_context)
+        prov = Chef::Provider::Package::Dpkg.new(res, run_context)
+        ver = prov.load_current_resource.version.first
+        return false if ver.nil?
+        ver = ver.split('-').first
+        ver == package_metadata[:version] ? 'latest' : ver
       end
     end
   end

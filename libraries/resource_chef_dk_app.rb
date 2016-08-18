@@ -34,7 +34,8 @@ class Chef
       # The version of Chef-DK to install.
       #
       property :version,
-               String,
+               [String, FalseClass],
+               default: 'latest',
                callbacks: {
                  'Invalid version string' =>
                    ->(a) { ::ChefDk::Helpers.valid_version?(a) }
@@ -71,23 +72,49 @@ class Chef
       #
       property :checksum, String
 
-      declare_action_class.class_eval do
-        #
-        # Return the package metadata for the current node and new_resource.
-        # Note that `nil` will be returned of an override `source` was set to
-        # use instead of the Omnitruck API.
-        #
-        # @return [Hash,NilClass] package metadata from the Omnitruck API
-        #
-        def package_metadata
-          @package_metadata ||= ::ChefDk::Helpers.metadata_for(
-            channel: new_resource.channel,
-            version: new_resource.version || 'latest',
-            platform: node['platform'],
-            platform_version: node['platform_version'],
-            machine: node['kernel']['machine']
-          )
-        end
+      #
+      # Keep a property to track the installed state of the Chef-DK.
+      #
+      property :installed, [TrueClass, FalseClass]
+
+      #
+      # The current value is determined by calling the `installed_version`
+      # method, which must be defined in each sub-provider, depending on the
+      # platform.
+      #
+      load_current_value do
+        version(installed_version)
+        installed(version == false ? false : true)
+      end
+
+      #
+      # Return the package metadata for the current node and new_resource.
+      # Note that `nil` will be returned of an override `source` was set to
+      # use instead of the Omnitruck API.
+      #
+      # @return [Hash,NilClass] package metadata from the Omnitruck API
+      #
+      def package_metadata
+        @package_metadata ||= ::ChefDk::Helpers.metadata_for(
+          channel: channel,
+          version: version,
+          platform: node['platform'],
+          platform_version: node['platform_version'],
+          machine: node['kernel']['machine']
+        )
+      end
+
+      #
+      # The `installed_version` method much be defined by each sub-provider.
+      #
+      # @return [String, FalseClass] "major.minor.patch", "latest", or false
+      #
+      # @raise [NotImplementedError] if not defined for this provider
+      #
+      def installed_version
+        raise(NotImplementedError,
+              'The `installed_version` method must be implemented for the ' \
+              "`#{self.class}` provider")
       end
     end
   end

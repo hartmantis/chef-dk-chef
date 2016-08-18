@@ -4,6 +4,12 @@ require_relative '../chef_dk_app'
 shared_context 'resources::chef_dk_app::debian' do
   include_context 'resources::chef_dk_app'
 
+  before(:each) do
+    allow_any_instance_of(Chef::Provider::Package::Dpkg)
+      .to receive(:load_current_resource)
+      .and_return(double(version: [installed_version]))
+  end
+
   shared_examples_for 'any Debian platform' do
     context 'the default action (:install)' do
       include_context description
@@ -11,7 +17,7 @@ shared_context 'resources::chef_dk_app::debian' do
       context 'the default source (:direct)' do
         include_context description
 
-        shared_examples_for 'any property set' do
+        shared_examples_for 'installs Chef-DK' do
           it 'downloads the correct Chef-DK' do
             expect(chef_run).to create_remote_file('/tmp/cache/chefdk')
               .with(source: "http://example.com/#{channel || 'stable'}/chefdk",
@@ -23,6 +29,16 @@ shared_context 'resources::chef_dk_app::debian' do
           end
         end
 
+        shared_examples_for 'does not install Chef-DK' do
+          it 'does not download the correct Chef-DK' do
+            expect(chef_run).to_not create_remote_file('/tmp/cache/chefdk')
+          end
+
+          it 'does not install the downloaded package' do
+            expect(chef_run).to_not install_dpkg_package('/tmp/cache/chefdk')
+          end
+        end
+
         [
           'all default properties',
           'an overridden channel property',
@@ -31,8 +47,20 @@ shared_context 'resources::chef_dk_app::debian' do
           context c do
             include_context description
 
-            it_behaves_like 'any property set'
+            it_behaves_like 'installs Chef-DK'
           end
+        end
+
+        context 'the latest version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
+        end
+
+        context 'an older version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
         end
       end
 
@@ -71,6 +99,16 @@ shared_context 'resources::chef_dk_app::debian' do
       context 'a custom source' do
         include_context description
 
+        shared_examples_for 'does not install Chef-DK' do
+          it 'does not download the correct Chef-DK' do
+            expect(chef_run).to_not create_remote_file('/tmp/cache/chefdk')
+          end
+
+          it 'does not install the downloaded package' do
+            expect(chef_run).to_not install_dpkg_package('/tmp/cache/chefdk')
+          end
+        end
+
         context 'all default properties' do
           include_context description
 
@@ -100,6 +138,18 @@ shared_context 'resources::chef_dk_app::debian' do
             pending
             expect(true).to eq(false)
           end
+        end
+
+        context 'the latest version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
+        end
+
+        context 'an older version already installed' do
+          include_context description
+
+          it_behaves_like 'does not install Chef-DK'
         end
       end
     end

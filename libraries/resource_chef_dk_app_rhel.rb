@@ -19,6 +19,7 @@
 # limitations under the License.
 #
 
+require 'chef/mixin/shell_out'
 require_relative 'resource_chef_dk_app'
 
 class Chef
@@ -27,8 +28,18 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDkAppRhel < ChefDkApp
+      include Chef::Mixin::ShellOut
+
       provides :chef_dk_app, platform_family: 'rhel'
       provides :chef_dk_app, platform: 'fedora'
+
+      #
+      # Determine whether the package is currently installed.
+      #
+      load_current_value do
+        version(installed_version)
+        installed(version == false ? false : true)
+      end
 
       #
       # Depending on the specified source, download and install Chef-DK based
@@ -38,26 +49,34 @@ class Chef
       action :install do
         case new_resource.source
         when :direct
-          local_path = ::File.join(Chef::Config[:file_cache_path],
-                                   ::File.basename(package_metadata[:url]))
-          remote_file local_path do
-            source package_metadata[:url]
-            checksum package_metadata[:sha256]
+          new_resource.installed(true)
+
+          converge_if_changed :installed do
+            local_path = ::File.join(Chef::Config[:file_cache_path],
+                                     ::File.basename(package_metadata[:url]))
+            remote_file local_path do
+              source package_metadata[:url]
+              checksum package_metadata[:sha256]
+            end
+            rpm_package local_path
           end
-          rpm_package local_path
         when :repo
           include_recipe "yum-chef::#{new_resource.channel}"
           package 'chefdk' do
-            version new_resource.version unless new_resource.version.nil?
+            version new_resource.version unless new_resource.version == 'latest'
           end
         else
-          local_path = ::File.join(Chef::Config[:file_cache_path],
-                                   ::File.basename(new_resource.source.to_s))
-          remote_file local_path do
-            source new_resource.source.to_s
-            checksum new_resource.checksum unless new_resource.checksum.nil?
+          new_resource.installed(true)
+
+          converge_if_changed :installed do
+            local_path = ::File.join(Chef::Config[:file_cache_path],
+                                     ::File.basename(new_resource.source.to_s))
+            remote_file local_path do
+              source new_resource.source.to_s
+              checksum new_resource.checksum unless new_resource.checksum.nil?
+            end
+            rpm_package local_path
           end
-          rpm_package local_path
         end
       end
 
@@ -73,7 +92,7 @@ class Chef
         when :repo
           include_recipe "yum-chef::#{new_resource.channel}"
           package 'chefdk' do
-            version new_resource.version unless new_resource.version.nil?
+            version new_resource.version unless new_resource.version == 'latest'
             action :upgrade
           end
         else
@@ -88,6 +107,21 @@ class Chef
       #
       action :remove do
         rpm_package('chefdk') { action :remove }
+      end
+
+      #
+      # Shell out to the RPM command to get the currently installed version.
+      # We can't use a Chef provider here because the Rpm provider requires a
+      # source property that we don't have and the Yum provider has issues on
+      # Fedora.
+      #
+      # (see Chef::Resource::ChefDkApp#installed_version)
+      #
+      def installed_version
+        sh = shell_out('rpm -q --info chefdk')
+        return false if sh.exitstatus.nonzero?
+        ver = sh.stdout.match(/^Version\W+:\W+([0-9]+\.[0-9]+\.[0-9]+)/)[1]
+        ver == package_metadata[:version] ? 'latest' : ver
       end
     end
   end

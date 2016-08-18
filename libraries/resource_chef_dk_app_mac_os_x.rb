@@ -19,6 +19,7 @@
 # limitations under the License.
 #
 
+require 'chef/mixin/shell_out'
 require_relative 'resource_chef_dk_app'
 
 class Chef
@@ -27,6 +28,8 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDkAppMacOsX < ChefDkApp
+      include Chef::Mixin::ShellOut
+
       provides :chef_dk_app, platform_family: 'mac_os_x'
 
       #
@@ -37,28 +40,36 @@ class Chef
       action :install do
         case new_resource.source
         when :direct
-          dmg_package 'Chef Development Kit' do
-            app ::File.basename(package_metadata[:url], '.dmg')
-            volumes_dir 'Chef Development Kit'
-            source package_metadata[:url]
-            type 'pkg'
-            package_id 'com.getchef.pkg.chefdk'
-            checksum package_metadata[:sha256]
+          new_resource.installed(true)
+
+          converge_if_changed :installed do
+            dmg_package 'Chef Development Kit' do
+              app ::File.basename(package_metadata[:url], '.dmg')
+              volumes_dir 'Chef Development Kit'
+              source package_metadata[:url]
+              type 'pkg'
+              package_id 'com.getchef.pkg.chefdk'
+              checksum package_metadata[:sha256]
+            end
           end
         when :repo
           include_recipe 'homebrew'
           homebrew_cask 'chefdk'
         else
-          dmg_package 'Chef Development Kit' do
-            app ::File.basename(new_resource.source.to_s, '.dmg')
-            volumes_dir 'Chef Development Kit'
-            source(
-              (new_resource.source.to_s.start_with?('/') ? 'file://' : '') + \
-              new_resource.source.to_s
-            )
-            type 'pkg'
-            package_id 'com.getchef.pkg.chefdk'
-            checksum new_resource.checksum unless new_resource.checksum.nil?
+          new_resource.installed(true)
+
+          converge_if_changed :installed do
+            dmg_package 'Chef Development Kit' do
+              app ::File.basename(new_resource.source.to_s, '.dmg')
+              volumes_dir 'Chef Development Kit'
+              source(
+                (new_resource.source.to_s.start_with?('/') ? 'file://' : '') + \
+                new_resource.source.to_s
+              )
+              type 'pkg'
+              package_id 'com.getchef.pkg.chefdk'
+              checksum new_resource.checksum unless new_resource.checksum.nil?
+            end
           end
         end
       end
@@ -82,6 +93,18 @@ class Chef
             only_if 'pkgutil --pkg-info com.getchef.pkg.chefdk'
           end
         end
+      end
+
+      #
+      # Shell out to pkgutil to find the installed version of the Chef-DK.
+      #
+      # @return [String, FalseClass] "major.minor.patch", "latest", or false
+      #
+      def installed_version
+        sh = shell_out('pkgutil --pkg-info com.getchef.pkg.chefdk')
+        return false if sh.exitstatus.nonzero?
+        ver = sh.stdout.match(/^version:\W+([0-9]+\.[0-9]+\.[0-9]+)$/)[1]
+        ver == package_metadata[:version] ? 'latest' : ver
       end
     end
   end

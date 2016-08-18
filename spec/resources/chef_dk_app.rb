@@ -12,6 +12,8 @@ shared_context 'resources::chef_dk_app' do
   end
   let(:name) { 'default' }
 
+  let(:installed_version) { nil }
+
   shared_context 'the default action (:install)' do
     before(:each) do
       allow(Kernel).to receive(:load).and_call_original
@@ -80,5 +82,13 @@ shared_context 'resources::chef_dk_app' do
 
   shared_context 'an overridden version property' do
     let(:version) { '4.5.6' }
+  end
+
+  shared_context 'the latest version already installed' do
+    let(:installed_version) { '1.2.3' }
+  end
+
+  shared_context 'an older version already installed' do
+    let(:installed_version) { '0.1.2' }
   end
 end
