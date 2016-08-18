@@ -7,9 +7,10 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
   let(:installed_version) { nil }
 
   before(:each) do
-    allow_any_instance_of(Chef::Mixin::HomebrewUser).to receive(:new)
-      .and_return(double(find_homebrew_uid: 501))
-    allow(Etc).to receive(:getpwuid).with(501).and_return(double: 'homebrew')
+    allow_any_instance_of(Chef::Recipe).to receive(:homebrew_owner)
+      .and_return('test')
+    allow_any_instance_of(Chef::Resource).to receive(:homebrew_owner)
+      .and_return('test')
     allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out)
       .and_call_original
     allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out)
