@@ -75,6 +75,36 @@ class Chef
       end
 
       #
+      # Upgrade or install the Chef-DK. There is no upgrade action for the
+      # homebrew_cask resource, so only :direct installations are currently
+      # supported.
+      #
+      action :upgrade do
+        case new_resource.source
+        when :direct
+          new_resource.installed(true)
+          new_resource.version('latest')
+
+          converge_if_changed :installed, :version do
+            dmg_package 'Chef Development Kit' do
+              app ::File.basename(package_metadata[:url], '.dmg')
+              volumes_dir 'Chef Development Kit'
+              source package_metadata[:url]
+              type 'pkg'
+              package_id 'com.getchef.pkg.chefdk'
+              checksum package_metadata[:sha256]
+            end
+          end
+        when :repo
+          raise(Chef::Exceptions::UnsupportedAction,
+                'Repo installs do not support the :upgrade action')
+        else
+          raise(Chef::Exceptions::UnsupportedAction,
+                'Custom installs do not support the :upgrade action')
+        end
+      end
+
+      #
       # Clean up the package directories and forget the Chef-DK entry in
       # pkgutil.
       #

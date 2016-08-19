@@ -80,8 +80,15 @@ class Chef
       action :upgrade do
         case new_resource.source
         when :direct
-          raise(Chef::Exceptions::UnsupportedAction,
-                'Direct installs do not support the :upgrade action')
+          new_resource.installed(true)
+          new_resource.version('latest')
+
+          converge_if_changed :installed, :version do
+            package "Chef Development Kit v#{package_metadata[:version]}" do
+              source package_metadata[:url]
+              checksum package_metadata[:sha256]
+            end
+          end
         when :repo
           include_recipe 'chocolatey'
           chocolatey_package 'chefdk' do
@@ -137,7 +144,8 @@ class Chef
           l.match(/^\W*Name\W+:\W+Chef Development Kit/)
         end
         return false if idx.nil?
-        lines[idx + 2].split(':')[1].strip.split('.')[0..2].join('.')
+        ver = lines[idx + 2].match(/:\W+([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+/)[1]
+        ver == package_metadata[:version] ? 'latest' : ver
       end
     end
   end
