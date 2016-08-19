@@ -8,8 +8,8 @@ shared_context 'resources::chef_dk_app::rhel' do
     allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out)
       .with('rpm -q --info chefdk').and_return(
         double(exitstatus: installed_version.nil? ? 1 : 0,
-               stdout: "Name        : chefdk\nVersion     : 0.17.17\n" \
-                       "Release     : 1.el7\n")
+               stdout: "Name        : chefdk\nVersion     : "\
+                       "#{installed_version}\nRelease     : 1.el7\n")
       )
   end
 
@@ -137,23 +137,58 @@ shared_context 'resources::chef_dk_app::rhel' do
       context 'the default source (:direct)' do
         include_context description
 
-        shared_examples_for 'any property set' do
-          it 'raises an error' do
-            expect { chef_run }
-              .to raise_error(Chef::Exceptions::UnsupportedAction)
+        shared_examples_for 'upgrades Chef-DK' do
+          it 'downloads the correct Chef-DK' do
+            expect(chef_run).to create_remote_file('/tmp/cache/chefdk')
+              .with(source: "http://example.com/#{channel || 'stable'}/chefdk",
+                    checksum: '1234')
+          end
+
+          it 'installs the downloaded package' do
+            expect(chef_run).to install_rpm_package('/tmp/cache/chefdk')
+          end
+        end
+
+        shared_examples_for 'does not upgrade Chef-DK' do
+          it 'does not download the correct Chef-DK' do
+            expect(chef_run).to_not create_remote_file('/tmp/cache/chefdk')
+          end
+
+          it 'does not install the downloaded package' do
+            expect(chef_run).to_not install_rpm_package('/tmp/cache/chefdk')
           end
         end
 
         [
           'all default properties',
-          'an overridden channel property',
-          'an overridden version property'
+          'an overridden channel property'
         ].each do |c|
           context c do
             include_context description
 
-            it_behaves_like 'any property set'
+            it_behaves_like 'upgrades Chef-DK'
           end
+        end
+
+        context 'an overridden version property' do
+          include_context description
+
+          it 'raises an error' do
+            pending
+            expect(true).to eq(false)
+          end
+        end
+
+        context 'the latest version already installed' do
+          include_context description
+
+          it_behaves_like 'does not upgrade Chef-DK'
+        end
+
+        context 'an older version already installed' do
+          include_context description
+
+          it_behaves_like 'upgrades Chef-DK'
         end
       end
 
@@ -174,13 +209,21 @@ shared_context 'resources::chef_dk_app::rhel' do
 
         [
           'all default properties',
-          'an overridden channel property',
-          'an overridden version property'
+          'an overridden channel property'
         ].each do |c|
           context c do
             include_context description
 
             it_behaves_like 'any property set'
+          end
+        end
+
+        context 'an overridden version property' do
+          include_context description
+
+          it 'raises an error' do
+            pending
+            expect(true).to eq(false)
           end
         end
       end

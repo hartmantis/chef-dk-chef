@@ -11,6 +11,7 @@ Unreleased
 * Replace `:prerelease` and `:nightlies` with a `:channel` property
 * Remove dependency on the Omnijack gem
 * Rename the `package_url` attribute to `source`
+* Implement an :upgrade action for :direct and :repo package sources
 
 v3.1.0 (2015-06-03)
 -------------------

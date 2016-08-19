@@ -87,8 +87,18 @@ class Chef
       action :upgrade do
         case new_resource.source
         when :direct
-          raise(Chef::Exceptions::UnsupportedAction,
-                'Direct installs do not support the :upgrade action')
+          new_resource.installed(true)
+          new_resource.version('latest')
+
+          converge_if_changed :installed, :version do
+            local_path = ::File.join(Chef::Config[:file_cache_path],
+                                     ::File.basename(package_metadata[:url]))
+            remote_file local_path do
+              source package_metadata[:url]
+              checksum package_metadata[:sha256]
+            end
+            rpm_package local_path
+          end
         when :repo
           include_recipe "yum-chef::#{new_resource.channel}"
           package 'chefdk' do
