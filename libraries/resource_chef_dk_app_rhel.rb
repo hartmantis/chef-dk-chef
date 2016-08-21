@@ -33,90 +33,83 @@ class Chef
       provides :chef_dk_app, platform_family: 'rhel'
       provides :chef_dk_app, platform: 'fedora'
 
-      #
-      # Determine whether the package is currently installed.
-      #
-      load_current_value do
-        version(installed_version)
-        installed(version == false ? false : true)
-      end
-
-      #
-      # Depending on the specified source, download and install Chef-DK based
-      # on the Omnitruck API, configure and install it from YUM, or install it
-      # from a custom source.
-      #
-      action :install do
-        case new_resource.source
-        when :direct
-          new_resource.installed(true)
-
-          converge_if_changed :installed do
-            local_path = ::File.join(Chef::Config[:file_cache_path],
-                                     ::File.basename(package_metadata[:url]))
-            remote_file local_path do
-              source package_metadata[:url]
-              checksum package_metadata[:sha256]
-            end
-            rpm_package local_path
+      action_class.class_eval do
+        #
+        # Download a .rpm package file from a URL provided by the Omnitruck
+        # API and install it.
+        #
+        # (see Chef::Resource::ChefDkApp#install_direct!)
+        #
+        def install_direct!
+          remote_file local_path do
+            source package_metadata[:url]
+            checksum package_metadata[:sha256]
           end
-        when :repo
+          rpm_package local_path
+        end
+
+        #
+        # Configure the Chef YUM repository and install the Chef-DK package
+        # from there.
+        #
+        # (see Chef::Resource::ChefDkApp#install_repo!
+        #
+        def install_repo!
           include_recipe "yum-chef::#{new_resource.channel}"
           package 'chefdk' do
             version new_resource.version unless new_resource.version == 'latest'
           end
-        else
-          new_resource.installed(true)
-
-          converge_if_changed :installed do
-            local_path = ::File.join(Chef::Config[:file_cache_path],
-                                     ::File.basename(new_resource.source.to_s))
-            remote_file local_path do
-              source new_resource.source.to_s
-              checksum new_resource.checksum unless new_resource.checksum.nil?
-            end
-            rpm_package local_path
-          end
         end
-      end
 
-      #
-      # Upgrade or install the Chef-DK. This action currently only supports the
-      # :repo installation source.
-      #
-      action :upgrade do
-        case new_resource.source
-        when :direct
-          new_resource.installed(true)
-          new_resource.version('latest')
-
-          converge_if_changed :installed, :version do
-            local_path = ::File.join(Chef::Config[:file_cache_path],
-                                     ::File.basename(package_metadata[:url]))
-            remote_file local_path do
-              source package_metadata[:url]
-              checksum package_metadata[:sha256]
-            end
-            rpm_package local_path
+        #
+        # Download a .rpm package file from a custom URL and install it.
+        #
+        # (see Chef::Resource::ChefDkApp#install_custom!
+        #
+        def install_custom!
+          remote_file local_path do
+            source new_resource.source.to_s
+            checksum new_resource.checksum unless new_resource.checksum.nil?
           end
-        when :repo
+          rpm_package local_path
+        end
+
+        #
+        # Download the latest .rpm package from the Omnitruck API and install
+        # it.
+        #
+        # (see Chef::Resource::ChefDkApp#upgrade_direct!
+        #
+        def upgrade_direct!
+          remote_file local_path do
+            source package_metadata[:url]
+            checksum package_metadata[:sha256]
+          end
+          rpm_package local_path
+        end
+
+        #
+        # Ensure the Chef YUM repo is configured and pass an :upgrade action
+        # on to a chefdk package resource.
+        #
+        # (see Chef::Resource::ChefDkApp#upgrade_repo!)
+        #
+        def upgrade_repo!
           include_recipe "yum-chef::#{new_resource.channel}"
           package 'chefdk' do
             version new_resource.version unless new_resource.version == 'latest'
             action :upgrade
           end
-        else
-          raise(Chef::Exceptions::UnsupportedAction,
-                'Custom installs do not support the :upgrade action')
         end
-      end
 
-      #
-      # The YUM repository is shared between Chef, Chef-DK, etc. so all we can
-      # confidently do for removal is to remove the package.
-      #
-      action :remove do
-        rpm_package('chefdk') { action :remove }
+        #
+        # We can't be certain that the Chef YUM rpo is only being used for
+        # Chef-DK, so the remove action is just a package removal regardless
+        # of installation type.
+        #
+        %w(remove_direct! remove_repo! remove_custom!).each do |m|
+          define_method(m) { rpm_package('chefdk') { action :remove } }
+        end
       end
 
       #

@@ -32,96 +32,105 @@ class Chef
 
       provides :chef_dk_app, platform_family: 'mac_os_x'
 
-      #
-      # Depending on the specified source, download and install Chef-DK based
-      # on the Omnitruck API, configure and install it from Homebrew, or
-      # install it from a custom source.
-      #
-      action :install do
-        case new_resource.source
-        when :direct
-          new_resource.installed(true)
-
-          converge_if_changed :installed do
-            dmg_package 'Chef Development Kit' do
-              app ::File.basename(package_metadata[:url], '.dmg')
-              volumes_dir 'Chef Development Kit'
-              source package_metadata[:url]
-              type 'pkg'
-              package_id 'com.getchef.pkg.chefdk'
-              checksum package_metadata[:sha256]
-            end
+      action_class.class_eval do
+        #
+        # Download a MacOS package file from the URL provided by the Omnitruck
+        # API and install it.
+        #
+        # (see Chef::Resource::ChefDkApp#install_direct!
+        #
+        def install_direct!
+          dmg_package 'Chef Development Kit' do
+            app ::File.basename(package_metadata[:url], '.dmg')
+            volumes_dir 'Chef Development Kit'
+            source package_metadata[:url]
+            type 'pkg'
+            package_id 'com.getchef.pkg.chefdk'
+            checksum package_metadata[:sha256]
           end
-        when :repo
+        end
+
+        #
+        # Configure Homebrew and install the Chef-DK cask.
+        #
+        # (see Chef::Resource::ChefDkApp#install_repo!
+        #
+        def install_repo!
           include_recipe 'homebrew'
           homebrew_cask 'chefdk'
-        else
-          new_resource.installed(true)
+        end
 
-          converge_if_changed :installed do
-            dmg_package 'Chef Development Kit' do
-              app ::File.basename(new_resource.source.to_s, '.dmg')
-              volumes_dir 'Chef Development Kit'
-              source(
-                (new_resource.source.to_s.start_with?('/') ? 'file://' : '') + \
-                new_resource.source.to_s
-              )
-              type 'pkg'
-              package_id 'com.getchef.pkg.chefdk'
-              checksum new_resource.checksum unless new_resource.checksum.nil?
-            end
+        #
+        # Download a MacOS package file from a custom URL and install it.
+        #
+        # (see Chef::Resource::ChefDkApp#install_custom!
+        #
+        def install_custom!
+          dmg_package 'Chef Development Kit' do
+            app ::File.basename(new_resource.source.to_s, '.dmg')
+            volumes_dir 'Chef Development Kit'
+            source(
+              (new_resource.source.to_s.start_with?('/') ? 'file://' : '') + \
+              new_resource.source.to_s
+            )
+            type 'pkg'
+            package_id 'com.getchef.pkg.chefdk'
+            checksum new_resource.checksum unless new_resource.checksum.nil?
           end
         end
-      end
 
-      #
-      # Upgrade or install the Chef-DK. There is no upgrade action for the
-      # homebrew_cask resource, so only :direct installations are currently
-      # supported.
-      #
-      action :upgrade do
-        case new_resource.source
-        when :direct
-          new_resource.installed(true)
-          new_resource.version('latest')
-
-          converge_if_changed :installed, :version do
-            dmg_package 'Chef Development Kit' do
-              app ::File.basename(package_metadata[:url], '.dmg')
-              volumes_dir 'Chef Development Kit'
-              source package_metadata[:url]
-              type 'pkg'
-              package_id 'com.getchef.pkg.chefdk'
-              checksum package_metadata[:sha256]
-            end
+        #
+        # Download the latest MacOS package from the Omnitruck API and install
+        # it.
+        #
+        # (see Chef::Resource::ChefDkApp#upgrade_direct!)
+        #
+        def upgrade_direct!
+          dmg_package 'Chef Development Kit' do
+            app ::File.basename(package_metadata[:url], '.dmg')
+            volumes_dir 'Chef Development Kit'
+            source package_metadata[:url]
+            type 'pkg'
+            package_id 'com.getchef.pkg.chefdk'
+            checksum package_metadata[:sha256]
           end
-        when :repo
+        end
+
+        #
+        # There is no upgrade option for Homebrew casks, so raise an error.
+        #
+        # (see Chef::Resource::ChefDkApp#upgrade_repo!)
+        #
+        def upgrade_repo!
           raise(Chef::Exceptions::UnsupportedAction,
                 'Repo installs do not support the :upgrade action')
-        else
-          raise(Chef::Exceptions::UnsupportedAction,
-                'Custom installs do not support the :upgrade action')
         end
-      end
 
-      #
-      # Clean up the package directories and forget the Chef-DK entry in
-      # pkgutil.
-      #
-      action :remove do
-        case new_resource.source
-        when :repo
-          homebrew_cask('chefdk') { action :uninstall }
-        else
-          ['/opt/chefdk', ::File.expand_path('~/.chefdk')].each do |d|
-            directory d do
-              recursive true
-              action :delete
+        #
+        # For non-repo installs, all we can do is clean up the app directories
+        # manually and forget the chefdk package from pkgutil.
+        #
+        %i(remove_direct! remove_custom!).each do |m|
+          define_method(m) do
+            ['/opt/chefdk', ::File.expand_path('~/.chefdk')].each do |d|
+              directory d do
+                recursive true
+                action :delete
+              end
+            end
+            execute 'pkgutil --forget com.getchef.pkg.chefdk' do
+              only_if 'pkgutil --pkg-info com.getchef.pkg.chefdk'
             end
           end
-          execute 'pkgutil --forget com.getchef.pkg.chefdk' do
-            only_if 'pkgutil --pkg-info com.getchef.pkg.chefdk'
-          end
+        end
+
+        #
+        # Uninstall the Chef-DK brew cask.
+        #
+        # (see Chef::Resource::ChefDkApp#remove_repo!)
+        #
+        def remove_repo!
+          homebrew_cask('chefdk') { action :uninstall }
         end
       end
 

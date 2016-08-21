@@ -57,13 +57,7 @@ class Chef
       property :source,
                Symbol,
                coerce: proc { |v| v.to_sym },
-               regex: [
-                 /^direct$/,
-                 /^repo$/,
-                 %r{^http://},
-                 %r{^https://},
-                 %r{^file://}
-               ],
+               regex: [/^direct$/, /^repo$/, %r{^https?://}, %r{^file://}],
                default: :direct
 
       #
@@ -85,6 +79,110 @@ class Chef
       load_current_value do
         version(installed_version)
         installed(version == false ? false : true)
+      end
+
+      #
+      # Install the Chef-DK in one of three ways:
+      #
+      # * Direct - Get a download URL from the Omnitruck API then download and
+      #   install that file. If a version property is specified, install that
+      #   version. If no version property is specified, do nothing if any
+      #   version is already installed.
+      # * Repo - Configure a package repo (APT, YUM, Homebrew, Chocolatey) and
+      #   install the package from there.
+      # * Custom - Download a package from a specified custom URL.
+      #
+      action :install do
+        new_resource.installed(true)
+
+        case new_resource.source
+        when :direct
+          converge_if_changed(:installed) { install_direct! }
+        when :repo
+          install_repo!
+        else
+          install_custom!
+        end
+      end
+
+      #
+      # Install or upgrade to the latest version of the Chef-DK in one of three
+      # ways:
+      #
+      # * Direct - Install or upgrade to Omnitruck's latest advertised version.
+      # * Repo - Send an upgrade action to the underlying package resource.
+      # * Custom - Raise an error, the :upgrade action is not supported for
+      #   custom installs.
+      #
+      action :upgrade do
+        new_resource.installed(true)
+        new_resource.version('latest')
+
+        case new_resource.source
+        when :direct
+          converge_if_changed(:installed, :version) { upgrade_direct! }
+        when :repo
+          upgrade_repo!
+        else
+          raise(Chef::Exceptions::UnsupportedAction,
+                'Custom source installs do not support the :upgrade action')
+        end
+      end
+
+      #
+      # Remove any installed Chef-DK package. The remove action is the same,
+      # regardless of the package's original install method.
+      #
+      action :remove do
+        new_resource.installed(false)
+
+        case new_resource.source
+        when :direct
+          remove_direct!
+        when :repo
+          remove_repo!
+        else
+          remove_custom!
+        end
+      end
+
+      #
+      # The specific methods to install, upgrade, or remove the Chef-DK app
+      # must be defined for each sub-provider
+      #
+      action_class.class_eval do
+        %i(
+          install_direct!
+          install_repo!
+          install_custom!
+          upgrade_direct!
+          upgrade_repo!
+          remove_direct!
+          remove_repo!
+          remove_custom!
+        ).each do |m|
+          define_method(m) do
+            raise(NotImplementedError,
+                  "The `#{m}` method must be implemented for the " \
+                  "`#{self.class}` provider")
+          end
+        end
+      end
+
+      #
+      # Construct a download path in Chef's cache directory for either direct
+      # or custom package downloads. This can be useful for package resources
+      # that won't accept a remote URL as their source.
+      #
+      # @return [String] a package download path
+      #
+      def local_path
+        src = if %i(direct repo).include?(new_resource.source)
+                package_metadata[:url]
+              else
+                new_resource.source.to_s
+              end
+        ::File.join(Chef::Config[:file_cache_path], ::File.basename(src))
       end
 
       #
