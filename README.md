@@ -137,10 +137,15 @@ Properties:
 
 Actions:
 
-| Action      | Description                   
-|-------------|-------------------------------|
-| `:install ` | Default; installs the Chef-DK |
-| `:remove`   | Uninstalls the Chef-DK        |
+| Action     | Description                   
+|------------|---------------------------------------------|
+| `:install` | Default; installs the Chef-DK               |
+| `:upgrade` | Install or upgrade to the latest Chef-DK \* |
+| `:remove`  | Uninstalls the Chef-DK                      |
+
+\* The `:upgrade` action suports the `:direct` and `:repo` sources only. It
+will always install the latest version. The use of a `version` property with it
+is not supported.
 
 ***chef_dk_gem***
 
