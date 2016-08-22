@@ -40,12 +40,7 @@ class Chef
         # (see Chef::Resource::ChefDkApp#install_direct!)
         #
         def install_direct!
-          ver = if new_resource.version == 'latest'
-                  package_metadata[:version]
-                else
-                  new_resource.version
-                end
-          package "Chef Development Kit v#{ver}" do
+          package package_name do
             source package_metadata[:url]
             checksum package_metadata[:sha256]
           end
@@ -70,12 +65,7 @@ class Chef
         # (see Chef::Resource::ChefDkApp#install_custom!)
         #
         def install_custom!
-          ver = if new_resource.version == 'latest'
-                  package_metadata[:version]
-                else
-                  new_resource.version
-                end
-          package "Chef Development Kit v#{ver}" do
+          package package_name do
             source new_resource.source.to_s
             checksum new_resource.checksum unless new_resource.checksum.nil?
           end
@@ -145,6 +135,21 @@ class Chef
         def remove_repo!
           chocolatey_package('chefdk') { action :remove }
         end
+      end
+
+      #
+      # Determine and return the name of the Windows package. This can be
+      # tricky because the package name includes the version string.
+      #
+      # @return [String] The name for a windows_package resource
+      #
+      def package_name
+        ver = if new_resource.version == 'latest'
+                package_metadata[:version]
+              else
+                new_resource.version
+              end
+        "Chef Development Kit v#{ver}"
       end
 
       #

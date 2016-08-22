@@ -167,22 +167,22 @@ class Chef
                   "`#{self.class}` provider")
           end
         end
-      end
 
-      #
-      # Construct a download path in Chef's cache directory for either direct
-      # or custom package downloads. This can be useful for package resources
-      # that won't accept a remote URL as their source.
-      #
-      # @return [String] a package download path
-      #
-      def local_path
-        src = if %i(direct repo).include?(new_resource.source)
-                package_metadata[:url]
-              else
-                new_resource.source.to_s
-              end
-        ::File.join(Chef::Config[:file_cache_path], ::File.basename(src))
+        #
+        # Construct a download path in Chef's cache directory for either direct
+        # or custom package downloads. This can be useful for package resources
+        # that won't accept a remote URL as their source.
+        #
+        # @return [String] a package download path
+        #
+        def local_path
+          src = if %i(direct repo).include?(new_resource.source)
+                  package_metadata[:url]
+                else
+                  new_resource.source.to_s
+                end
+          ::File.join(Chef::Config[:file_cache_path], ::File.basename(src))
+        end
       end
 
       #
