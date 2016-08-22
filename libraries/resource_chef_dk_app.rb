@@ -101,7 +101,7 @@ class Chef
         when :repo
           install_repo!
         else
-          install_custom!
+          converge_if_changed(:installed) { install_custom! }
         end
       end
 

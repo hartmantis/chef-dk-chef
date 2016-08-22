@@ -95,10 +95,7 @@ class Chef
         def upgrade_repo!
           package 'apt-transport-https'
           include_recipe "apt-chef::#{new_resource.channel}"
-          package 'chefdk' do
-            version new_resource.version unless new_resource.version == 'latest'
-            action :upgrade
-          end
+          package('chefdk') { action :upgrade }
         end
 
         #

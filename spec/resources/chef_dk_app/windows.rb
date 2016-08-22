@@ -242,7 +242,7 @@ shared_context 'resources::chef_dk_app::windows' do
 
             it 'installs the chefdk Chocolatey package' do
               expect(chef_run).to upgrade_chocolatey_package('chefdk')
-                .with(version: version && [version])
+                .with(version: nil)
             end
           end
         end

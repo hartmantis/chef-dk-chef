@@ -55,7 +55,9 @@ class Chef
         def install_repo!
           include_recipe 'chocolatey'
           chocolatey_package 'chefdk' do
-            version new_resource.version unless new_resource.version == 'latest'
+            if !new_resource.version.nil? && new_resource.version != 'latest'
+              version new_resource.version
+            end
           end
         end
 
@@ -93,7 +95,6 @@ class Chef
         def upgrade_repo!
           include_recipe 'chocolatey'
           chocolatey_package 'chefdk' do
-            version new_resource.version unless new_resource.version == 'latest'
             action :upgrade
           end
         end
@@ -135,21 +136,21 @@ class Chef
         def remove_repo!
           chocolatey_package('chefdk') { action :remove }
         end
-      end
 
-      #
-      # Determine and return the name of the Windows package. This can be
-      # tricky because the package name includes the version string.
-      #
-      # @return [String] The name for a windows_package resource
-      #
-      def package_name
-        ver = if new_resource.version == 'latest'
-                package_metadata[:version]
-              else
-                new_resource.version
-              end
-        "Chef Development Kit v#{ver}"
+        #
+        # Determine and return the name of the Windows package. This can be
+        # tricky because the package name includes the version string.
+        #
+        # @return [String] The name for a windows_package resource
+        #
+        def package_name
+          ver = if new_resource.version == 'latest'
+                  package_metadata[:version]
+                else
+                  new_resource.version
+                end
+          "Chef Development Kit v#{ver}"
+        end
       end
 
       #
