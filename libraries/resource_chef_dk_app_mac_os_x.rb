@@ -32,96 +32,142 @@ class Chef
 
       provides :chef_dk_app, platform_family: 'mac_os_x'
 
-      #
-      # Depending on the specified source, download and install Chef-DK based
-      # on the Omnitruck API, configure and install it from Homebrew, or
-      # install it from a custom source.
-      #
-      action :install do
-        case new_resource.source
-        when :direct
-          new_resource.installed(true)
+      action_class.class_eval do
+        #
+        # Download a MacOS package file from the URL provided by the Omnitruck
+        # API and install it.
+        #
+        # (see Chef::Resource::ChefDkApp#install_direct!
+        #
+        def install_direct!
+          do_dmg_package_resource!
+        end
 
-          converge_if_changed :installed do
-            dmg_package 'Chef Development Kit' do
-              app ::File.basename(package_metadata[:url], '.dmg')
-              volumes_dir 'Chef Development Kit'
-              source package_metadata[:url]
-              type 'pkg'
-              package_id 'com.getchef.pkg.chefdk'
-              checksum package_metadata[:sha256]
-            end
-          end
-        when :repo
+        #
+        # Configure Homebrew and install the Chef-DK cask.
+        #
+        # (see Chef::Resource::ChefDkApp#install_repo!
+        #
+        def install_repo!
           include_recipe 'homebrew'
           homebrew_cask 'chefdk'
-        else
-          new_resource.installed(true)
-
-          converge_if_changed :installed do
-            dmg_package 'Chef Development Kit' do
-              app ::File.basename(new_resource.source.to_s, '.dmg')
-              volumes_dir 'Chef Development Kit'
-              source(
-                (new_resource.source.to_s.start_with?('/') ? 'file://' : '') + \
-                new_resource.source.to_s
-              )
-              type 'pkg'
-              package_id 'com.getchef.pkg.chefdk'
-              checksum new_resource.checksum unless new_resource.checksum.nil?
-            end
-          end
         end
-      end
 
-      #
-      # Upgrade or install the Chef-DK. There is no upgrade action for the
-      # homebrew_cask resource, so only :direct installations are currently
-      # supported.
-      #
-      action :upgrade do
-        case new_resource.source
-        when :direct
-          new_resource.installed(true)
-          new_resource.version('latest')
+        #
+        # Download a MacOS package file from a custom URL and install it.
+        #
+        # (see Chef::Resource::ChefDkApp#install_custom!
+        #
+        def install_custom!
+          do_dmg_package_resource!
+        end
 
-          converge_if_changed :installed, :version do
-            dmg_package 'Chef Development Kit' do
-              app ::File.basename(package_metadata[:url], '.dmg')
-              volumes_dir 'Chef Development Kit'
-              source package_metadata[:url]
-              type 'pkg'
-              package_id 'com.getchef.pkg.chefdk'
-              checksum package_metadata[:sha256]
-            end
-          end
-        when :repo
+        #
+        # Download the latest MacOS package from the Omnitruck API and install
+        # it.
+        #
+        # (see Chef::Resource::ChefDkApp#upgrade_direct!)
+        #
+        def upgrade_direct!
+          do_dmg_package_resource!
+        end
+
+        #
+        # There is no upgrade option for Homebrew casks, so raise an error.
+        #
+        # (see Chef::Resource::ChefDkApp#upgrade_repo!)
+        #
+        def upgrade_repo!
           raise(Chef::Exceptions::UnsupportedAction,
                 'Repo installs do not support the :upgrade action')
-        else
-          raise(Chef::Exceptions::UnsupportedAction,
-                'Custom installs do not support the :upgrade action')
         end
-      end
 
-      #
-      # Clean up the package directories and forget the Chef-DK entry in
-      # pkgutil.
-      #
-      action :remove do
-        case new_resource.source
-        when :repo
-          homebrew_cask('chefdk') { action :uninstall }
-        else
-          ['/opt/chefdk', ::File.expand_path('~/.chefdk')].each do |d|
-            directory d do
-              recursive true
-              action :delete
+        #
+        # For non-repo installs, all we can do is clean up the app directories
+        # manually and forget the chefdk package from pkgutil.
+        #
+        %i(remove_direct! remove_custom!).each do |m|
+          define_method(m) do
+            ['/opt/chefdk', ::File.expand_path('~/.chefdk')].each do |d|
+              directory d do
+                recursive true
+                action :delete
+              end
+            end
+            execute 'pkgutil --forget com.getchef.pkg.chefdk' do
+              only_if 'pkgutil --pkg-info com.getchef.pkg.chefdk'
             end
           end
-          execute 'pkgutil --forget com.getchef.pkg.chefdk' do
-            only_if 'pkgutil --pkg-info com.getchef.pkg.chefdk'
+        end
+
+        #
+        # Uninstall the Chef-DK brew cask.
+        #
+        # (see Chef::Resource::ChefDkApp#remove_repo!)
+        #
+        def remove_repo!
+          homebrew_cask('chefdk') { action :uninstall }
+        end
+
+        #
+        # Perform the appropriate action with a dmg_package resource that can
+        # be shared between direct and custom installs.
+        #
+        def do_dmg_package_resource!
+          dmg_package 'Chef Development Kit' do
+            app dmg_package_app
+            volumes_dir 'Chef Development Kit'
+            source dmg_package_source
+            type 'pkg'
+            package_id 'com.getchef.pkg.chefdk'
+            checksum dmg_package_checksum
           end
+        end
+
+        #
+        # Determine the checksum for a given package. This comes from Omnitruck
+        # for an Omnitruck-based install or can be fed in by the user for a
+        # custom install.
+        #
+        # @return [String, NilClass] A checksum string or nil
+        #
+        def dmg_package_checksum
+          case new_resource.source
+          when :direct
+            package_metadata[:sha256]
+          else
+            new_resource.checksum
+          end
+        end
+
+        #
+        # Determine the app name for a given package. This can normally be
+        # found by stripping the '.dmg' off the end of the package file.
+        #
+        # @return [String] A dmg_package app name
+        #
+        def dmg_package_app
+          case new_resource.source
+          when :direct
+            ::File.basename(package_metadata[:url], '.dmg')
+          else
+            ::File.basename(new_resource.source.to_s, '.dmg')
+          end
+        end
+
+        #
+        # Return the correct source string for a given path. For the
+        # dmg_package resource, sources that are paths on the filesystem have
+        # to start with "file://".
+        #
+        # @return [String] That path ready to be fed to a dmg_package
+        #
+        def dmg_package_source
+          if %i(direct repo).include?(new_resource.source)
+            return package_metadata[:url]
+          end
+          path = new_resource.source.to_s
+          (path.start_with?('/') ? 'file://' : '') + path
         end
       end
 

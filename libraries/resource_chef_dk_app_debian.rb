@@ -30,84 +30,82 @@ class Chef
     class ChefDkAppDebian < ChefDkApp
       provides :chef_dk_app, platform_family: 'debian'
 
-      #
-      # Depending on the specified source, download and install Chef-DK based
-      # on the Omnitruck API, configure and install it from APT, or install it
-      # from a custom source.
-      #
-      action :install do
-        case new_resource.source
-        when :direct
-          new_resource.installed(true)
-
-          converge_if_changed :installed do
-            local_path = ::File.join(Chef::Config[:file_cache_path],
-                                     ::File.basename(package_metadata[:url]))
-            remote_file local_path do
-              source package_metadata[:url]
-              checksum package_metadata[:sha256]
-            end
-            dpkg_package local_path
+      action_class.class_eval do
+        #
+        # Download a .deb package file from the URL provided by the Omnitruck
+        # API and install it.
+        #
+        # (see Chef::Resource::ChefDkApp#install_direct!)
+        #
+        def install_direct!
+          remote_file local_path do
+            source package_metadata[:url]
+            checksum package_metadata[:sha256]
           end
-        when :repo
+          dpkg_package local_path
+        end
+
+        #
+        # Configure the Chef APT repository and install the Chef-DK package
+        # from there.
+        #
+        # (see Chef::Resource::ChefDkApp#install_repo!
+        #
+        def install_repo!
           package 'apt-transport-https'
           include_recipe "apt-chef::#{new_resource.channel}"
           package 'chefdk' do
             version new_resource.version unless new_resource.version == 'latest'
           end
-        else
-          new_resource.installed(true)
-
-          converge_if_changed :installed do
-            local_path = ::File.join(Chef::Config[:file_cache_path],
-                                     ::File.basename(new_resource.source.to_s))
-            remote_file local_path do
-              source new_resource.source.to_s
-              checksum new_resource.checksum unless new_resource.checksum.nil?
-            end
-            dpkg_package local_path
-          end
         end
-      end
 
-      #
-      # Upgrade or install the Chef-DK. This action currently only supports the
-      # :direct and :repo installation sources.
-      #
-      action :upgrade do
-        case new_resource.source
-        when :direct
-          new_resource.installed(true)
-          new_resource.version('latest')
-
-          converge_if_changed :installed, :version do
-            local_path = ::File.join(Chef::Config[:file_cache_path],
-                                     ::File.basename(package_metadata[:url]))
-            remote_file local_path do
-              source package_metadata[:url]
-              checksum package_metadata[:sha256]
-            end
-            dpkg_package local_path
+        #
+        # Download a .deb package file from a custom URL and install it.
+        #
+        # (see Chef::Resource::ChefDkApp#install_custom!)
+        #
+        def install_custom!
+          remote_file local_path do
+            source new_resource.source.to_s
+            checksum new_resource.checksum unless new_resource.checksum.nil?
           end
-        when :repo
+          dpkg_package local_path
+        end
+
+        #
+        # Download the latest .deb package from the Omnitruck API and install
+        # it.
+        #
+        # (see Chef::Resource::ChefDkApp#upgrade_direct!)
+        #
+        def upgrade_direct!
+          remote_file local_path do
+            source package_metadata[:url]
+            checksum package_metadata[:sha256]
+          end
+          dpkg_package local_path
+        end
+
+        #
+        # Ensure the Chef APT repo is configured and pass an :upgrade action
+        # on to a chefdk package resource.
+        #
+        # (see Chef::Resource::ChefDkApp#upgrade_repo!)
+        #
+        def upgrade_repo!
           package 'apt-transport-https'
           include_recipe "apt-chef::#{new_resource.channel}"
-          package 'chefdk' do
-            version new_resource.version unless new_resource.version == 'latest'
-            action :upgrade
-          end
-        else
-          raise(Chef::Exceptions::UnsupportedAction,
-                'Custom installs do not support the :upgrade action')
+          package('chefdk') { action :upgrade }
         end
-      end
 
-      #
-      # The APT repository is shared between Chef, Chef-DK, etc. so all we can
-      # confidently do for removal is to remove the package.
-      #
-      action :remove do
-        package('chefdk') { action :purge }
+        #
+        # We can't be certain that the Chef APT repo is only being used for
+        # Chef-DK, so the remove action is just a package purge regardless of
+        # installation type.
+        #
+        %w(remove_direct! remove_repo! remove_custom!).each do |m|
+          define_method(m) { package('chefdk') { action :purge } }
+        end
       end
 
       #

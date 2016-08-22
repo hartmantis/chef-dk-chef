@@ -32,102 +32,124 @@ class Chef
 
       provides :chef_dk_app, platform_family: 'windows'
 
-      #
-      # Install the Chef-DK Windows package from the appropriate source.
-      #
-      action :install do
-        case new_resource.source
-        when :direct
-          new_resource.installed(true)
-
-          converge_if_changed :installed do
-            ver = if new_resource.version == 'latest'
-                    package_metadata[:version]
-                  else
-                    new_resource.version
-                  end
-            package "Chef Development Kit v#{ver}" do
-              source package_metadata[:url]
-              checksum package_metadata[:sha256]
-            end
+      action_class.class_eval do
+        #
+        # Download a .msi package file from the URL provided by the Omnitruck
+        # API and install it.
+        #
+        # (see Chef::Resource::ChefDkApp#install_direct!)
+        #
+        def install_direct!
+          package package_name do
+            source package_metadata[:url]
+            checksum package_metadata[:sha256]
           end
-        when :repo
+        end
+
+        #
+        # Ensure Chocolatey is installed and install the Chef-DK Chocolatey
+        # package.
+        #
+        # (see Chef::Resource::ChefDkApp#install_repo!)
+        #
+        def install_repo!
           include_recipe 'chocolatey'
           chocolatey_package 'chefdk' do
-            version new_resource.version unless new_resource.version == 'latest'
-          end
-        else
-          new_resource.installed(true)
-
-          converge_if_changed :installed do
-            ver = if new_resource.version == 'latest'
-                    package_metadata[:version]
-                  else
-                    new_resource.version
-                  end
-            package "Chef Development Kit v#{ver}" do
-              source new_resource.source.to_s
-              checksum new_resource.checksum unless new_resource.checksum.nil?
+            if !new_resource.version.nil? && new_resource.version != 'latest'
+              version new_resource.version
             end
           end
         end
-      end
 
-      #
-      # Upgrade or install the Chef-DK. This action currently only supports the
-      # :repo installation source.
-      #
-      action :upgrade do
-        case new_resource.source
-        when :direct
-          new_resource.installed(true)
-          new_resource.version('latest')
-
-          converge_if_changed :installed, :version do
-            package "Chef Development Kit v#{package_metadata[:version]}" do
-              source package_metadata[:url]
-              checksum package_metadata[:sha256]
-            end
+        #
+        # Download a .msi package file from a custom URL and install it.
+        #
+        # (see Chef::Resource::ChefDkApp#install_custom!)
+        #
+        def install_custom!
+          package package_name do
+            source new_resource.source.to_s
+            checksum new_resource.checksum unless new_resource.checksum.nil?
           end
-        when :repo
+        end
+
+        #
+        # Download the latest .msi package from the Omnitruck API and install
+        # it.
+        #
+        # (see Chef::Resource::ChefDkApp#upgrade_direct!)
+        #
+        def upgrade_direct!
+          package "Chef Development Kit v#{package_metadata[:version]}" do
+            source package_metadata[:url]
+            checksum package_metadata[:sha256]
+          end
+        end
+
+        #
+        # Ensure Chocolatey is configured and pass an :upgrade action on to
+        # a chefdk chocolatey_package resource.
+        #
+        # (see Chef::Resource::ChefDkApp#upgrade_repo!)
+        #
+        def upgrade_repo!
           include_recipe 'chocolatey'
           chocolatey_package 'chefdk' do
-            version new_resource.version unless new_resource.version == 'latest'
             action :upgrade
           end
-        else
-          raise(Chef::Exceptions::UnsupportedAction,
-                'Custom installs do not support the :upgrade action')
         end
-      end
 
-      #
-      # Remove the Chef-DK Windows package.
-      #
-      action :remove do
-        case new_resource.source
-        when :repo
-          chocolatey_package('chefdk') { action :remove }
-        else
-          lines = powershell_out!('Get-WmiObject -Class win32_product').stdout
-                                                                       .lines
-          idx = lines.index do |l|
-            l.match(/^\W*Name\W+:\W+Chef Development Kit/)
-          end
-
-          if idx
-            name = lines[idx].split(':')[1].strip
-            idn = lines[idx - 1].split(':')[1].strip
-            execute "Uninstall #{name}" do
-              command "msiexec /qn /x \"#{idn}\""
+        #
+        # The removal process is the same for either a direct or custom
+        # install.
+        #
+        %w(remove_direct! remove_custom!).each do |m|
+          define_method(m) do
+            lines = powershell_out!('Get-WmiObject -Class win32_product').stdout
+                                                                         .lines
+            idx = lines.index do |l|
+              l.match(/^\W*Name\W+:\W+Chef Development Kit/)
             end
-          else
-            package('Chef Development Kit') { action :remove }
+
+            if idx
+              name = lines[idx].split(':')[1].strip
+              idn = lines[idx - 1].split(':')[1].strip
+              execute "Uninstall #{name}" do
+                command "msiexec /qn /x \"#{idn}\""
+              end
+            else
+              package('Chef Development Kit') { action :remove }
+            end
+            directory ::File.expand_path('~/AppData/Local/chefdk') do
+              recursive true
+              action :delete
+            end
           end
-          directory ::File.expand_path('~/AppData/Local/chefdk') do
-            recursive true
-            action :delete
-          end
+        end
+
+        #
+        # For Chocolatey installations, remove Chef-DK by passing a :remove
+        # action on to the underlying chocolatey_package resource.
+        #
+        # (see Chef::Resource::ChefDkApp#remove_repo!)
+        #
+        def remove_repo!
+          chocolatey_package('chefdk') { action :remove }
+        end
+
+        #
+        # Determine and return the name of the Windows package. This can be
+        # tricky because the package name includes the version string.
+        #
+        # @return [String] The name for a windows_package resource
+        #
+        def package_name
+          ver = if new_resource.version == 'latest'
+                  package_metadata[:version]
+                else
+                  new_resource.version
+                end
+          "Chef Development Kit v#{ver}"
         end
       end
 
