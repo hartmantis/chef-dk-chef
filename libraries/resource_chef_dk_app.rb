@@ -36,10 +36,8 @@ class Chef
       property :version,
                [String, FalseClass],
                default: 'latest',
-               callbacks: {
-                 'Invalid version string' =>
-                   ->(a) { ::ChefDk::Helpers.valid_version?(a) }
-               }
+               callbacks: { 'Invalid version string' =>
+                              ->(a) { ::ChefDk::Helpers.valid_version?(a) } }
 
       #
       # The Chef-DK can be installed from the :stable or :current channel.
@@ -101,6 +99,14 @@ class Chef
         when :repo
           install_repo!
         else
+          if new_resource.channel != :stable
+            raise(Chef::Exceptions::UnsupportedAction,
+                  'A channel property cannot be set with a custom source')
+          end
+          if new_resource.version != 'latest'
+            raise(Chef::Exceptions::UnsupportedAction,
+                  'A version property cannot be set with a custom source')
+          end
           converge_if_changed(:installed) { install_custom! }
         end
       end
@@ -116,7 +122,11 @@ class Chef
       #
       action :upgrade do
         new_resource.installed(true)
-        new_resource.version('latest')
+
+        if new_resource.version != 'latest'
+          raise(Chef::Exceptions::UnsupportedAction,
+                'A version property cannot be used with the :upgrade action')
+        end
 
         case new_resource.source
         when :direct
@@ -151,16 +161,8 @@ class Chef
       # must be defined for each sub-provider
       #
       action_class.class_eval do
-        %i(
-          install_direct!
-          install_repo!
-          install_custom!
-          upgrade_direct!
-          upgrade_repo!
-          remove_direct!
-          remove_repo!
-          remove_custom!
-        ).each do |m|
+        %i(install_direct! install_repo! install_custom! upgrade_direct!
+           upgrade_repo! remove_direct! remove_repo! remove_custom!).each do |m|
           define_method(m) do
             raise(NotImplementedError,
                   "The `#{m}` method must be implemented for the " \

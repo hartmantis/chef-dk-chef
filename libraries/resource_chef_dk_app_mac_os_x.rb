@@ -49,6 +49,14 @@ class Chef
         # (see Chef::Resource::ChefDkApp#install_repo!
         #
         def install_repo!
+          if new_resource.version != 'latest'
+            raise(Chef::Exceptions::UnsupportedAction,
+                  'A version property cannot be used with the :repo source')
+          end
+          if new_resource.channel != :stable
+            raise(Chef::Exceptions::UnsupportedAction,
+                  'A channel property cannot be used with the :repo source')
+          end
           include_recipe 'homebrew'
           homebrew_cask 'chefdk'
         end

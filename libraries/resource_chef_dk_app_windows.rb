@@ -53,9 +53,13 @@ class Chef
         # (see Chef::Resource::ChefDkApp#install_repo!)
         #
         def install_repo!
+          if new_resource.channel != :stable
+            raise(Chef::Exceptions::UnsupportedAction,
+                  'A channel property cannot be used with the :repo source')
+          end
           include_recipe 'chocolatey'
           chocolatey_package 'chefdk' do
-            if !new_resource.version.nil? && new_resource.version != 'latest'
+            unless [nil, 'latest'].include?(new_resource.version)
               version new_resource.version
             end
           end
@@ -93,6 +97,10 @@ class Chef
         # (see Chef::Resource::ChefDkApp#upgrade_repo!)
         #
         def upgrade_repo!
+          if new_resource.channel != :stable
+            raise(Chef::Exceptions::UnsupportedAction,
+                  'A channel property cannot be used with the :repo source')
+          end
           include_recipe 'chocolatey'
           chocolatey_package 'chefdk' do
             action :upgrade
