@@ -130,6 +130,15 @@ class Chef
 
         case new_resource.source
         when :direct
+          # TODO: Is this a Chef bug? The converge_if_changed block doesn't
+          # execute if new_resource.version is its default value, even though
+          # that is also 'latest'.
+          #
+          #   [2016-08-24T10:22:20-07:00] WARN: CURRENT: true, 0.1.2
+          #   [2016-08-24T10:22:20-07:00] WARN: NEW: true, latest
+          #   (upgrade_direct! should be called here, but isn't)
+          #
+          new_resource.version('latest')
           converge_if_changed(:installed, :version) { upgrade_direct! }
         when :repo
           upgrade_repo!
@@ -147,12 +156,9 @@ class Chef
         new_resource.installed(false)
 
         case new_resource.source
-        when :direct
-          remove_direct!
-        when :repo
-          remove_repo!
-        else
-          remove_custom!
+        when :direct then remove_direct!
+        when :repo then remove_repo!
+        else remove_custom!
         end
       end
 
