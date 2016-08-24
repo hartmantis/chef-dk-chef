@@ -14,6 +14,58 @@ shared_context 'resources::chef_dk_app' do
 
   let(:installed_version) { nil }
 
+  shared_examples_for 'any platform' do
+    context 'the default action (:install)' do
+      context 'a custom source' do
+        let(:source) { 'https://example.biz.cdk' }
+
+        context 'an overridden channel property' do
+          let(:channel) { :current }
+
+          it 'raises an error' do
+            expect { chef_run }.to raise_error(
+              Chef::Exceptions::UnsupportedAction
+            )
+          end
+        end
+
+        context 'an overridden version property' do
+          let(:version) { '4.5.6' }
+
+          it 'raises an error' do
+            expect { chef_run }.to raise_error(
+              Chef::Exceptions::UnsupportedAction
+            )
+          end
+        end
+      end
+    end
+
+    context 'the :upgrade action' do
+      let(:action) { :upgrade }
+
+      context 'a custom source' do
+        let(:source) { 'https://example.biz.cdk' }
+
+        it 'raises an error' do
+          expect { chef_run }.to raise_error(
+            Chef::Exceptions::UnsupportedAction
+          )
+        end
+      end
+
+      context 'an overridden version property' do
+        let(:version) { '1.2.3' }
+
+        it 'raises an error' do
+          expect { chef_run }.to raise_error(
+            Chef::Exceptions::UnsupportedAction
+          )
+        end
+      end
+    end
+  end
+
   shared_context 'the default action (:install)' do
     before(:each) do
       allow(Kernel).to receive(:load).and_call_original

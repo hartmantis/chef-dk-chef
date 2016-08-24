@@ -14,6 +14,8 @@ shared_context 'resources::chef_dk_app::rhel' do
   end
 
   shared_examples_for 'any RHEL platform' do
+    it_behaves_like 'any platform'
+
     context 'the default action (:install)' do
       include_context description
 
@@ -110,24 +112,6 @@ shared_context 'resources::chef_dk_app::rhel' do
             expect(chef_run).to install_rpm_package('/tmp/cache/cdk')
           end
         end
-
-        context 'an overridden channel property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
-          end
-        end
-
-        context 'an overridden version property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
-          end
-        end
       end
     end
 
@@ -170,15 +154,6 @@ shared_context 'resources::chef_dk_app::rhel' do
           end
         end
 
-        context 'an overridden version property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
-          end
-        end
-
         context 'the latest version already installed' do
           include_context description
 
@@ -215,46 +190,6 @@ shared_context 'resources::chef_dk_app::rhel' do
             include_context description
 
             it_behaves_like 'any property set'
-          end
-        end
-
-        context 'an overridden version property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
-          end
-        end
-      end
-
-      context 'a custom source' do
-        include_context description
-
-        context 'all default properties' do
-          include_context description
-
-          it 'raises an error' do
-            expect { chef_run }
-              .to raise_error(Chef::Exceptions::UnsupportedAction)
-          end
-        end
-
-        context 'an overridden channel property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
-          end
-        end
-
-        context 'an overridden version property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
           end
         end
       end

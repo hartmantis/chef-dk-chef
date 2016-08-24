@@ -27,6 +27,8 @@ shared_context 'resources::chef_dk_app::windows' do
   end
 
   shared_examples_for 'any Windows platform' do
+    it_behaves_like 'any platform'
+
     context 'the default action (:install)' do
       include_context description
 
@@ -105,8 +107,9 @@ shared_context 'resources::chef_dk_app::windows' do
           include_context description
 
           it 'raises an error' do
-            pending
-            expect(false).to eq(true)
+            expect { chef_run }.to raise_error(
+              Chef::Exceptions::UnsupportedAction
+            )
           end
         end
       end
@@ -130,24 +133,6 @@ shared_context 'resources::chef_dk_app::windows' do
               source: 'https://example.biz/cdk',
               checksum: '12345'
             )
-          end
-        end
-
-        context 'an overridden channel property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
-          end
-        end
-
-        context 'an overridden version property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
           end
         end
 
@@ -199,15 +184,6 @@ shared_context 'resources::chef_dk_app::windows' do
           end
         end
 
-        context 'an overridden version property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
-          end
-        end
-
         context 'the latest version already installed' do
           include_context description
 
@@ -229,21 +205,16 @@ shared_context 'resources::chef_dk_app::windows' do
             .to receive(:chocolatey_installed?).and_return(false)
         end
 
-        [
-          'all default properties',
-          'an overridden version property'
-        ].each do |c|
-          context c do
-            include_context description
+        context 'all default properties' do
+          include_context description
 
-            it 'ensures Chocolatey is installed' do
-              expect(chef_run).to include_recipe('chocolatey')
-            end
+          it 'ensures Chocolatey is installed' do
+            expect(chef_run).to include_recipe('chocolatey')
+          end
 
-            it 'installs the chefdk Chocolatey package' do
-              expect(chef_run).to upgrade_chocolatey_package('chefdk')
-                .with(version: nil)
-            end
+          it 'installs the chefdk Chocolatey package' do
+            expect(chef_run).to upgrade_chocolatey_package('chefdk')
+              .with(version: nil)
           end
         end
 
@@ -251,8 +222,9 @@ shared_context 'resources::chef_dk_app::windows' do
           include_context description
 
           it 'raises an error' do
-            pending
-            expect(false).to eq(true)
+            expect { chef_run }.to raise_error(
+              Chef::Exceptions::UnsupportedAction
+            )
           end
         end
       end
@@ -266,24 +238,6 @@ shared_context 'resources::chef_dk_app::windows' do
           it 'raises an error' do
             expect { chef_run }
               .to raise_error(Chef::Exceptions::UnsupportedAction)
-          end
-        end
-
-        context 'an overridden channel property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
-          end
-        end
-
-        context 'an overridden version property' do
-          include_context description
-
-          it 'raises an error' do
-            pending
-            expect(true).to eq(false)
           end
         end
       end

@@ -36,10 +36,8 @@ class Chef
       property :version,
                [String, FalseClass],
                default: 'latest',
-               callbacks: {
-                 'Invalid version string' =>
-                   ->(a) { ::ChefDk::Helpers.valid_version?(a) }
-               }
+               callbacks: { 'Invalid version string' =>
+                              ->(a) { ::ChefDk::Helpers.valid_version?(a) } }
 
       #
       # The Chef-DK can be installed from the :stable or :current channel.
@@ -101,6 +99,14 @@ class Chef
         when :repo
           install_repo!
         else
+          if new_resource.channel != :stable
+            raise(Chef::Exceptions::UnsupportedAction,
+                  'A channel property cannot be set with a custom source')
+          end
+          if new_resource.version != 'latest'
+            raise(Chef::Exceptions::UnsupportedAction,
+                  'A version property cannot be set with a custom source')
+          end
           converge_if_changed(:installed) { install_custom! }
         end
       end
@@ -116,10 +122,23 @@ class Chef
       #
       action :upgrade do
         new_resource.installed(true)
-        new_resource.version('latest')
+
+        if new_resource.version != 'latest'
+          raise(Chef::Exceptions::UnsupportedAction,
+                'A version property cannot be used with the :upgrade action')
+        end
 
         case new_resource.source
         when :direct
+          # TODO: Is this a Chef bug? The converge_if_changed block doesn't
+          # execute if new_resource.version is its default value, even though
+          # that is also 'latest'.
+          #
+          #   [2016-08-24T10:22:20-07:00] WARN: CURRENT: true, 0.1.2
+          #   [2016-08-24T10:22:20-07:00] WARN: NEW: true, latest
+          #   (upgrade_direct! should be called here, but isn't)
+          #
+          new_resource.version('latest')
           converge_if_changed(:installed, :version) { upgrade_direct! }
         when :repo
           upgrade_repo!
@@ -137,12 +156,9 @@ class Chef
         new_resource.installed(false)
 
         case new_resource.source
-        when :direct
-          remove_direct!
-        when :repo
-          remove_repo!
-        else
-          remove_custom!
+        when :direct then remove_direct!
+        when :repo then remove_repo!
+        else remove_custom!
         end
       end
 
@@ -151,16 +167,8 @@ class Chef
       # must be defined for each sub-provider
       #
       action_class.class_eval do
-        %i(
-          install_direct!
-          install_repo!
-          install_custom!
-          upgrade_direct!
-          upgrade_repo!
-          remove_direct!
-          remove_repo!
-          remove_custom!
-        ).each do |m|
+        %i(install_direct! install_repo! install_custom! upgrade_direct!
+           upgrade_repo! remove_direct! remove_repo! remove_custom!).each do |m|
           define_method(m) do
             raise(NotImplementedError,
                   "The `#{m}` method must be implemented for the " \
