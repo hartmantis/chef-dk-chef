@@ -1,4 +1,6 @@
+# encoding: utf-8
 # frozen_string_literal: true
+
 require_relative '../chef_dk_app'
 
 shared_context 'resources::chef_dk_app::windows' do

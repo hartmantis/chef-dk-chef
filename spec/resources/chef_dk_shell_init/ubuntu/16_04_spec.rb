@@ -1,4 +1,6 @@
+# encoding: utf-8
 # frozen_string_literal: true
+
 require_relative '../debian'
 
 describe 'resources::chef_dk_shell_init::ubuntu::16_04' do

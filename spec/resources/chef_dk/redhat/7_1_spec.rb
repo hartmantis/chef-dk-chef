@@ -1,4 +1,6 @@
+# encoding: utf-8
 # frozen_string_literal: true
+
 require_relative '../../chef_dk'
 
 describe 'resources::chef_dk::redhat::7_1' do

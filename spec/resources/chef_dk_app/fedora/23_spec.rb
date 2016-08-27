@@ -1,4 +1,6 @@
+# encoding: utf-8
 # frozen_string_literal: true
+
 require_relative '../rhel'
 
 describe 'resources::chef_dk_app::fedora::23' do
