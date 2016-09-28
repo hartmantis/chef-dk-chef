@@ -8,6 +8,7 @@ license 'Apache v2.0'
 description 'Installs/configures the Chef-DK'
 long_description 'Installs/configures the Chef-DK'
 version '3.1.1'
+chef_version '>= 12'
 
 source_url 'https://github.com/roboticcheese/chef-dk-chef'
 issues_url 'https://github.com/roboticcheese/chef-dk-chef/issues'
