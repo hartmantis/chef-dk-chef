@@ -71,7 +71,7 @@ Ruby environment.
 
     default['chef_dk']['shell_users'] = nil
 
-A list of users can provided for whom to make Chef's Ruby environment the
+A list of users can be provided for whom to make Chef's Ruby environment the
 default.
 
 Resources
