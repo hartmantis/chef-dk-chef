@@ -13,10 +13,10 @@ chef_version '>= 12'
 source_url 'https://github.com/roboticcheese/chef-dk-chef'
 issues_url 'https://github.com/roboticcheese/chef-dk-chef/issues'
 
-depends 'apt-chef', '~> 1.0'
-depends 'yum-chef', '~> 1.0'
+depends 'apt-chef', '~> 2.0'
+depends 'yum-chef', '~> 2.0'
 depends 'homebrew', '~> 2.1'
-depends 'dmg', '~> 2.2'
+depends 'dmg', '~> 3.0'
 depends 'chocolatey', '~> 1.0'
 
 supports 'ubuntu', '>= 12.04'
