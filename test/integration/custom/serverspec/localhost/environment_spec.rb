@@ -29,7 +29,7 @@ describe 'chef-dk::custom::environment' do
   end
 
   describe file(
-    '~/AppData/Local/chefdk/gem/ruby/2.1.0/bin/rubygems-cabin-test'
+    '~/AppData/Local/chefdk/gem/ruby/2.3.0/bin/rubygems-cabin-test'
   ), if: os[:family] == 'windows'  do
     it 'shows the requested gem is installed' do
       expect(subject).to exist

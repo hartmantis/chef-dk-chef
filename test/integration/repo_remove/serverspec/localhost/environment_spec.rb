@@ -21,7 +21,7 @@ describe 'chef-dk::repo_remove::environment' do
     it_behaves_like 'file without chef shell-init'
   end
 
-  describe file('~/.chefdk/gem/ruby/2.1.0/bin/rubygems-cabin-test'),
+  describe file('~/.chefdk/gem/ruby/2.3.0/bin/rubygems-cabin-test'),
            if: os[:family] != 'windows' do
     it 'does not exist' do
       expect(subject).to_not exist
@@ -29,7 +29,7 @@ describe 'chef-dk::repo_remove::environment' do
   end
 
   describe file(
-    '~/AppData/Local/chefdk/gem/ruby/2.1.0/bin/rubygems-cabin-test'
+    '~/AppData/Local/chefdk/gem/ruby/2.3.0/bin/rubygems-cabin-test'
   ), if: os[:family] == 'windows' do
     it 'does not exist' do
       expect(subject).to_not exist
