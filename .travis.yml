@@ -1,14 +1,13 @@
 language: objective-c
 osx_image: xcode7.3
 rvm: 2.3.1
-cache: vendor/bundle
 
 branches:
   only:
     - master
 
 install:
-  - bundle install --path vendor/bundle --without=development integration
+  - bundle install --without=development integration
 
 before_script:
   - cp .kitchen.travis.yml .kitchen.local.yml
