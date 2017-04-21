@@ -14,14 +14,12 @@ platforms:
   - name: centos-7.2
   - name: centos-6.7
   - name: fedora-23
-  - name: macosx-10.10
+  - name: macos-10.12
     driver:
-      box: roboticcheese/macosx-10.10
-      ssh:
-        insert_key: false
-  - name: windows-2012
+      box: macos-10.12
+  - name: windows-10
     driver:
-      box: roboticcheese/windows-2012
+      box: windows-10
 
 suites:
   - name: default
