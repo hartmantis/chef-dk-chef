@@ -8,7 +8,7 @@ shared_context 'resources::chef_dk' do
   include_context 'resources'
 
   let(:resource) { 'chef_dk' }
-  %i(version channel source checksum gems shell_users).each do |p|
+  %i[version channel source checksum gems shell_users].each do |p|
     let(p) { nil }
   end
   let(:properties) do
@@ -66,20 +66,20 @@ shared_context 'resources::chef_dk' do
       end
 
       context 'an overridden gems property' do
-        let(:gems) { %w(gem1 test2) }
+        let(:gems) { %w[gem1 test2] }
 
         it 'installs the desired gems' do
-          %w(gem1 test2).each do |g|
+          %w[gem1 test2].each do |g|
             expect(chef_run).to install_chef_dk_gem(g)
           end
         end
       end
 
       context 'an overridden shell_users property' do
-        let(:shell_users) { %w(me them) }
+        let(:shell_users) { %w[me them] }
 
         it 'enables shell_init for the desired users' do
-          %w(me them).each do |u|
+          %w[me them].each do |u|
             expect(chef_run).to enable_chef_dk_shell_init(u)
           end
         end

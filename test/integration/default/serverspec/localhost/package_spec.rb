@@ -18,7 +18,7 @@ describe 'chef-dk::default::package' do
   end
 
   describe package('chefdk'),
-           if: %w(ubuntu debian redhat fedora).include?(os[:family]) do
+           if: %w[ubuntu debian redhat fedora].include?(os[:family]) do
     it 'is installed' do
       expect(subject).to be_installed
     end

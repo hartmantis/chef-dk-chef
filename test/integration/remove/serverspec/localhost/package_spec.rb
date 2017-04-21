@@ -18,7 +18,7 @@ describe 'chef-dk::remove::package' do
   end
 
   describe package('chefdk'),
-           if: %w(ubuntu debian redhat fedora).include?(os[:family]) do
+           if: %w[ubuntu debian redhat fedora].include?(os[:family]) do
     it 'is not installed' do
       expect(subject).to_not be_installed
     end

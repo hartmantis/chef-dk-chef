@@ -1,10 +1,11 @@
 # encoding: utf-8
 # frozen_string_literal: true
+
 #
 # Cookbook Name:: chef-dk
 # Library:: resource_chef_dk_app_windows
 #
-# Copyright 2014-2016, Jonathan Hartman
+# Copyright 2014-2017, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -111,7 +112,7 @@ class Chef
         # The removal process is the same for either a direct or custom
         # install.
         #
-        %w(remove_direct! remove_custom!).each do |m|
+        %w[remove_direct! remove_custom!].each do |m|
           define_method(m) do
             lines = powershell_out!('Get-WmiObject -Class win32_product').stdout
                                                                          .lines

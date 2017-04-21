@@ -5,12 +5,12 @@ require_relative '../spec_helper'
 
 describe 'chef-dk::default' do
   let(:platform) { { platform: 'ubuntu', version: '14.04' } }
-  %i(version channel source checksum gems shell_users).each do |a|
+  %i[version channel source checksum gems shell_users].each do |a|
     let(a) { nil }
   end
   let(:runner) do
     ChefSpec::SoloRunner.new(platform) do |node|
-      %i(version channel source checksum gems shell_users).each do |a|
+      %i[version channel source checksum gems shell_users].each do |a|
         node.normal['chef_dk'][a] = send(a) unless send(a).nil?
       end
     end
@@ -57,19 +57,19 @@ describe 'chef-dk::default' do
   end
 
   context 'an overridden `gems` attribute' do
-    let(:gems) { %w(test1 test2) }
+    let(:gems) { %w[test1 test2] }
 
     it 'installs the desired Chef-DK gems' do
-      expect(chef_run).to create_chef_dk('default').with(gems: %w(test1 test2))
+      expect(chef_run).to create_chef_dk('default').with(gems: %w[test1 test2])
     end
   end
 
   context 'an overridden `shell_users` attribute' do
-    let(:shell_users) { %w(me them) }
+    let(:shell_users) { %w[me them] }
 
     it 'configures the desired users shells' do
       expect(chef_run).to create_chef_dk('default')
-        .with(shell_users: %w(me them))
+        .with(shell_users: %w[me them])
     end
   end
 end

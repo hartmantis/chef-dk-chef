@@ -1,10 +1,11 @@
 # encoding: utf-8
 # frozen_string_literal: true
+
 #
 # Cookbook Name:: chef-dk
 # Library:: resource_chef_dk_app_mac_os_x
 #
-# Copyright 2014-2016, Jonathan Hartman
+# Copyright 2014-2017, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -94,7 +95,7 @@ class Chef
         # For non-repo installs, all we can do is clean up the app directories
         # manually and forget the chefdk package from pkgutil.
         #
-        %i(remove_direct! remove_custom!).each do |m|
+        %i[remove_direct! remove_custom!].each do |m|
           define_method(m) do
             ['/opt/chefdk', ::File.expand_path('~/.chefdk')].each do |d|
               directory d do
@@ -171,7 +172,7 @@ class Chef
         # @return [String] That path ready to be fed to a dmg_package
         #
         def dmg_package_source
-          if %i(direct repo).include?(new_resource.source)
+          if %i[direct repo].include?(new_resource.source)
             return package_metadata[:url]
           end
           path = new_resource.source.to_s

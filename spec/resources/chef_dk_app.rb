@@ -8,7 +8,7 @@ shared_context 'resources::chef_dk_app' do
   include_context 'resources'
 
   let(:resource) { 'chef_dk_app' }
-  %i(version channel source checksum).each { |p| let(p) { nil } }
+  %i[version channel source checksum].each { |p| let(p) { nil } }
   let(:properties) do
     { version: version, channel: channel, source: source, checksum: checksum }
   end

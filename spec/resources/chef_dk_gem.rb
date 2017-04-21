@@ -14,7 +14,7 @@ shared_context 'resources::chef_dk_gem' do
     ChefSpec::SoloRunner.new(
       platform: platform, version: platform_version
     ) do |node|
-      %i(resource name action).each do |p|
+      %i[resource name action].each do |p|
         next if send(p).nil?
         node.default['chef_dk_resource_test'][p] = send(p)
       end
