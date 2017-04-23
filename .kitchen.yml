@@ -9,12 +9,11 @@ provisioner:
 platforms:
   - name: ubuntu-16.04
   - name: ubuntu-14.04
-  - name: ubuntu-12.04
-  - name: debian-8.4
-  - name: debian-7.10
-  - name: centos-7.2
-  - name: centos-6.7
-  - name: fedora-23
+  - name: debian-8.7
+  - name: debian-7.11
+  - name: centos-7.3
+  - name: centos-6.9
+  - name: fedora-25
   - name: macos-10.12
     driver:
       box: macos-10.12
@@ -37,12 +36,11 @@ suites:
         source: repo
     excludes:
       - ubuntu-16.04
-      - ubuntu-12.04
-      - debian-8.4
+      - debian-8.7
       - debian-8
-      - debian-7.10
+      - debian-7.11
       - debian-7
-      - fedora-23
+      - fedora-25
   - name: repo_remove
     run_list:
       - recipe[chef-dk_test::remove]
@@ -51,12 +49,11 @@ suites:
         source: repo
     excludes:
       - ubuntu-16.04
-      - ubuntu-12.04
-      - debian-8.4
+      - debian-8.7
       - debian-8
-      - debian-7.10
+      - debian-7.11
       - debian-7
-      - fedora-23
+      - fedora-25
   - name: custom
     run_list:
       - recipe[chef-dk_test]
@@ -65,17 +62,16 @@ suites:
         source: https://packages.chef.io/stable/ubuntu/12.04/chefdk_0.14.25-1_amd64.deb
     excludes:
       - ubuntu-16.04
-      - ubuntu-12.04
-      - debian-8.4
+      - debian-8.7
       - debian-8
-      - debian-7.10
+      - debian-7.11
       - debian-7
-      - centos-7.2
+      - centos-7.3
       - centos-7
-      - centos-6.7
+      - centos-6.9
       - centos-6
-      - fedora-23
-      - macosx-10.10
-      - macosx
-      - windows-2012
+      - fedora-25
+      - macos-10.12
+      - macos
+      - windows-10
       - windows

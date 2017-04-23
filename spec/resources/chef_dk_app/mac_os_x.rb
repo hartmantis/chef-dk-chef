@@ -27,7 +27,7 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
                          stdout: "test\nversion: #{installed_version}\nthings"))
   end
 
-  shared_examples_for 'any Mac OS X platform' do
+  shared_examples_for 'any MacOS platform' do
     it_behaves_like 'any platform'
 
     context 'the default action (:install)' do
