@@ -6,26 +6,60 @@ require_relative '../chef_dk_app'
 shared_context 'resources::chef_dk_app::windows' do
   include_context 'resources::chef_dk_app'
 
-  before(:each) do
-    stdout = <<-EOH.gsub(/^ +/, '')
-      IdentifyingNumber   : {abc123}
-      Name                : Test App 3.1.4
-      Vendor              : Thumb Monkey Industries
-      Version             : 3.1.41.1
-      Caption             : Test App 3.1.4
-    EOH
-    installed_version && stdout << <<-EOH.gsub(/^ +/, '')
+  before do
+    bit64_reg = 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+    bit32_reg = 'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\' \
+                'CurrentVersion\\Uninstall'
 
-      IdentifyingNumber   : {456789}
-      Name                : Chef Development Kit #{installed_version}
-      Vendor              : Chef Software, Inc.
-      Version             : #{installed_version}.1
-      Caption             : Chef Development Kit v#{installed_version}
-    EOH
-    allow_any_instance_of(Chef::Mixin::PowershellOut)
-      .to receive(:powershell_out!)
-      .with('Get-WmiObject -Class win32_product')
-      .and_return(double(stdout: stdout))
+    bit64_subkeys = %w[App1 App2 App3]
+    bit32_subkeys = %w[App4 App5]
+    bit32_subkeys << 'ChefDkApp' if installed_version
+
+    allow_any_instance_of(Chef::DSL::RegistryHelper)
+      .to receive(:registry_get_subkeys).with(bit64_reg)
+      .and_return(bit64_subkeys)
+    allow_any_instance_of(Chef::DSL::RegistryHelper)
+      .to receive(:registry_get_subkeys).with(bit32_reg)
+      .and_return(bit32_subkeys)
+
+    allow_any_instance_of(Chef::DSL::RegistryHelper)
+      .to receive(:registry_get_values).with("#{bit64_reg}\\App1")
+      .and_return([])
+    allow_any_instance_of(Chef::DSL::RegistryHelper)
+      .to receive(:registry_get_values).with("#{bit64_reg}\\App2")
+      .and_return([{ name: 'DisplayName', value: 'App2', blah: 'blah' }])
+    allow_any_instance_of(Chef::DSL::RegistryHelper)
+      .to receive(:registry_get_values).with("#{bit64_reg}\\App3")
+      .and_return([{ name: 'DisplayVersion', value: '3', blah: 'blah' }])
+
+    allow_any_instance_of(Chef::DSL::RegistryHelper)
+      .to receive(:registry_get_values).with("#{bit32_reg}\\App4").and_return(
+        [
+          { name: 'Pants', data: 2 },
+          { name: 'DisplayName', data: 'App 4' },
+          { name: 'DisplayVersion', data: '4.0.0.1' }
+        ]
+      )
+    allow_any_instance_of(Chef::DSL::RegistryHelper)
+      .to receive(:registry_get_values).with("#{bit32_reg}\\App5").and_return(
+        [
+          { name: 'Pants', data: 2 },
+          { name: 'DisplayName', data: 'App 5' },
+          { name: 'DisplayVersion', data: '5.0.0.1' }
+        ]
+      )
+    if installed_version
+      allow_any_instance_of(Chef::DSL::RegistryHelper)
+        .to receive(:registry_get_values).with("#{bit32_reg}\\ChefDkApp")
+        .and_return(
+          [
+            { name: 'Pants', data: 2 },
+            { name: 'DisplayName',
+              data: "Chef Development Kit v#{installed_version}" },
+            { name: 'DisplayVersion', data: "#{installed_version}.1" }
+          ]
+        )
+    end
   end
 
   shared_examples_for 'any Windows platform' do
@@ -248,33 +282,6 @@ shared_context 'resources::chef_dk_app::windows' do
     context 'the :remove action' do
       include_context description
 
-      let(:listed?) { true }
-      let(:pkg_list) do
-        pl = <<-EOH.gsub(/^ +/, '')
-          IdentifyingNumber   : {abc123}
-          Name                : Test App 3.1.4
-          Vendor              : Thumb Monkey Industries
-          Version             : 3.1.41.1
-          Caption             : Test App 3.1.4
-        EOH
-        listed? && pl << <<-EOH.gsub(/^ +/, '')
-
-          IdentifyingNumber   : {456789}
-          Name                : Chef Development Kit v0.16.28
-          Vendor              : Chef Software, Inc.
-          Version             : 0.16.28.1
-          Caption             : Chef Development Kit v0.16.28
-        EOH
-        pl
-      end
-
-      before(:each) do
-        allow_any_instance_of(Chef::Mixin::PowershellOut)
-          .to receive(:powershell_out!)
-          .with('Get-WmiObject -Class win32_product')
-          .and_return(double(stdout: pkg_list))
-      end
-
       [
         'the default source (:direct)',
         'a custom source'
@@ -282,26 +289,28 @@ shared_context 'resources::chef_dk_app::windows' do
         context c do
           include_context description
 
-          it 'deletes the Chef-DK AppData directory' do
-            d = File.expand_path('~/AppData/Local/chefdk')
-            expect(chef_run).to delete_directory(d).with(recursive: true)
-          end
-
-          context 'app in the installed list' do
-            let(:listed?) { true }
+          context 'the latest version already installed' do
+            include_context description
 
             it 'removes the Chef-DK Windows package' do
-              expect(chef_run).to run_execute(
-                'Uninstall Chef Development Kit v0.16.28'
-              ).with(command: 'msiexec /qn /x "{456789}"')
+              expect(chef_run).to remove_package('Chef Development Kit v1.2.3')
+            end
+
+            it 'deletes the Chef-DK AppData directory' do
+              d = File.expand_path('~/AppData/Local/chefdk')
+              expect(chef_run).to delete_directory(d).with(recursive: true)
             end
           end
 
-          context 'app not in the installed list' do
-            let(:listed?) { false }
+          context 'not already installed' do
+            it 'does not remove the Chef-DK Windows package' do
+              expect(chef_run)
+                .to_not remove_package('Chef Development Kit v1.2.3')
+            end
 
-            it 'falls back to a default package name' do
-              expect(chef_run).to remove_package('Chef Development Kit')
+            it 'does not delete the Chef-DK AppData directory' do
+              d = File.expand_path('~/AppData/Local/chefdk')
+              expect(chef_run).to_not delete_directory(d)
             end
           end
         end
