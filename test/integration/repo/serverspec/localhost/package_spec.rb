@@ -17,14 +17,14 @@ describe 'chef-dk::repo::package' do
   end
 
   describe file('/etc/apt/sources.list.d/chef-stable.list'),
-           if: %w(ubuntu debian).include?(os[:family]) do
+           if: %w[ubuntu debian].include?(os[:family]) do
     it 'exists' do
       expect(subject).to be_file
     end
   end
 
   describe file('/etc/yum.repos.d/chef-stable.repo'),
-           if: %w(redhat fedora).include?(os[:family]) do
+           if: %w[redhat fedora].include?(os[:family]) do
     it 'exists' do
       expect(subject).to be_file
     end
@@ -44,7 +44,7 @@ describe 'chef-dk::repo::package' do
   end
 
   describe package('chefdk'),
-           if: %w(ubuntu debian redhat fedora).include?(os[:family]) do
+           if: %w[ubuntu debian redhat fedora].include?(os[:family]) do
     it 'is installed' do
       expect(subject).to be_installed
     end

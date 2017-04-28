@@ -1,10 +1,11 @@
 # encoding: utf-8
 # frozen_string_literal: true
+
 #
 # Cookbook Name:: chef-dk
 # Library:: helpers
 #
-# Copyright 2014-2016, Jonathan Hartman
+# Copyright 2014-2017, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -76,7 +77,7 @@ module ChefDk
       #
       def valid_version?(arg)
         return true if arg == false || arg == 'latest'
-        arg =~ /^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$/ ? true : false
+        arg.match(/^[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$/).nil? ? false : true
       end
     end
   end

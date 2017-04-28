@@ -1,10 +1,11 @@
 # encoding: utf-8
 # frozen_string_literal: true
+
 #
 # Cookbook Name:: chef-dk
 # Library:: resource_chef_dk_app
 #
-# Copyright 2014-2016, Jonathan Hartman
+# Copyright 2014-2017, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,7 +46,7 @@ class Chef
       property :channel,
                Symbol,
                coerce: proc { |v| v.to_sym },
-               equal_to: %i(stable current),
+               equal_to: %i[stable current],
                default: :stable
 
       #
@@ -167,8 +168,8 @@ class Chef
       # must be defined for each sub-provider
       #
       action_class.class_eval do
-        %i(install_direct! install_repo! install_custom! upgrade_direct!
-           upgrade_repo! remove_direct! remove_repo! remove_custom!).each do |m|
+        %i[install_direct! install_repo! install_custom! upgrade_direct!
+           upgrade_repo! remove_direct! remove_repo! remove_custom!].each do |m|
           define_method(m) do
             raise(NotImplementedError,
                   "The `#{m}` method must be implemented for the " \
@@ -184,7 +185,7 @@ class Chef
         # @return [String] a package download path
         #
         def local_path
-          src = if %i(direct repo).include?(new_resource.source)
+          src = if %i[direct repo].include?(new_resource.source)
                   package_metadata[:url]
                 else
                   new_resource.source.to_s

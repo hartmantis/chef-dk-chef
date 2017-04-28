@@ -1,10 +1,11 @@
 # encoding: utf-8
 # frozen_string_literal: true
+
 #
 # Cookbook Name:: chef-dk
 # Library:: resource_chef_dk_shell_init
 #
-# Copyright 2014-2016, Jonathan Hartman
+# Copyright 2014-2017, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,22 +40,26 @@ class Chef
 
       action :enable do
         file bashrc_file do
-          content lazy {
-            txt = 'eval "$(chef shell-init bash)"'
-            lines = ::File.read(bashrc_file).split("\n")
-            lines << txt unless lines.include?(txt)
-            lines.join("\n")
-          }
+          content(
+            lazy do
+              txt = 'eval "$(chef shell-init bash)"'
+              lines = ::File.read(bashrc_file).split("\n")
+              lines << txt unless lines.include?(txt)
+              lines.join("\n")
+            end
+          )
         end
       end
 
       action :disable do
         file bashrc_file do
-          content lazy {
-            lines = ::File.read(bashrc_file).split("\n")
-            lines.delete('eval "$(chef shell-init bash)"')
-            lines.join("\n")
-          }
+          content(
+            lazy do
+              lines = ::File.read(bashrc_file).split("\n")
+              lines.delete('eval "$(chef shell-init bash)"')
+              lines.join("\n")
+            end
+          )
           only_if { ::File.exist?(bashrc_file) }
         end
       end

@@ -12,12 +12,12 @@ describe 'chef-dk::remove::environment' do
   end
 
   describe file('/etc/bashrc'),
-           if: %w(darwin redhat fedora).include?(os[:family]) do
+           if: %w[darwin redhat fedora].include?(os[:family]) do
     it_behaves_like 'file without chef shell-init'
   end
 
   describe file('/etc/bash.bashrc'),
-           if: %w(ubuntu debian).include?(os[:family]) do
+           if: %w[ubuntu debian].include?(os[:family]) do
     it_behaves_like 'file without chef shell-init'
   end
 

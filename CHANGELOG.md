@@ -12,6 +12,7 @@ Unreleased
 * Remove dependency on the Omnijack gem
 * Rename the `package_url` attribute to `source`
 * Implement an `:upgrade` action for `:direct` and `:repo` package sources
+* On Windows, access the registry directly instead of using PowerShell
 
 v3.1.0 (2015-06-03)
 -------------------

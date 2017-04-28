@@ -1,10 +1,11 @@
 # encoding: utf-8
 # frozen_string_literal: true
+
 #
 # Cookbook Name:: chef-dk
 # Library:: resource_chef_dk_app_windows
 #
-# Copyright 2014-2016, Jonathan Hartman
+# Copyright 2014-2017, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +20,7 @@
 # limitations under the License.
 #
 
-require 'chef/mixin/powershell_out'
+require 'chef/dsl/registry_helper'
 require_relative 'resource_chef_dk_app'
 
 class Chef
@@ -28,7 +29,7 @@ class Chef
     #
     # @author Jonathan Hartman <j@p4nt5.com>
     class ChefDkAppWindows < ChefDkApp
-      include Chef::Mixin::PowershellOut
+      include Chef::DSL::RegistryHelper
 
       provides :chef_dk_app, platform_family: 'windows'
 
@@ -111,23 +112,11 @@ class Chef
         # The removal process is the same for either a direct or custom
         # install.
         #
-        %w(remove_direct! remove_custom!).each do |m|
+        %w[remove_direct! remove_custom!].each do |m|
           define_method(m) do
-            lines = powershell_out!('Get-WmiObject -Class win32_product').stdout
-                                                                         .lines
-            idx = lines.index do |l|
-              l.match(/^\W*Name\W+:\W+Chef Development Kit/)
-            end
+            return unless current_resource.version
 
-            if idx
-              name = lines[idx].split(':')[1].strip
-              idn = lines[idx - 1].split(':')[1].strip
-              execute "Uninstall #{name}" do
-                command "msiexec /qn /x \"#{idn}\""
-              end
-            else
-              package('Chef Development Kit') { action :remove }
-            end
+            package(registry_info[:name]) { action :remove }
             directory ::File.expand_path('~/AppData/Local/chefdk') do
               recursive true
               action :delete
@@ -162,20 +151,76 @@ class Chef
       end
 
       #
-      # Powershell out and pull the version of the Chef-DK out of
-      # Get-WmiObject.
+      # Fetch the installed version of the Chef-DK from the Windows registry.
+      # Chef-DK is currently 32-bit only, but let's future-proof it slightly
+      # and check for 64-bit packages as well.
       #
       # (see Chef::Provider::ChefDkApp#installed_version)
       #
       def installed_version
-        lines = powershell_out!('Get-WmiObject -Class win32_product')
-                .stdout.lines
-        idx = lines.index do |l|
-          l.match(/^\W*Name\W+:\W+Chef Development Kit/)
-        end
-        return false if idx.nil?
-        ver = lines[idx + 2].match(/:\W+([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+/)[1]
+        return false if registry_info.nil?
+        ver = registry_info[:version].split('.')[0..2].join('.')
         ver == package_metadata[:version] ? 'latest' : ver
+      end
+
+      #
+      # Fetch existing Chef-DK information from the registry, returning the
+      # package name and version or nil if it's not installed.
+      #
+      # @return [Hash,NilClass] a package name + version or nil
+      #
+      def registry_info
+        registry_uninstall_entries.each do |key|
+          data = registry_name_and_version(key)
+
+          if data[:name] && \
+             data[:version] && \
+             data[:name].match(/^Chef Development Kit v/)
+            return { name: data[:name], version: data[:version] }
+          end
+        end
+        nil
+      end
+
+      #
+      # Parse through an uninstall registry key and return its name and version.
+      #
+      # @param key [String] a registry key path
+      #
+      # @return [Hash] that key's name and version (or nil)
+      #
+      def registry_name_and_version(key)
+        values = registry_get_values(key)
+        nme = values.find { |p| p[:name] == 'DisplayName' }
+        ver = values.find { |p| p[:name] == 'DisplayVersion' }
+        { name: nme && nme[:data], version: ver && ver[:data] }
+      end
+
+      #
+      # Return an list of all uninstall registry entries, both
+      # 32-bit and 64-bit.
+      #
+      # @return [Array<String>] an array of registry paths
+      #
+      def registry_uninstall_entries
+        registry_uninstall_paths.map do |path|
+          registry_get_subkeys(path).map { |app| "#{path}\\#{app}" }
+        end.flatten
+      end
+
+      #
+      # Return the registry paths to look for Chef-DK uninstall information
+      # under. While Chef-DK is currently 32-bit only, let's be slightly
+      # future-proof and check the 64-bit path as well.
+      #
+      # @return [Array<String>] an array of registry paths
+      #
+      def registry_uninstall_paths
+        [
+          'HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\' \
+            'Uninstall',
+          'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+        ]
       end
     end
   end

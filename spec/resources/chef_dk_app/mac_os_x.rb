@@ -9,19 +9,25 @@ shared_context 'resources::chef_dk_app::mac_os_x' do
   let(:installed_version) { nil }
 
   before(:each) do
-    allow_any_instance_of(Chef::Recipe).to receive(:homebrew_owner)
-      .and_return('test')
-    allow_any_instance_of(Chef::Resource).to receive(:homebrew_owner)
-      .and_return('test')
+    allow(File).to receive(:exist?).and_call_original
+    allow(File).to receive(:exist?).with('/usr/local/bin/brew').and_return(true)
+    allow_any_instance_of(Chef::Mixin::HomebrewUser)
+      .to receive(:find_homebrew_uid).and_return(42)
+    allow(Etc).to receive(:getpwuid).with(42)
+      .and_return(double(name: 'vagrant'))
+    stub_command('which git').and_return(true)
     allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out)
       .and_call_original
+    allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out)
+      .with('/usr/local/bin/brew analytics state', user: 'vagrant')
+      .and_return(double(stdout: 'enabled'))
     allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out)
       .with('pkgutil --pkg-info com.getchef.pkg.chefdk')
       .and_return(double(exitstatus: installed_version.nil? ? 1 : 0,
                          stdout: "test\nversion: #{installed_version}\nthings"))
   end
 
-  shared_examples_for 'any Mac OS X platform' do
+  shared_examples_for 'any MacOS platform' do
     it_behaves_like 'any platform'
 
     context 'the default action (:install)' do

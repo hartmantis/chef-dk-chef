@@ -1,10 +1,11 @@
 # encoding: utf-8
 # frozen_string_literal: true
+
 #
 # Cookbook Name:: chef-dk
 # Library:: matchers
 #
-# Copyright 2014-2016, Jonathan Hartman
+# Copyright 2014-2017, Jonathan Hartman
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,10 +21,10 @@
 
 if defined?(ChefSpec)
   {
-    chef_dk: %i(create remove),
-    chef_dk_app: %i(install remove),
-    chef_dk_gem: %i(install remove upgrade),
-    chef_dk_shell_init: %i(enable disable)
+    chef_dk: %i[create remove],
+    chef_dk_app: %i[install remove],
+    chef_dk_gem: %i[install remove upgrade],
+    chef_dk_shell_init: %i[enable disable]
   }.each do |matcher, actions|
     ChefSpec.define_matcher(matcher)
 
