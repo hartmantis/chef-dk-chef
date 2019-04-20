@@ -7,7 +7,7 @@ maintainer_email 'j@p4nt5.com'
 license          'Apache v2.0'
 description      'Installs/configures the Chef-DK'
 long_description 'Installs/configures the Chef-DK'
-version          '3.1.0'
+version          '3.1.1'
 
 depends          'dmg', '~> 2.2'
 
@@ -19,4 +19,5 @@ end
 supports         'fedora'
 supports         'mac_os_x', '>= 10.8'
 supports         'windows'
+supports         'amazon'
 # rubocop:enable SingleSpaceBeforeFirstArg

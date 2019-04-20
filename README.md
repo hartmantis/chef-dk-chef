@@ -111,6 +111,10 @@ the platform on which Chef is running.
 
 A generic provider of all non-platform-specific functionality.
 
+***Chef::Provider::ChefDk::Amazon***
+
+Provides the Amazon platform support.
+
 ***Chef::Provider::ChefDk::Debian***
 
 Provides the Ubuntu platform support.
